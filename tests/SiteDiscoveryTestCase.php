@@ -16,6 +16,7 @@ use Capell\SiteDiscovery\Providers\SiteDiscoveryServiceProvider;
 use Capell\Tests\AbstractTestCase;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\ParallelTesting;
+use Illuminate\Support\Facades\Storage;
 use Livewire\LivewireServiceProvider;
 use MichalOravec\PaginateRoute\PaginateRouteServiceProvider;
 use Override;
@@ -30,6 +31,8 @@ class SiteDiscoveryTestCase extends AbstractTestCase
         $storageToken = substr(hash('sha256', $testToken . '|' . getmypid()), 0, 16);
 
         ParallelTesting::resolveTokenUsing(static fn (): string => $storageToken);
+        config(['filesystems.disks.local.root' => storage_path('framework/testing/disks/site-discovery-' . $storageToken)]);
+        Storage::forgetDisk('local');
     }
 
     protected function getPackageServiceName(): string

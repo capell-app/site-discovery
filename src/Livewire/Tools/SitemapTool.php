@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\SiteDiscovery\Livewire\Tools;
 
+use Capell\Admin\Support\SiteScope;
 use Capell\SiteDiscovery\Enums\SitemapCacheKey;
 use Capell\SiteDiscovery\Jobs\RebuildAllSitemapsJob;
 use Filament\Facades\Filament;
@@ -21,7 +22,7 @@ class SitemapTool extends Component
         $this->assertGlobalAdmin();
 
         Cache::put(SitemapCacheKey::Generating->value, 'queued', now()->addMinutes(60));
-        RebuildAllSitemapsJob::dispatch();
+        dispatch(new RebuildAllSitemapsJob);
 
         Notification::make('sitemap_queue')
             ->status('warning')
@@ -47,10 +48,7 @@ class SitemapTool extends Component
             return;
         }
 
-        $configured = config('filament-shield.super_admin.name', 'super_admin');
-        $superAdminRole = is_string($configured) && $configured !== '' ? $configured : 'super_admin';
-
-        if (method_exists($user, 'hasRole') && $user->hasRole($superAdminRole)) {
+        if (method_exists($user, 'hasRole') && SiteScope::isGlobalActor($user)) {
             return;
         }
 

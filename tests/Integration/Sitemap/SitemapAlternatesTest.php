@@ -97,7 +97,7 @@ function expectedAlternateCluster(Page $page, Site $site): array
         $cluster[] = ['hreflang' => 'x-default', 'href' => $default->full_url];
     }
 
-    return $cluster;
+    return array_values($cluster);
 }
 
 it('emits the same alternate cluster in every language sitemap', function (): void {
