@@ -10,6 +10,7 @@ use Capell\Core\Events\SiteCreated;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
+use Capell\Core\Models\SiteDomain;
 use Capell\SiteDiscovery\Jobs\RegenerateSiteSitemapIncrementallyJob;
 use Capell\SiteDiscovery\Listeners\Sitemap\RegenerateSitemapsOnPageDeleted;
 use Capell\SiteDiscovery\Listeners\Sitemap\RegenerateSitemapsOnPageSaved;
@@ -174,7 +175,7 @@ it('queues owning site sitemap regeneration from the page deleted listener', fun
 
 it('regenerates the new site sitemap after site creation workflow runs', function (): void {
     $language = Language::factory()->create();
-    $site = Site::factory()->language($language)->create();
+    $site = Site::factory()->language($language)->withTranslations($language)->create();
 
     $generator = seoSuiteLifecycleFakeXmlSitemapGenerator();
     app()->instance(XmlSitemapGenerator::class, $generator);
@@ -203,4 +204,52 @@ it('ignores deleted page events when the page has no owning site', function (): 
     $listener->handle(new PageDeleted(new Page));
 
     expect($generator->incrementalSiteIds)->toBe([]);
+});
+
+it('skips sitemap generation for a site created before any domain exists', function (): void {
+    $language = Language::factory()->create();
+    $site = Site::factory()->language($language)->create();
+
+    expect($site->siteDomains()->exists())->toBeFalse();
+
+    $listener = new RegenerateSitemapsOnSiteCreated(resolve(XmlSitemapGenerator::class));
+
+    $listener->handle(new SiteCreated($site, ['name' => 'Example Site', 'language_id' => $language->id]));
+
+    expect($site->siteDomains()->exists())->toBeFalse();
+});
+
+it('queues sitemap regeneration when a domain is attached to a site', function (): void {
+    app()->register(BusServiceProvider::class);
+    Bus::fake();
+    Cache::flush();
+
+    $language = Language::factory()->create();
+    $site = Site::factory()->language($language)->create();
+
+    SiteDomain::factory()->create([
+        'site_id' => $site->id,
+        'language_id' => $language->id,
+    ]);
+
+    Bus::assertDispatched(
+        RegenerateSiteSitemapIncrementallyJob::class,
+        static fn (RegenerateSiteSitemapIncrementallyJob $job): bool => $job->siteId === $site->id,
+    );
+});
+
+it('coalesces sitemap regeneration when several domains are attached at once', function (): void {
+    app()->register(BusServiceProvider::class);
+    Bus::fake();
+    Cache::flush();
+
+    $language = Language::factory()->create();
+    $site = Site::factory()->language($language)->create();
+
+    SiteDomain::factory()->count(3)->create([
+        'site_id' => $site->id,
+        'language_id' => $language->id,
+    ]);
+
+    Bus::assertDispatchedTimes(RegenerateSiteSitemapIncrementallyJob::class, 1);
 });

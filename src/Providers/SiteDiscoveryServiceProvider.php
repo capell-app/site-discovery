@@ -21,6 +21,7 @@ use Capell\Core\Events\SiteCreated;
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Models\Blueprint;
 use Capell\Core\Models\Site;
+use Capell\Core\Models\SiteDomain;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Renderables\RenderableRegistry;
 use Capell\SiteDiscovery\Console\Commands\XmlSitemapCommand;
@@ -34,6 +35,7 @@ use Capell\SiteDiscovery\Listeners\Sitemap\EnsureSitemapPagesAfterCapellInstalle
 use Capell\SiteDiscovery\Listeners\Sitemap\RegenerateSitemapsOnPageDeleted;
 use Capell\SiteDiscovery\Listeners\Sitemap\RegenerateSitemapsOnPageSaved;
 use Capell\SiteDiscovery\Listeners\Sitemap\RegenerateSitemapsOnSiteCreated;
+use Capell\SiteDiscovery\Listeners\Sitemap\RegenerateSitemapsOnSiteDomainCreated;
 use Capell\SiteDiscovery\Livewire\Page\Sitemap as SitemapLivewireComponent;
 use Capell\SiteDiscovery\Livewire\Tools\SitemapTool;
 use Capell\SiteDiscovery\Support\AdminTools\SitemapAdminTool;
@@ -244,6 +246,7 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
         $events->listen(PageSaved::class, RegenerateSitemapsOnPageSaved::class);
         $events->listen(PageDeleted::class, RegenerateSitemapsOnPageDeleted::class);
         $events->listen(SiteCreated::class, RegenerateSitemapsOnSiteCreated::class);
+        $events->listen('eloquent.created: ' . SiteDomain::class, RegenerateSitemapsOnSiteDomainCreated::class);
 
         return $this;
     }

@@ -22,6 +22,12 @@ class RegenerateSitemapsOnSiteCreated implements ShouldQueue
 
     public function handle(SiteCreated $event): void
     {
+        // A site can be created before any domain is attached. There is nothing to
+        // publish yet, and the first page save regenerates once a domain exists.
+        if (! $event->site->siteDomains()->exists()) {
+            return;
+        }
+
         $this->generator->processIncremental($event->site);
     }
 
