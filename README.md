@@ -231,6 +231,7 @@ This package has no schema impact. It extends Capell through `admin-page` contri
 
 - [Package docs](docs/README.md)
 - [Overview](docs/overview.md)
+- [Worked extension examples](docs/extension-contracts.md)
 - [Admin guide](docs/admin-guide.md)
 - Configuration files: [`config/capell-site-discovery.php`](config/capell-site-discovery.php).
 - [Troubleshooting](#troubleshooting)
