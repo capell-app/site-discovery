@@ -7,9 +7,13 @@ namespace Capell\SiteDiscovery\Support\Sitemap;
 use Capell\Core\Enums\CacheEnum;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
+use Capell\SiteDiscovery\Actions\DiscoverPublicUrlsAction;
+use Capell\SiteDiscovery\Data\DiscoverableUrlData;
 use Capell\SiteDiscovery\Data\SitemapPageData;
 use Capell\SiteDiscovery\Data\SitemapUrlItemData;
 use Capell\SiteDiscovery\Exceptions\SitemapGeneratorException;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Closure;
 use DateTimeInterface;
 use Illuminate\Contracts\Filesystem\Filesystem;
@@ -162,12 +166,8 @@ class XmlSitemapGenerator
             $start($domain);
         }
 
-        Cache::forget(CacheEnum::sitemapPages($site->id, $domain->language->id));
-
-        $builder = new SitemapBuilder($site, $domain, $domain->language);
-        $pages = $builder->build();
-
-        $items = $this->flattenPages($pages->all());
+        $this->forgetSitemapPageCaches($site->id, $domain->language->id);
+        $items = $this->buildUrlItems($site, $domain);
         $total = count($items);
 
         if ($prepare instanceof Closure) {
@@ -188,6 +188,10 @@ class XmlSitemapGenerator
             $state->save($domain->getDomainKey(), $state->buildUrlMap($items));
         } else {
             $filePath = $directory . '/' . $domain->getDomainKey() . '.xml';
+            $this->deleteDomainFiles($storage, $directory, $domain->getDomainKey());
+
+            $state = new SitemapStateStore($disk, $directory);
+            $state->save($domain->getDomainKey(), []);
         }
 
         if ($end instanceof Closure) {
@@ -220,11 +224,8 @@ class XmlSitemapGenerator
             $start($domain);
         }
 
-        Cache::forget(CacheEnum::sitemapPages($site->id, $domain->language->id));
-
-        $builder = new SitemapBuilder($site, $domain, $domain->language);
-        $pages = $builder->build();
-        $items = $this->flattenPages($pages->all());
+        $this->forgetSitemapPageCaches($site->id, $domain->language->id);
+        $items = $this->buildUrlItems($site, $domain);
         $total = count($items);
 
         if ($prepare instanceof Closure) {
@@ -255,6 +256,8 @@ class XmlSitemapGenerator
             $state->save($domainKey, $currentMap);
         } else {
             $filePath = $directory . '/' . $domainKey . '.xml';
+            $this->deleteDomainFiles($storage, $directory, $domainKey);
+            $state->save($domainKey, []);
         }
 
         if ($end instanceof Closure) {
@@ -279,6 +282,8 @@ class XmlSitemapGenerator
         $maxPerFile = max(1, config('capell.sitemap.max_urls_per_file', 50000));
         $domainKey = $domain->getDomainKey();
         $mainPath = $directory . '/' . $domainKey . '.xml';
+
+        $this->deleteChunkFiles($storage, $directory, $domainKey);
 
         if (count($items) <= $maxPerFile) {
             $storage->put($mainPath, $this->toXml($items));
@@ -366,6 +371,57 @@ class XmlSitemapGenerator
             ->filter(fn (mixed $child): bool => $child instanceof SitemapPageData)
             ->values()
             ->all();
+    }
+
+    /**
+     * @return array<int, SitemapUrlItemData>
+     */
+    private function buildUrlItems(Site $site, SiteDomain $domain): array
+    {
+        $builder = new SitemapBuilder($site, $domain, $domain->language);
+        $items = $this->flattenPages($builder->build()->all());
+
+        $contributedItems = DiscoverPublicUrlsAction::run($site, $domain->language, includePages: false, domain: $domain)
+            ->map(fn (DiscoverableUrlData $url): SitemapUrlItemData => new SitemapUrlItemData(
+                loc: $url->loc,
+                lastmod: $url->lastModified instanceof CarbonImmutable
+                    ? $url->lastModified
+                    : ($url->lastModified instanceof CarbonInterface ? CarbonImmutable::instance($url->lastModified) : null),
+                changefreq: $url->changeFrequency,
+                priority: $url->priority,
+            ));
+
+        return collect($items)
+            ->merge($contributedItems)
+            ->unique(fn (SitemapUrlItemData $item): string => $item->loc)
+            ->values()
+            ->all();
+    }
+
+    private function forgetSitemapPageCaches(int $siteId, int $languageId): void
+    {
+        $baseKey = CacheEnum::sitemapPages($siteId, $languageId);
+
+        Cache::forget($baseKey);
+        Cache::forget($baseKey . '.public');
+        Cache::forget($baseKey . '.with-edit-urls');
+    }
+
+    private function deleteDomainFiles(Filesystem $storage, string $directory, string $domainKey): void
+    {
+        $storage->delete($directory . '/' . $domainKey . '.xml');
+        $this->deleteChunkFiles($storage, $directory, $domainKey);
+    }
+
+    private function deleteChunkFiles(Filesystem $storage, string $directory, string $domainKey): void
+    {
+        foreach ($storage->files($directory) as $file) {
+            $basename = basename($file);
+
+            if (str_starts_with($basename, $domainKey . '-p') && str_ends_with($basename, '.xml')) {
+                $storage->delete($file);
+            }
+        }
     }
 
     /**

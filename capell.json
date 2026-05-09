@@ -25,7 +25,9 @@
     "providers": {
         "metadata": [],
         "install": [],
-        "runtime": ["Capell\\SiteDiscovery\\Providers\\SiteDiscoveryServiceProvider"],
+        "runtime": [
+            "Capell\\SiteDiscovery\\Providers\\SiteDiscoveryServiceProvider"
+        ],
         "admin": [],
         "frontend": []
     },

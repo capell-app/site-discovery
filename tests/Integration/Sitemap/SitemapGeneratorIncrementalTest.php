@@ -7,9 +7,13 @@ use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
 use Capell\Core\Models\Type;
+use Capell\SiteDiscovery\Contracts\DiscoverableUrlSource;
+use Capell\SiteDiscovery\Data\DiscoverableUrlData;
 use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 uses(SiteDiscoveryTestCase::class);
@@ -115,8 +119,10 @@ it('incremental run regenerates when a page lastmod changes', function (): void 
     $generator = new XmlSitemapGenerator;
     $generator->processIncremental(site: $site);
 
-    // Bump the page's visible_from timestamp (which drives lastmod) and clear cache
-    $page->update(['visible_from' => now()->addDay()]);
+    // Bump a timestamp that contributes to sitemap lastmod while keeping the page published.
+    DB::table('pages')
+        ->where('id', $page->getKey())
+        ->update(['updated_at' => now()->addDay()]);
     Cache::flush();
 
     $regenerated = null;
@@ -323,4 +329,55 @@ it('delete() removes all chunk files for a domain', function (): void {
     $filesAfter = collect($storage->files('sitemaps_test_inc'))
         ->filter(fn (string $f): bool => str_starts_with(basename($f), $domainKey) && str_ends_with($f, '.xml'));
     expect($filesAfter)->toBeEmpty();
+});
+
+it('writes contributed URLs only to the matching domain sitemap', function (): void {
+    $language = Language::factory()->create();
+    $primaryDomain = SiteDomain::factory()->state([
+        'domain' => 'example.com',
+        'language_id' => $language->id,
+        'scheme' => 'https',
+        'path' => null,
+    ])->create();
+    $site = $primaryDomain->site;
+    $secondaryDomain = SiteDomain::factory()
+        ->for($site)
+        ->state([
+            'domain' => 'secondary.example.com',
+            'language_id' => $language->id,
+            'scheme' => 'https',
+            'path' => null,
+        ])
+        ->create();
+
+    app()->instance('site-discovery-sitemap-test-source', new class implements DiscoverableUrlSource
+    {
+        /**
+         * @return Collection<int, DiscoverableUrlData>
+         */
+        public function discover(Site $site, Language $language, ?SiteDomain $domain = null): Collection
+        {
+            return collect([
+                new DiscoverableUrlData(loc: 'https://example.com/contributed'),
+                new DiscoverableUrlData(loc: 'https://secondary.example.com/contributed'),
+                new DiscoverableUrlData(loc: 'https://wrong.example.com/contributed'),
+            ]);
+        }
+    });
+    app()->tag(['site-discovery-sitemap-test-source'], 'capell-site-discovery:discoverable-url-sources');
+
+    (new XmlSitemapGenerator)->process($site);
+
+    $storage = Storage::disk('local');
+    $primaryXml = $storage->get('sitemaps_test_inc/' . $primaryDomain->getDomainKey() . '.xml');
+    $secondaryXml = $storage->get('sitemaps_test_inc/' . $secondaryDomain->getDomainKey() . '.xml');
+
+    expect($primaryXml)
+        ->toContain('https://example.com/contributed')
+        ->not()->toContain('https://secondary.example.com/contributed')
+        ->not()->toContain('https://wrong.example.com/contributed')
+        ->and($secondaryXml)
+        ->toContain('https://secondary.example.com/contributed')
+        ->not()->toContain('https://example.com/contributed')
+        ->not()->toContain('https://wrong.example.com/contributed');
 });

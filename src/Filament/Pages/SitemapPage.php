@@ -6,6 +6,7 @@ namespace Capell\SiteDiscovery\Filament\Pages;
 
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
+use Capell\Admin\Support\SiteScope;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Site;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapBuilder;
@@ -39,11 +40,16 @@ class SitemapPage extends Page
 
     protected static ?string $slug = 'sitemap';
 
-    protected string $view = 'capell::components.pages.sitemap';
+    protected string $view = 'capell-site-discovery::components.pages.sitemap';
 
     public static function getNavigationLabel(): string
     {
         return __('capell-admin::generic.sitemap');
+    }
+
+    public function getView(): string
+    {
+        return 'capell-site-discovery::components.pages.sitemap';
     }
 
     public function getSitemap(): ?Collection
@@ -113,7 +119,7 @@ class SitemapPage extends Page
         /** @var class-string<Site> $model */
         $model = Site::class;
 
-        return $model::query()
+        return SiteScope::applyForCurrentActor($model::query(), 'id', denyWhenMissingActor: true)
             ->with([
                 'languages',
                 'translations.language',
@@ -164,6 +170,12 @@ class SitemapPage extends Page
         $sites = $this->getSites();
 
         $site = $sites->firstWhere('id', $this->site_id);
+
+        if (! $site instanceof Site) {
+            $this->site_languages = collect();
+
+            return $this->site_languages;
+        }
 
         $this->site_languages = $site->languages;
 

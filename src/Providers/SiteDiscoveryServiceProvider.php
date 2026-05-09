@@ -188,6 +188,7 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
     private function registerFrontendViews(): self
     {
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'capell');
+        $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'capell-site-discovery');
 
         return $this;
     }

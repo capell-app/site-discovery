@@ -6,6 +6,7 @@ namespace Capell\SiteDiscovery\Contracts;
 
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Site;
+use Capell\Core\Models\SiteDomain;
 use Capell\SiteDiscovery\Data\DiscoverableUrlData;
 use Illuminate\Support\Collection;
 
@@ -14,5 +15,5 @@ interface DiscoverableUrlSource
     /**
      * @return Collection<int, DiscoverableUrlData>
      */
-    public function discover(Site $site, Language $language): Collection;
+    public function discover(Site $site, Language $language, ?SiteDomain $domain = null): Collection;
 }

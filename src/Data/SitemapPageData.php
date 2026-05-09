@@ -73,9 +73,16 @@ class SitemapPageData extends Data
 
     public static function resolveLastModified(Pageable $page): CarbonImmutable
     {
-        $date = $page->published_at ?? $page->visible_from ?? $page->created_at ?? now();
-
-        return CarbonImmutable::make($date);
+        return collect([
+            $page->published_at ?? null,
+            $page->visible_from ?? null,
+            $page->updated_at ?? null,
+            $page->created_at ?? null,
+        ])
+            ->filter()
+            ->map(fn (mixed $date): CarbonImmutable => CarbonImmutable::make($date))
+            ->sort()
+            ->last() ?? CarbonImmutable::make(now());
     }
 
     private static function pageUrl(Pageable $page): string

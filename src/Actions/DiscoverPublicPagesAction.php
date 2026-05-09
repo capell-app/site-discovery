@@ -70,7 +70,7 @@ final class DiscoverPublicPagesAction
 
                 return new DiscoverablePageData(
                     pageId: (int) $page->getKey(),
-                    title: trim(strip_tags((string) ($page->translation?->title ?? $page->translation?->label ?? ''))),
+                    title: trim(strip_tags((string) ($page->translation?->title ?? $page->translation?->label ?? $page->name ?? ''))),
                     url: (string) ($page->pageUrl?->full_url ?? ''),
                     lastModified: $page->updated_at,
                     priority: is_numeric($page->meta['priority'] ?? null) ? (float) $page->meta['priority'] : null,
@@ -78,7 +78,7 @@ final class DiscoverPublicPagesAction
                     page: $page,
                 );
             })
-            ->filter(fn (DiscoverablePageData $page): bool => $page->url !== '' && $page->title !== '')
+            ->filter(fn (DiscoverablePageData $page): bool => $page->url !== '')
             ->values();
     }
 }

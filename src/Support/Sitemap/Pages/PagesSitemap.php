@@ -23,7 +23,7 @@ class PagesSitemap extends AbstractSitemapPages
 
         throw_if($this->language->id === null, LogicException::class, 'Language ID is null in DefaultPages::fetch(). Ensure the Language model is persisted and loaded.');
 
-        $cacheKey = CacheEnum::sitemapPages($this->site->id, $this->language->id);
+        $cacheKey = $this->cacheKey($this->site->id, $this->language->id);
 
         return Cache::remember($cacheKey, 3600, fn (): Collection => DiscoverPublicPagesAction::run($this->site, $this->language)
             ->map(fn (DiscoverablePageData $data): ?Page => $data->page)
@@ -36,5 +36,10 @@ class PagesSitemap extends AbstractSitemapPages
     public function format(Page $page): SitemapPageData
     {
         return SitemapPageData::fromPage($page, withEditUrl: $this->withEditUrl);
+    }
+
+    private function cacheKey(int $siteId, int $languageId): string
+    {
+        return CacheEnum::sitemapPages($siteId, $languageId) . ($this->withEditUrl ? '.with-edit-urls' : '.public');
     }
 }

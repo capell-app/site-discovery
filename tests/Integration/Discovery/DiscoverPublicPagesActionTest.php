@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
+use Capell\Core\Models\SiteDomain;
 use Capell\SiteDiscovery\Actions\DiscoverPublicPagesAction;
 use Capell\SiteDiscovery\Actions\DiscoverPublicUrlsAction;
 use Capell\SiteDiscovery\Contracts\DiscoverableUrlSource;
@@ -95,11 +96,11 @@ it('discovers public URLs from pages and contributor sources', function (): void
         /**
          * @return Collection<int, DiscoverableUrlData>
          */
-        public function discover(Site $site, Language $language): Collection
+        public function discover(Site $site, Language $language, ?SiteDomain $domain = null): Collection
         {
             return collect([
-                new DiscoverableUrlData(loc: $site->siteDomain->full_url . '/contributed'),
-                new DiscoverableUrlData(loc: $site->siteDomain->full_url . '/contributed'),
+                new DiscoverableUrlData(loc: ($domain ?? $site->siteDomain)->full_url . '/contributed'),
+                new DiscoverableUrlData(loc: ($domain ?? $site->siteDomain)->full_url . '/contributed'),
             ]);
         }
     };

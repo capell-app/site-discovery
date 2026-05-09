@@ -22,6 +22,10 @@ beforeEach(function (): void {
     Cache::flush();
 });
 
+afterEach(function (): void {
+    Date::setTestNow();
+});
+
 describe('SitemapBuilder', function (): void {
     it('discovers public pages from real models and returns a structured sitemap tree', function (): void {
         $language = Language::factory()->state(['locale' => 'en'])->create();
