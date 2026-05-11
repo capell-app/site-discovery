@@ -10,7 +10,9 @@ use Capell\Admin\Contracts\Extenders\SiteHeaderActionExtender;
 use Capell\Admin\Contracts\Extenders\SiteRecordActionExtender;
 use Capell\Core\Actions\RegisterBlazeOptimizedViewsAction;
 use Capell\Core\Data\PackageData;
+use Capell\Core\Data\RenderableDefinitionData;
 use Capell\Core\Enums\PackageTypeEnum;
+use Capell\Core\Enums\RenderableTypeEnum;
 use Capell\Core\Enums\TypeEnum;
 use Capell\Core\Events\PageDeleted;
 use Capell\Core\Events\PageSaved;
@@ -19,6 +21,7 @@ use Capell\Core\Facades\CapellCore;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\Type;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
+use Capell\Core\Support\Renderables\RenderableRegistry;
 use Capell\SiteDiscovery\Console\Commands\XmlSitemapCommand;
 use Capell\SiteDiscovery\Filament\Extenders\Page\SitemapResourceHeaderActionExtender;
 use Capell\SiteDiscovery\Filament\Extenders\Site\SitemapSiteHeaderActionExtender;
@@ -77,6 +80,7 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
         return $this
             ->registerBlazeComponents()
             ->registerAdminExtenders()
+            ->registerPageRenderables()
             ->registerLivewireComponents()
             ->registerSitemapPageType()
             ->registerSitemapDefaultPage()
@@ -117,6 +121,17 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
     {
         Livewire::component(SitemapPageType::ComponentView, SitemapLivewireComponent::class);
         Livewire::component('capell-site-discovery.tools.sitemap-tool', SitemapTool::class);
+
+        return $this;
+    }
+
+    private function registerPageRenderables(): self
+    {
+        resolve(RenderableRegistry::class)->register(new RenderableDefinitionData(
+            key: SitemapPageType::ComponentView,
+            type: RenderableTypeEnum::Page,
+            livewire: SitemapPageType::ComponentView,
+        ));
 
         return $this;
     }
