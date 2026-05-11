@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Capell\SiteDiscovery\Filament\Extenders\Site;
 
 use Capell\Admin\Contracts\Extenders\SiteHeaderActionExtender;
+use Capell\Admin\Filament\Pages\SitemapPage;
 use Capell\Core\Models\Site;
-use Capell\SiteDiscovery\Filament\Pages\SitemapPage;
 use Filament\Actions\Action;
 
 class SitemapSiteHeaderActionExtender implements SiteHeaderActionExtender

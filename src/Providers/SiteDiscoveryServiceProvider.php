@@ -8,7 +8,6 @@ use Capell\Admin\Contracts\AdminTools\AdminToolItem;
 use Capell\Admin\Contracts\Extenders\ResourceHeaderActionExtender;
 use Capell\Admin\Contracts\Extenders\SiteHeaderActionExtender;
 use Capell\Admin\Contracts\Extenders\SiteRecordActionExtender;
-use Capell\Admin\Support\CapellAdminManager;
 use Capell\Core\Actions\RegisterBlazeOptimizedViewsAction;
 use Capell\Core\Data\PackageData;
 use Capell\Core\Enums\PackageTypeEnum;
@@ -24,7 +23,6 @@ use Capell\SiteDiscovery\Console\Commands\XmlSitemapCommand;
 use Capell\SiteDiscovery\Filament\Extenders\Page\SitemapResourceHeaderActionExtender;
 use Capell\SiteDiscovery\Filament\Extenders\Site\SitemapSiteHeaderActionExtender;
 use Capell\SiteDiscovery\Filament\Extenders\Site\SitemapSiteRecordActionExtender;
-use Capell\SiteDiscovery\Filament\Pages\SitemapPage;
 use Capell\SiteDiscovery\Listeners\Sitemap\RegenerateSitemapsOnPageDeleted;
 use Capell\SiteDiscovery\Listeners\Sitemap\RegenerateSitemapsOnPageSaved;
 use Capell\SiteDiscovery\Listeners\Sitemap\RegenerateSitemapsOnSiteCreated;
@@ -79,7 +77,6 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
         return $this
             ->registerBlazeComponents()
             ->registerAdminExtenders()
-            ->registerFilamentPages()
             ->registerLivewireComponents()
             ->registerSitemapPageType()
             ->registerSitemapDefaultPage()
@@ -112,16 +109,6 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
         $this->app->tag([
             SitemapAdminTool::class,
         ], AdminToolItem::TAG);
-
-        return $this;
-    }
-
-    private function registerFilamentPages(): self
-    {
-        /** @var CapellAdminManager $adminManager */
-        $adminManager = $this->app->make(CapellAdminManager::class);
-
-        $adminManager->registerExtensionPage(self::$packageName, SitemapPage::class);
 
         return $this;
     }
