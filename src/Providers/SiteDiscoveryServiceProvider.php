@@ -64,8 +64,6 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
 
     public function registeringPackage(): void
     {
-        $this->registerPackageMetadata();
-
         $this->app->booted(function (): void {
             if (! $this->isPackageInstalled()) {
                 return;
@@ -200,19 +198,6 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
         $package = CapellCore::getPackage(self::$packageName);
 
         return $package instanceof PackageData && $package->isInstalled();
-    }
-
-    private function registerPackageMetadata(): void
-    {
-        CapellCore::registerPackage(
-            self::$packageName,
-            type: self::getType(),
-            serviceProviderClass: self::class,
-            path: realpath(__DIR__ . '/../..'),
-            version: $this->getVersion(),
-            permissions: [],
-            description: fn (): string => __('capell-site-discovery::package.description'),
-        );
     }
 
     private function getVersion(): string
