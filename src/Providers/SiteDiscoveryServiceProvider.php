@@ -37,7 +37,6 @@ use Capell\SiteDiscovery\Support\Interceptors\SitemapPageTypeInterceptor;
 use Capell\SiteDiscovery\Support\Sitemap\Pages\PagesSitemap;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageRegistry;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageType;
-use Composer\InstalledVersions;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Collection;
 use Livewire\Livewire;
@@ -198,18 +197,5 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
         $package = CapellCore::getPackage(self::$packageName);
 
         return $package instanceof PackageData && $package->isInstalled();
-    }
-
-    private function getVersion(): string
-    {
-        if (! class_exists(InstalledVersions::class)) {
-            return 'dev';
-        }
-
-        if (! InstalledVersions::isInstalled(self::$packageName)) {
-            return 'dev';
-        }
-
-        return InstalledVersions::getPrettyVersion(self::$packageName) ?? 'dev';
     }
 }
