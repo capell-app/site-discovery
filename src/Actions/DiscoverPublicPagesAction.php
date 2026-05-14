@@ -64,6 +64,8 @@ final class DiscoverPublicPagesAction
             ->publishedDate()
             ->ordered()
             ->get()
+            ->filter(fn (Page $page): bool => ! $this->hasNoIndexDirective((array) ($page->meta ?? []))
+                && ! $this->hasNoIndexDirective((array) ($page->translation?->meta ?? [])))
             ->map(function (Page $page) use ($site): DiscoverablePageData {
                 $page->setRelation('site', $site);
                 Page::setResolvedPageUrlSiteDomain($page, $site);
@@ -80,5 +82,27 @@ final class DiscoverPublicPagesAction
             })
             ->filter(fn (DiscoverablePageData $page): bool => $page->url !== '')
             ->values();
+    }
+
+    /**
+     * @param  array<string, mixed>  $meta
+     */
+    private function hasNoIndexDirective(array $meta): bool
+    {
+        $directives = $meta['robots'] ?? [];
+
+        if (is_string($directives)) {
+            return strtolower(trim($directives)) === 'noindex';
+        }
+
+        if (! is_array($directives)) {
+            return false;
+        }
+
+        return collect($directives)
+            ->filter(fn (mixed $value, mixed $key): bool => is_string($key) ? $value === true : is_string($value))
+            ->map(fn (mixed $value, mixed $key): string => is_string($key) ? $key : (string) $value)
+            ->map(fn (string $directive): string => strtolower(trim($directive)))
+            ->contains('noindex');
     }
 }

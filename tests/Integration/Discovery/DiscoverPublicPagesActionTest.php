@@ -46,6 +46,12 @@ it('excludes pages that are not public discoverable pages', function (): void {
 
     Page::factory()
         ->site($site)
+        ->withTranslations($language, ['title' => 'Associative Noindex Page'])
+        ->meta('robots', ['noindex' => true])
+        ->create();
+
+    Page::factory()
+        ->site($site)
         ->withTranslations($language, ['title' => 'Hidden Page'])
         ->meta('hidden', true)
         ->create();
@@ -70,6 +76,36 @@ it('excludes pages that are not public discoverable pages', function (): void {
         ->and($pages->first())->toBeInstanceOf(DiscoverablePageData::class)
         ->and($pages->pluck('pageId')->all())->toBe([(int) $publicPage->getKey()])
         ->and($pages->first()?->title)->toBe('Public Page');
+});
+
+it('excludes pages with translation noindex directives', function (): void {
+    $language = Language::query()->create([
+        'name' => 'English',
+        'locale' => 'en',
+        'code' => 'en',
+        'flag' => 'gb-eng',
+        'status' => true,
+        'default' => true,
+        'order' => 1,
+    ]);
+    $site = Site::factory()->language($language)->withTranslations($language)->create();
+
+    $publicPage = Page::factory()
+        ->site($site)
+        ->withTranslations($language, ['title' => 'Public Page'])
+        ->create();
+
+    Page::factory()
+        ->site($site)
+        ->withTranslations($language, [
+            'title' => 'Translation Noindex Page',
+            'meta' => ['robots' => ['noindex']],
+        ])
+        ->create();
+
+    $pages = DiscoverPublicPagesAction::run($site, $language);
+
+    expect($pages->pluck('pageId')->all())->toBe([(int) $publicPage->getKey()]);
 });
 
 it('discovers public URLs from pages and contributor sources', function (): void {
