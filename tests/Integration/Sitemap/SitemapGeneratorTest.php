@@ -189,7 +189,7 @@ it('sitemap omits unpublished pages', function (): void {
     $attributes = Page::factory()->pending()->make([
         'site_id' => $site->id,
         'name' => 'Draft',
-        'type_id' => $pageType->id,
+        'blueprint_id' => $pageType->id,
     ])->getAttributes();
     $fillable = (new Page)->getFillable();
     $attributesOnlyFillable = array_intersect_key($attributes, array_flip($fillable));

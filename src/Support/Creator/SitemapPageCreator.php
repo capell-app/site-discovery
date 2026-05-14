@@ -48,7 +48,7 @@ class SitemapPageCreator
                 'rendering_strategy' => RenderingStrategyEnum::FullLivewire->value,
             ],
             'site_id' => $site->id,
-            'type_id' => $type->id,
+            'blueprint_id' => $type->id,
             'name' => __('capell-site-discovery::generic.sitemap'),
         ];
 
@@ -58,7 +58,7 @@ class SitemapPageCreator
             [
                 'layout_id' => $layout->id,
                 'site_id' => $site->id,
-                'type_id' => $type->id,
+                'blueprint_id' => $type->id,
             ],
             fn (array $data): array => CapellCore::mergeModelInterceptorData($defaults, $data),
             PageInterceptorInterface::class,
