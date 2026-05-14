@@ -14,6 +14,7 @@ use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\Type;
 use Capell\Core\Support\Creator\LayoutCreator;
+use Capell\Frontend\Enums\RenderingStrategyEnum;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -43,6 +44,9 @@ class SitemapPageCreator
 
         $defaults = [
             'layout_id' => $layout->id,
+            'meta' => [
+                'rendering_strategy' => RenderingStrategyEnum::FullLivewire->value,
+            ],
             'site_id' => $site->id,
             'type_id' => $type->id,
             'name' => __('capell-site-discovery::generic.sitemap'),

@@ -27,8 +27,8 @@ class Sitemap extends AbstractPage
         $site = Frontend::site();
 
         /** @noRector RectorLaravel\Rector\If_\AbortIfRector */
-        $requestUri = request()->getRequestUri();
-        if ($page instanceof Pageable && (str_ends_with($requestUri, '-xml') || str_ends_with($url, '-xml'))) {
+        $requestPath = '/' . trim(request()->path(), '/');
+        if ($page instanceof Pageable && (str_ends_with($requestPath, '-xml') || str_ends_with($url, '-xml'))) {
             $downloadFilename = (str_ends_with($url, '-xml') ? substr($url, 0, -4) : $url) . '.xml';
             throw new HttpResponseException($this->returnXmlSitemap($downloadFilename, $site));
         }
