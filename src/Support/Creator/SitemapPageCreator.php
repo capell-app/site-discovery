@@ -8,11 +8,11 @@ use Capell\Core\Actions\GetOrCreateResultsLayoutAction;
 use Capell\Core\Contracts\ModelInterceptors\PageInterceptorInterface;
 use Capell\Core\Enums\LayoutEnum;
 use Capell\Core\Facades\CapellCore;
+use Capell\Core\Models\Blueprint;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Layout;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
-use Capell\Core\Models\Type;
 use Capell\Core\Support\Creator\LayoutCreator;
 use Capell\Frontend\Enums\RenderingStrategyEnum;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageType;
@@ -32,9 +32,9 @@ class SitemapPageCreator
     protected string $pageModel = Page::class;
 
     /**
-     * @var class-string<Type>
+     * @var class-string<Blueprint>
      */
-    protected string $typeModel = Type::class;
+    protected string $typeModel = Blueprint::class;
 
     public function createSitemapPage(Site $site, ?Collection $languages = null): Page
     {
@@ -85,9 +85,9 @@ class SitemapPageCreator
         return $page;
     }
 
-    private function getOrCreateSitemapType(): Type
+    private function getOrCreateSitemapType(): Blueprint
     {
-        /** @var Builder<Type> $query */
+        /** @var Builder<Blueprint> $query */
         $query = $this->typeModel::query();
 
         $type = $query->where('key', SitemapPageType::Key)->pageType()->first();

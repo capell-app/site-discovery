@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Models\Blueprint;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
-use Capell\Core\Models\Type;
 use Capell\SiteDiscovery\Contracts\DiscoverableUrlSource;
 use Capell\SiteDiscovery\Data\DiscoverableUrlData;
 use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
@@ -248,7 +248,7 @@ it('writes chunk files and a sitemapindex when URLs exceed max_urls_per_file', f
         'path' => null,
     ])->create();
     $site = $siteDomain->site;
-    $pageType = Type::factory()->page()->create(['meta' => ['listable' => true, 'sitemap' => true]]);
+    $pageType = Blueprint::factory()->page()->create(['meta' => ['listable' => true, 'sitemap' => true]]);
     Page::factory()->count(5)->site($site)->type($pageType)->withTranslations()->create();
 
     (new XmlSitemapGenerator)->generate($site);
@@ -290,7 +290,7 @@ it('sitemapindex <loc> entries use the configured xml_path and ?p=N query parame
         'path' => null,
     ])->create();
     $site = $siteDomain->site;
-    $pageType = Type::factory()->page()->create(['meta' => ['listable' => true, 'sitemap' => true]]);
+    $pageType = Blueprint::factory()->page()->create(['meta' => ['listable' => true, 'sitemap' => true]]);
     Page::factory()->count(3)->site($site)->type($pageType)->withTranslations()->create();
 
     (new XmlSitemapGenerator)->generate($site);

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\SiteDiscovery\Actions;
 
-use Capell\Core\Enums\TypeGroupEnum;
+use Capell\Core\Enums\BlueprintGroupEnum;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
@@ -46,7 +46,7 @@ final class DiscoverPublicPagesAction
                 fn (BuilderContract $query): BuilderContract => $query
                     ->where(
                         fn (Builder $query): Builder => $query->whereNull('group')
-                            ->orWhereIn('group', config('capell.core.sitemap.type_groups', [TypeGroupEnum::Default->value])),
+                            ->orWhereIn('group', config('capell.core.sitemap.type_groups', [BlueprintGroupEnum::Default->value])),
                     )
                     ->enabled()
                     ->visible()
@@ -64,8 +64,8 @@ final class DiscoverPublicPagesAction
             ->publishedDate()
             ->ordered()
             ->get()
-            ->filter(fn (Page $page): bool => ! $this->hasNoIndexDirective((array) ($page->meta ?? []))
-                && ! $this->hasNoIndexDirective((array) ($page->translation?->meta ?? [])))
+            ->filter(fn (Page $page): bool => ! $this->hasNoIndexDirective($page->meta ?? [])
+                && ! $this->hasNoIndexDirective($page->translation?->meta ?? []))
             ->map(function (Page $page) use ($site): DiscoverablePageData {
                 $page->setRelation('site', $site);
                 Page::setResolvedPageUrlSiteDomain($page, $site);

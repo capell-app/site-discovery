@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Models\Blueprint;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\SiteDomain;
-use Capell\Core\Models\Type;
 use Capell\SiteDiscovery\Contracts\Sitemapable;
 use Capell\SiteDiscovery\Data\SitemapPageData;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapBuilder;
@@ -34,7 +34,7 @@ describe('SitemapBuilder', function (): void {
             ->state(['scheme' => 'https', 'domain' => 'example.com', 'path' => null])
             ->create();
 
-        $pageType = Type::factory()->page()->create([
+        $pageType = Blueprint::factory()->page()->create([
             'meta' => ['listable' => true, 'sitemap' => true],
         ]);
 

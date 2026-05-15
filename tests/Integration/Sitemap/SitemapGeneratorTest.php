@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Models\Blueprint;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
-use Capell\Core\Models\Type;
 use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Illuminate\Support\Facades\Storage;
@@ -175,7 +175,7 @@ it('sitemap omits unpublished pages', function (): void {
         'scheme' => 'http',
     ])->create();
     $site = $siteDomain->site;
-    $pageType = Type::factory()->page()->create([
+    $pageType = Blueprint::factory()->page()->create([
         'meta' => ['listable' => true, 'sitemap' => true],
     ]);
     // Published page (should appear)
@@ -220,7 +220,7 @@ it('sitemap includes multiple pages', function (): void {
         'scheme' => 'http',
     ])->create();
     $site = $siteDomain->site;
-    $pageType = Type::factory()->page()->create([
+    $pageType = Blueprint::factory()->page()->create([
         'meta' => ['listable' => true, 'sitemap' => true],
     ]);
     $pages = Page::factory()

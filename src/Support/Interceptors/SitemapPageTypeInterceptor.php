@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Capell\SiteDiscovery\Support\Interceptors;
 
 use Capell\Admin\Filament\Configurators\Types\PageTypeConfigurator;
-use Capell\Core\Contracts\ModelInterceptors\TypeInterceptorInterface;
-use Capell\Core\Models\Type;
+use Capell\Core\Contracts\ModelInterceptors\BlueprintInterceptorInterface;
+use Capell\Core\Models\Blueprint;
 
-class SitemapPageTypeInterceptor implements TypeInterceptorInterface
+class SitemapPageTypeInterceptor implements BlueprintInterceptorInterface
 {
     public function beforeCreate(array $data): array
     {
@@ -21,5 +21,5 @@ class SitemapPageTypeInterceptor implements TypeInterceptorInterface
         return $data;
     }
 
-    public function afterCreated(Type $type, array $data): void {}
+    public function afterCreated(Blueprint $type, array $data): void {}
 }

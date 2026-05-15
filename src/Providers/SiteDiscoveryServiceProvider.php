@@ -11,15 +11,15 @@ use Capell\Admin\Contracts\Extenders\SiteRecordActionExtender;
 use Capell\Core\Actions\RegisterBlazeOptimizedViewsAction;
 use Capell\Core\Data\PackageData;
 use Capell\Core\Data\RenderableDefinitionData;
+use Capell\Core\Enums\BlueprintSubjectEnum;
 use Capell\Core\Enums\PackageTypeEnum;
 use Capell\Core\Enums\RenderableTypeEnum;
-use Capell\Core\Enums\TypeEnum;
 use Capell\Core\Events\PageDeleted;
 use Capell\Core\Events\PageSaved;
 use Capell\Core\Events\SiteCreated;
 use Capell\Core\Facades\CapellCore;
+use Capell\Core\Models\Blueprint;
 use Capell\Core\Models\Site;
-use Capell\Core\Models\Type;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Renderables\RenderableRegistry;
 use Capell\SiteDiscovery\Console\Commands\XmlSitemapCommand;
@@ -135,15 +135,15 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
 
     private function registerSitemapPageType(): self
     {
-        /** @var class-string<Type> $typeModel */
-        $typeModel = Type::class;
+        /** @var class-string<Blueprint> $typeModel */
+        $typeModel = Blueprint::class;
 
         CapellCore::registerModelInterceptor(
             $typeModel,
             interceptorClass: SitemapPageTypeInterceptor::class,
             key: [
                 'key' => SitemapPageType::Key,
-                'type' => TypeEnum::Page,
+                'type' => BlueprintSubjectEnum::Page,
             ],
         );
 
