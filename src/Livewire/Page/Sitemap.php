@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class Sitemap extends AbstractPage
 {
-    protected static string $defaultView = 'capell::livewire.page.sitemap';
+    protected static string $defaultView = 'capell-site-discovery::livewire.page.sitemap';
 
     protected function setup(): void
     {

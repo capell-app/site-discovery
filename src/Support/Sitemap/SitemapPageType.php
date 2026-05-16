@@ -30,17 +30,31 @@ final class SitemapPageType
             'meta' => [
                 'listable' => false,
                 'component' => self::ComponentView,
+                'livewire' => true,
             ],
         ];
 
         /** @var class-string<Blueprint> $typeModel */
         $typeModel = Blueprint::class;
 
-        return CapellCore::createOrUpdateModel(
+        $blueprint = CapellCore::createOrUpdateModel(
             $typeModel,
             ['key' => self::Key, 'type' => BlueprintSubjectEnum::Page],
             fn (array $data): array => CapellCore::mergeModelInterceptorData($defaults, $data),
             BlueprintInterceptorInterface::class,
         );
+
+        $blueprint->forceFill([
+            'component' => self::ComponentView,
+            'is_livewire' => true,
+            'meta' => [
+                ...($blueprint->meta ?? []),
+                'component' => self::ComponentView,
+                'livewire' => true,
+                'listable' => false,
+            ],
+        ])->save();
+
+        return $blueprint;
     }
 }

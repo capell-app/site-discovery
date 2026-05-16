@@ -40,11 +40,13 @@ class SitemapPageCreator
     {
         $languages ??= $site->languages;
         $type = $this->getOrCreateSitemapType();
-        $layout = $this->getLayout(LayoutEnum::Results);
+        $layout = $this->getLayout(LayoutEnum::Default);
 
         $defaults = [
             'layout_id' => $layout->id,
             'meta' => [
+                'component' => SitemapPageType::ComponentView,
+                'livewire' => true,
                 'rendering_strategy' => RenderingStrategyEnum::FullLivewire->value,
             ],
             'site_id' => $site->id,
@@ -63,6 +65,15 @@ class SitemapPageCreator
             fn (array $data): array => CapellCore::mergeModelInterceptorData($defaults, $data),
             PageInterceptorInterface::class,
         );
+
+        $page->forceFill([
+            'meta' => [
+                ...($page->meta ?? []),
+                'component' => SitemapPageType::ComponentView,
+                'livewire' => true,
+                'rendering_strategy' => RenderingStrategyEnum::FullLivewire->value,
+            ],
+        ])->save();
 
         $languages->each(function (Language $language) use ($page): void {
             $translation = $page->translations()->firstOrCreate([
