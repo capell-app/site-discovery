@@ -9,9 +9,9 @@ use Illuminate\Database\ConnectionInterface;
 
 class SitemapGenerator
 {
-    private const VALID_CHANGEFREQ = ['always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never'];
+    private const array VALID_CHANGEFREQ = ['always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never'];
 
-    private const SITEMAP_NAMESPACE = 'http://www.sitemaps.org/schemas/sitemap/0.9';
+    private const string SITEMAP_NAMESPACE = 'http://www.sitemaps.org/schemas/sitemap/0.9';
 
     /** @var array<int, array{url: string, lastmod: string|null, changefreq: string, priority: float}> */
     private array $urls = [];

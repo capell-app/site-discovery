@@ -17,9 +17,9 @@ use Capell\Core\Models\Blueprint;
  */
 final class SitemapPageType
 {
-    public const Key = 'sitemap';
+    public const string Key = 'sitemap';
 
-    public const ComponentView = 'capell-site-discovery.page.sitemap';
+    public const string ComponentView = 'capell-site-discovery.page.sitemap';
 
     public static function createType(): Blueprint
     {
