@@ -6,7 +6,7 @@ $language = Frontend::language();
 
 ?>
 
-<x-capell::layout class="page-sitemap">
+<x-capell::layout class="capell-page-sitemap page-sitemap">
     <div class="vsitemap mb-20 overflow-x-auto">
         <ul>
             @if ($this->results)

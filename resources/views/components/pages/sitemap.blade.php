@@ -1,4 +1,4 @@
-<x-filament-panels::page>
+<x-filament-panels::page class="capell-pages-sitemap">
     <div class="grid gap-4 sm:grid-cols-2">
         <label for="site_id" class="sr-only">
             {{ __('capell-admin::form.site') }}
