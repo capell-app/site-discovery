@@ -293,7 +293,6 @@ class XmlSitemapGenerator
 
         // --- paginated: write chunks then an index ---
         $chunks = array_chunk($items, $maxPerFile);
-        /** @phpstan-ignore-next-line cast.useless */
         $xmlPath = rtrim((string) config('capell.sitemap.xml_path', '/sitemap-xml'), '/');
         $baseUrl = rtrim($domain->full_url, '/') . $xmlPath;
         $now = now()->format(DATE_ATOM);
@@ -447,12 +446,10 @@ class XmlSitemapGenerator
             }
 
             if ($item->changefreq !== null && $item->changefreq !== '') {
-                /** @phpstan-ignore-next-line cast.useless */
                 $xml .= '<changefreq>' . htmlspecialchars((string) $item->changefreq, ENT_XML1 | ENT_COMPAT, 'UTF-8') . '</changefreq>';
             }
 
             if ($item->priority !== null && $item->priority !== '') {
-                /** @phpstan-ignore-next-line cast.useless */
                 $xml .= '<priority>' . htmlspecialchars((string) $item->priority, ENT_XML1 | ENT_COMPAT, 'UTF-8') . '</priority>';
             }
 

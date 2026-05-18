@@ -12,7 +12,7 @@
     ],
     "license": "proprietary",
     "require": {
-        "php": "^8.2",
+        "php": "^8.3",
         "capell-app/admin": "*",
         "capell-app/core": "*",
         "capell-app/frontend": "*",
