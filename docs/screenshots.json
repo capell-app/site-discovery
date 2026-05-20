@@ -1,0 +1,69 @@
+{
+    "package": "site-discovery",
+    "composerName": "capell-app/site-discovery",
+    "generatedFor": "deployment-screenshot-runner",
+    "requiresInstalledPackage": true,
+    "outputDirectory": "public/docs/screenshots/packages/site-discovery",
+    "entries": [
+        {
+            "id": "page-sitemap-action",
+            "title": "Page resource sitemap action.",
+            "package": "site-discovery",
+            "surface": "admin",
+            "targetType": "admin-surface",
+            "target": "PageResource",
+            "required": true,
+            "notes": "Capture the package-added Sitemap header action on the core Pages resource.",
+            "useCase": "An editor uses the package-added sitemap action on the core Pages resource.",
+            "screenshotPath": "public/docs/screenshots/packages/site-discovery/page-sitemap-action.png"
+        },
+        {
+            "id": "site-sitemap-action",
+            "title": "Site resource sitemap action.",
+            "package": "site-discovery",
+            "surface": "admin",
+            "targetType": "admin-surface",
+            "target": "SiteResource",
+            "required": true,
+            "notes": "Capture the package-added Sitemap header or row action on the core Sites resource.",
+            "useCase": "An editor uses the package-added sitemap action on the core Sites resource.",
+            "screenshotPath": "public/docs/screenshots/packages/site-discovery/site-sitemap-action.png"
+        },
+        {
+            "id": "sitemap-generation-tool",
+            "title": "Sitemap generation tool.",
+            "package": "site-discovery",
+            "surface": "admin",
+            "targetType": "admin-surface",
+            "target": "SitemapTool",
+            "required": true,
+            "notes": "Capture the Livewire sitemap generation tool after demo pages are seeded.",
+            "useCase": "An administrator generates or reviews sitemap output after demo pages are seeded.",
+            "screenshotPath": "public/docs/screenshots/packages/site-discovery/sitemap-generation-tool.png"
+        },
+        {
+            "id": "html-sitemap-page",
+            "title": "Public HTML sitemap page.",
+            "package": "site-discovery",
+            "surface": "frontend",
+            "targetType": "frontend-url",
+            "target": "/sitemap",
+            "required": true,
+            "notes": "Capture public sitemap output with only discoverable public pages visible.",
+            "useCase": "A visitor opens the public HTML sitemap and sees only discoverable public pages.",
+            "screenshotPath": "public/docs/screenshots/packages/site-discovery/html-sitemap-page.png"
+        },
+        {
+            "id": "xml-sitemap-output",
+            "title": "Generated XML sitemap output.",
+            "package": "site-discovery",
+            "surface": "frontend",
+            "targetType": "frontend-url",
+            "target": "/sitemap-xml",
+            "required": true,
+            "notes": "Run capell:xml-sitemap in the host app before capture. The endpoint serves the generated domain XML file.",
+            "useCase": "A crawler or operator reviews generated XML sitemap output after running sitemap generation.",
+            "screenshotPath": "public/docs/screenshots/packages/site-discovery/xml-sitemap-output.png"
+        }
+    ]
+}

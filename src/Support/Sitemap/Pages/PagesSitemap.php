@@ -24,18 +24,37 @@ class PagesSitemap extends AbstractSitemapPages
         throw_if($this->language->id === null, LogicException::class, 'Language ID is null in DefaultPages::fetch(). Ensure the Language model is persisted and loaded.');
 
         $cacheKey = $this->cacheKey($this->site->id, $this->language->id);
+        $payload = Cache::get($cacheKey);
 
-        return Cache::remember($cacheKey, 3600, fn (): Collection => DiscoverPublicPagesAction::run($this->site, $this->language)
-            ->map(fn (DiscoverablePageData $data): ?Page => $data->page)
-            ->filter(fn (?Page $page): bool => $page instanceof Page)
-            ->pipe(fn (Collection $pages): NestedsetCollection => new NestedsetCollection($pages->all()))
-            ->pipe(fn (NestedsetCollection $pages): Collection => collect($pages->toTree()))
-            ->map(fn (Page $page): SitemapPageData => $this->format($page)));
+        if (! is_array($payload)) {
+            $payload = $this->uncachedPages()
+                ->map(fn (SitemapPageData $page): array => $page->toArray())
+                ->all();
+
+            Cache::put($cacheKey, $payload, 3600);
+        }
+
+        return collect($payload)
+            ->filter(fn (mixed $page): bool => is_array($page))
+            ->map(fn (array $page): SitemapPageData => SitemapPageData::from($page));
     }
 
     public function format(Page $page): SitemapPageData
     {
         return SitemapPageData::fromPage($page, withEditUrl: $this->withEditUrl);
+    }
+
+    /**
+     * @return Collection<int, SitemapPageData>
+     */
+    private function uncachedPages(): Collection
+    {
+        return DiscoverPublicPagesAction::run($this->site, $this->language)
+            ->map(fn (DiscoverablePageData $data): ?Page => $data->page)
+            ->filter(fn (?Page $page): bool => $page instanceof Page)
+            ->pipe(fn (Collection $pages): NestedsetCollection => new NestedsetCollection($pages->all()))
+            ->pipe(fn (NestedsetCollection $pages): Collection => collect($pages->toTree()))
+            ->map(fn (Page $page): SitemapPageData => $this->format($page));
     }
 
     private function cacheKey(int $siteId, int $languageId): string

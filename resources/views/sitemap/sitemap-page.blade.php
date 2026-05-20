@@ -1,5 +1,5 @@
 @props(['sitemapPage', 'level'])
-<li class="capell-sitemap-sitemap-page sitemap-page-item">
+<li class="site-sitemap-page sitemap-page-item">
     <a
         class="hover:bg-primary/80 focus:bg-primary bg-gray-100 text-sm hover:text-white focus:text-white"
         href="{{ $sitemapPage->url }}"

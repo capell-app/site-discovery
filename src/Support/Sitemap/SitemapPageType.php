@@ -19,7 +19,7 @@ final class SitemapPageType
 {
     public const string Key = 'sitemap';
 
-    public const string ComponentView = 'capell-site-discovery.page.sitemap';
+    public const string ComponentView = 'site.sitemap';
 
     public static function createType(): Blueprint
     {

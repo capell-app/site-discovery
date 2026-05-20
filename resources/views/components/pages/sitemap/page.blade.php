@@ -1,4 +1,4 @@
-<li class="capell-sitemap-page">
+<li class="site-sitemap-page">
     <a
         class="sitemap-link flex text-sm leading-tight"
         href="{{ $sitemapPage->editUrl ?? '#' }}"

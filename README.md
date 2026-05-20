@@ -10,7 +10,7 @@
 
 - Package: `capell-app/site-discovery`
 - Namespace: `Capell\SiteDiscovery\`
-- Surfaces: Livewire, console
+- Surfaces: admin actions/tools, frontend sitemap pages, console
 - Service providers: `packages/site-discovery/src/Providers/SiteDiscoveryServiceProvider.php`
 - Capell dependencies: `capell-app/admin`, `capell-app/core`, `capell-app/frontend`
 - Third-party dependencies: `icamys/php-sitemap-generator`
@@ -42,6 +42,8 @@
 
 ## Runtime Surface
 
+- Admin: Page and Site `Sitemap` actions, plus the sitemap generation tool.
+- Frontend: `/sitemap` HTML sitemap and `/sitemap-xml` XML response.
 - Livewire: `Sitemap`, `SitemapTool`.
 
 ## Commands
@@ -51,6 +53,7 @@
 ## Data And Persistence
 
 - Data objects live in `src/Data/`; use them for payloads, form state, and view models.
+- `PagesSitemap` caches serialized page arrays and rebuilds `SitemapPageData` objects when reading from cache. Do not cache the DTO objects directly; stale serialized objects can come back as `__PHP_Incomplete_Class` in host apps.
 
 ## Extension Points
 
@@ -61,11 +64,20 @@
 ## Install And Setup
 
 - Install with `composer require capell-app/site-discovery` in the host Capell application.
+- The core install flow can create the default Sitemap page when this package is installed before `capell:install`.
+- When adding the package to an existing core-only app, create the Sitemap page for each existing site before testing `/sitemap`; the current extension install flow does not backfill existing sites automatically.
 - In this repository, verify package changes with `vendor/bin/pest`; do not use `php artisan`.
 
 ## Docs
 
-No deeper package docs are currently published under `docs/`. Add design notes there when the README would become too long.
+- [overview.md](docs/overview.md)
+- [screenshots.json](docs/screenshots.json)
+
+## Screenshot Coverage
+
+The package screenshot contract covers the package-added Page and Site sitemap actions, the sitemap generation tool, `/sitemap`, and `/sitemap-xml`. Keep each capture focused on the added surface; avoid broad admin screenshots that hide which control belongs to this package.
+
+Public sitemap screenshots should be checked for authoring or package identifiers. The public output must not expose `capell-site-discovery`, `capell-sitemap`, admin URLs, editor metadata, signed editor links, or unpublished pages.
 
 ## Testing
 

@@ -54,7 +54,9 @@ test('sitemap html page', function (): void {
         $childPage->pageUrl->full_url,
     ];
 
-    get($sitemapPage->pageUrl->full_url)
+    $response = get($sitemapPage->pageUrl->full_url);
+
+    $response
         ->assertOk()
         ->assertElementExists(
             'h1',
@@ -67,6 +69,10 @@ test('sitemap html page', function (): void {
                 fn (AssertElement $aElm, int $index): BaseAssert => $aElm->has('href', $siteMapUrls[$index]),
             ),
         );
+
+    expect($response->getContent())
+        ->not->toContain('capell-site-discovery')
+        ->not->toContain('capell-sitemap');
 });
 
 test('sitemap default page label is translated after providers boot', function (): void {

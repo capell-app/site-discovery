@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Enums\CacheEnum;
 use Capell\Core\Models\Blueprint;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\SiteDomain;
 use Capell\SiteDiscovery\Contracts\Sitemapable;
 use Capell\SiteDiscovery\Data\SitemapPageData;
+use Capell\SiteDiscovery\Support\Sitemap\Pages\PagesSitemap;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapBuilder;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Illuminate\Support\Collection;
@@ -106,6 +108,17 @@ describe('SitemapBuilder', function (): void {
             ->and($parentNode->children->first())->toBeInstanceOf(SitemapPageData::class)
             ->and($parentNode->children->first()->pageId)->toBe($childPage->id)
             ->and($parentNode->children->first()->url)->toBe($childPage->pageUrl->full_url);
+
+        $cacheKey = CacheEnum::sitemapPages($siteDomain->site->id, $language->id) . '.public';
+        $cachedPayload = Cache::get($cacheKey);
+        $cachedResult = (new PagesSitemap(
+            site: $siteDomain->site,
+            domain: $siteDomain,
+            language: $language,
+        ))->fetch();
+
+        expect($cachedPayload)->toBeArray()
+            ->and($cachedResult->first())->toBeInstanceOf(SitemapPageData::class);
     });
 
     it('does not expose editor URLs in the public sitemap tree', function (): void {
