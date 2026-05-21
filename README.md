@@ -1,10 +1,6 @@
 # Site Discovery
 
-- Public discoverable page and URL APIs.
-- HTML sitemap page type and frontend component.
-- XML sitemap generation with chunking and incremental state.
-- Sitemap admin page, admin actions, and generation tool.
-- Lifecycle listeners that regenerate sitemap output when pages or sites change.
+Site Discovery owns public sitemap and discoverability output for Capell sites.
 
 ## At A Glance
 
