@@ -9,7 +9,6 @@ use Capell\Admin\Contracts\Extenders\ResourceHeaderActionExtender;
 use Capell\Admin\Contracts\Extenders\SiteHeaderActionExtender;
 use Capell\Admin\Contracts\Extenders\SiteRecordActionExtender;
 use Capell\Core\Actions\RegisterBlazeOptimizedViewsAction;
-use Capell\Core\Data\PackageData;
 use Capell\Core\Data\RenderableDefinitionData;
 use Capell\Core\Enums\BlueprintSubjectEnum;
 use Capell\Core\Enums\PackageTypeEnum;
@@ -194,8 +193,6 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
 
     private function isPackageInstalled(): bool
     {
-        $package = CapellCore::getPackage(self::$packageName);
-
-        return $package instanceof PackageData && $package->isInstalled();
+        return CapellCore::isPackageInstalled(self::$packageName);
     }
 }

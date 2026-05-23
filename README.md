@@ -11,6 +11,18 @@ Site Discovery owns public sitemap and discoverability output for Capell sites.
 - Capell dependencies: `capell-app/admin`, `capell-app/core`, `capell-app/frontend`
 - Third-party dependencies: `icamys/php-sitemap-generator`
 
+## Why It Helps Your Capell Workflow
+
+- Resolves public discoverable pages and URLs, then exposes HTML and XML sitemap outputs.
+- Helps owners and search tools find the pages Capell intends to publish without each package building its own crawler view.
+- Gives developers a shared discovery surface that SEO Suite, Blog, Search, and audits can use consistently.
+
+## Best Used With
+
+- [SEO Suite](../seo-suite/README.md)
+- [Search](../search/README.md)
+- [Blog](../blog/README.md)
+
 ## What It Adds
 
 - Public discoverable page and URL APIs.
@@ -66,6 +78,7 @@ Site Discovery owns public sitemap and discoverability output for Capell sites.
 
 ## Docs
 
+- [docs index](docs/README.md)
 - [overview.md](docs/overview.md)
 - [screenshots.json](docs/screenshots.json)
 
