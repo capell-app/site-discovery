@@ -13,7 +13,11 @@
         "bundle": "search-seo"
     },
     "namespace": "Capell\\SiteDiscovery",
-    "surfaces": ["admin", "frontend", "console"],
+    "surfaces": [
+        "admin",
+        "frontend",
+        "console"
+    ],
     "dependencies": {
         "requires": [
             "capell-app/admin",
@@ -55,10 +59,15 @@
     "performance": {
         "frontendRenderBudgetMs": 20,
         "adminQueryBudget": 40,
-        "cacheTags": ["site-discovery"],
+        "cacheTags": [
+            "site-discovery"
+        ],
         "cacheSafety": {
             "cacheable": false,
-            "variesBy": ["site", "locale"],
+            "variesBy": [
+                "site",
+                "locale"
+            ],
             "sensitiveOutput": false,
             "invalidationSources": [],
             "queueInvalidation": true
@@ -102,10 +111,23 @@
     },
     "marketplace": {
         "summary": "Site Discovery resolves public discoverable pages and URLs, then exposes HTML and XML sitemap outputs.",
-        "screenshots": [],
-        "categories": ["admin", "console", "frontend", "search-seo"]
+        "screenshots": [
+            {
+                "path": "docs/assets/marketplace/extension-card.jpg",
+                "alt": "Site Discovery extension preview image",
+                "caption": "Site Discovery extension preview"
+            }
+        ],
+        "categories": [
+            "admin",
+            "console",
+            "frontend",
+            "search-seo"
+        ]
     },
     "contributionTraceability": {
-        "deferredContributions": ["route"]
+        "deferredContributions": [
+            "route"
+        ]
     }
 }
