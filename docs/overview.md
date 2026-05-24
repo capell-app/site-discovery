@@ -9,6 +9,7 @@ Site Discovery resolves public Capell URLs and exposes them through HTML sitemap
 - Discoverable URL data and source contracts.
 - Discovery output data and source contracts for public machine-readable outputs such as `llms.txt`.
 - URL change notification contracts for IndexNow-style submission services.
+- Optional built-in IndexNow notifier, disabled until configured with an IndexNow key.
 - HTML sitemap page renderables and Livewire components.
 - XML sitemap generation with chunking and incremental state tracking.
 - Site and Page admin actions for sitemap access/generation.

@@ -23,6 +23,7 @@ use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Renderables\RenderableRegistry;
 use Capell\SiteDiscovery\Console\Commands\XmlSitemapCommand;
 use Capell\SiteDiscovery\Contracts\DiscoveryOutputSource;
+use Capell\SiteDiscovery\Contracts\UrlChangeNotifier;
 use Capell\SiteDiscovery\Filament\Extenders\Page\SitemapResourceHeaderActionExtender;
 use Capell\SiteDiscovery\Filament\Extenders\Site\SitemapSiteHeaderActionExtender;
 use Capell\SiteDiscovery\Filament\Extenders\Site\SitemapSiteRecordActionExtender;
@@ -34,6 +35,7 @@ use Capell\SiteDiscovery\Livewire\Tools\SitemapTool;
 use Capell\SiteDiscovery\Support\AdminTools\SitemapAdminTool;
 use Capell\SiteDiscovery\Support\Creator\SitemapPageCreator;
 use Capell\SiteDiscovery\Support\DiscoveryOutputRegistry;
+use Capell\SiteDiscovery\Support\IndexNow\IndexNowUrlChangeNotifier;
 use Capell\SiteDiscovery\Support\Interceptors\SitemapPageTypeInterceptor;
 use Capell\SiteDiscovery\Support\Sitemap\Pages\PagesSitemap;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageRegistry;
@@ -55,6 +57,7 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
     {
         $package
             ->name(self::$name)
+            ->hasConfigFile()
             ->hasViews(self::$name)
             ->hasTranslations()
             ->hasCommands([
@@ -89,6 +92,7 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
             ->registerSitemapDefaultPage()
             ->registerSitemapRegistry()
             ->registerDiscoveryOutputRegistry()
+            ->registerUrlChangeNotifiers()
             ->registerSitemapEventListeners()
             ->registerFrontendViews();
     }
@@ -193,6 +197,19 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
                 $registry->register($source);
             }
         }
+
+        return $this;
+    }
+
+    private function registerUrlChangeNotifiers(): self
+    {
+        if (config('capell-site-discovery.indexnow.enabled') !== true) {
+            return $this;
+        }
+
+        $this->app->tag([
+            IndexNowUrlChangeNotifier::class,
+        ], UrlChangeNotifier::TAG);
 
         return $this;
     }
