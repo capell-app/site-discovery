@@ -13,6 +13,9 @@ use Illuminate\Support\Collection;
 
 class SitemapBuilder
 {
+    /**
+     * @var Collection<array-key, mixed>
+     */
     protected Collection $pages;
 
     /**
@@ -59,6 +62,9 @@ class SitemapBuilder
         });
     }
 
+    /**
+     * @return Collection<array-key, mixed>
+     */
     public function build(): Collection
     {
         return $this->pages

@@ -54,6 +54,9 @@ class SitemapTool extends Component
         return view('capell-site-discovery::livewire.tools.sitemap-tool');
     }
 
+    /**
+     * @param  Collection<int, Model>  $sites
+     */
     private function deleteAllSitemaps(Collection $sites): void
     {
         $sites->each(function (Model $site): void {

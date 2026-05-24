@@ -8,5 +8,8 @@ use Illuminate\Support\Collection;
 
 interface Sitemapable
 {
+    /**
+     * @return Collection<array-key, mixed>
+     */
     public function fetch(): Collection;
 }

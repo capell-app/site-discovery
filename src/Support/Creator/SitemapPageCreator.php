@@ -36,6 +36,9 @@ class SitemapPageCreator
      */
     protected string $typeModel = Blueprint::class;
 
+    /**
+     * @param  Collection<array-key, mixed>  $languages
+     */
     public function createSitemapPage(Site $site, ?Collection $languages = null): Page
     {
         $languages ??= $site->languages;

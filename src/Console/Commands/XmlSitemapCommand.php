@@ -109,6 +109,9 @@ class XmlSitemapCommand extends Command
         );
     }
 
+    /**
+     * @return Collection<int, Model>
+     */
     private function getSites(): Collection
     {
         /** @var class-string<Site> $model */
