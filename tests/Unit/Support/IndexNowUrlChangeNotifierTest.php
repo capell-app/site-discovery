@@ -8,6 +8,7 @@ use Capell\SiteDiscovery\Support\IndexNow\IndexNowUrlChangeNotifier;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 
 uses(SiteDiscoveryTestCase::class);
@@ -23,7 +24,7 @@ it('submits public url changes to indexnow', function (): void {
     $result = (new IndexNowUrlChangeNotifier)->notify(
         new Site,
         new Language,
-        collect(['https://example.test/one', 'https://example.test/two']),
+        indexNowPublicUrls(['https://example.test/one', 'https://example.test/two']),
     );
 
     expect($result->notifier)->toBe('indexnow')
@@ -51,7 +52,7 @@ it('reports skipped indexnow notifications when no key is configured', function 
     $result = (new IndexNowUrlChangeNotifier)->notify(
         new Site,
         new Language,
-        collect(['https://example.test/one']),
+        indexNowPublicUrls(['https://example.test/one']),
     );
 
     expect($result->notifier)->toBe('indexnow')
@@ -72,10 +73,19 @@ it('reports failed indexnow notifications when the request cannot be sent', func
     $result = (new IndexNowUrlChangeNotifier)->notify(
         new Site,
         new Language,
-        collect(['https://example.test/one']),
+        indexNowPublicUrls(['https://example.test/one']),
     );
 
     expect($result->notifier)->toBe('indexnow')
         ->and($result->accepted)->toBeFalse()
         ->and($result->message)->toBe('Connection failed.');
 });
+
+/**
+ * @param  list<non-falsy-string>  $urls
+ * @return Collection<int, non-falsy-string>
+ */
+function indexNowPublicUrls(array $urls): Collection
+{
+    return new Collection($urls);
+}

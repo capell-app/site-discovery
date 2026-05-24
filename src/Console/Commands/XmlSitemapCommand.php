@@ -9,7 +9,6 @@ use Capell\Core\Models\SiteDomain;
 use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model;
 use RuntimeException;
 
 class XmlSitemapCommand extends Command
@@ -26,11 +25,7 @@ class XmlSitemapCommand extends Command
         $incremental = $this->option('incremental') !== null && $this->option('incremental') !== false;
         $rows = [];
 
-        $sites->each(function (Model $site) use ($incremental, &$rows): void {
-            if (! $site instanceof Site) {
-                return;
-            }
-
+        $sites->each(function (Site $site) use ($incremental, &$rows): void {
             $generator = resolve(XmlSitemapGenerator::class);
 
             if ($incremental) {
@@ -110,7 +105,7 @@ class XmlSitemapCommand extends Command
     }
 
     /**
-     * @return Collection<int, Model>
+     * @return Collection<int, Site>
      */
     private function getSites(): Collection
     {
