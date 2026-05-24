@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\SiteDiscovery\Listeners\Sitemap;
 
 use Capell\Core\Events\PageDeleted;
+use Capell\SiteDiscovery\Actions\NotifyPageUrlChangesAction;
 use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
@@ -21,5 +22,6 @@ class RegenerateSitemapsOnPageDeleted implements ShouldQueue
         }
 
         $this->generator->processIncremental($site);
+        NotifyPageUrlChangesAction::run($event->page);
     }
 }
