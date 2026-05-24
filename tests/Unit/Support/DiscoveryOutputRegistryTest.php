@@ -47,6 +47,11 @@ it('discovers registered public outputs and filters unsafe entries', function ()
                     contentType: 'text/html',
                 ),
                 new DiscoveryOutputData(
+                    key: 'invalid-scheme',
+                    url: 'http-not-a-url',
+                    contentType: 'text/plain',
+                ),
+                new DiscoveryOutputData(
                     key: '',
                     url: 'https://example.com/invalid',
                     contentType: 'text/plain',

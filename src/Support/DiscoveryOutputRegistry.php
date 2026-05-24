@@ -37,7 +37,7 @@ final class DiscoveryOutputRegistry
     private function isPublicHttpOutput(DiscoveryOutputData $output): bool
     {
         return $output->key !== ''
-            && str_starts_with($output->url, 'http')
+            && (str_starts_with($output->url, 'https://') || str_starts_with($output->url, 'http://'))
             && $output->contentType !== '';
     }
 }

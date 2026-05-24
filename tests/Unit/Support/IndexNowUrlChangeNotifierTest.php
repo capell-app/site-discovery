@@ -6,6 +6,7 @@ use Capell\Core\Models\Language;
 use Capell\Core\Models\Site;
 use Capell\SiteDiscovery\Support\IndexNow\IndexNowUrlChangeNotifier;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -58,4 +59,23 @@ it('reports skipped indexnow notifications when no key is configured', function 
         ->and($result->message)->toBe('IndexNow key is not configured.');
 
     Http::assertNothingSent();
+});
+
+it('reports failed indexnow notifications when the request cannot be sent', function (): void {
+    config()->set('capell-site-discovery.indexnow.key', 'site-key');
+    config()->set('capell-site-discovery.indexnow.endpoint', 'https://indexnow.test/indexnow');
+
+    Http::fake([
+        'https://indexnow.test/indexnow' => fn (): never => throw new ConnectionException('Connection failed.'),
+    ]);
+
+    $result = (new IndexNowUrlChangeNotifier)->notify(
+        new Site,
+        new Language,
+        collect(['https://example.test/one']),
+    );
+
+    expect($result->notifier)->toBe('indexnow')
+        ->and($result->accepted)->toBeFalse()
+        ->and($result->message)->toBe('Connection failed.');
 });

@@ -9,7 +9,7 @@ use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
 use Capell\SiteDiscovery\Contracts\UrlChangeNotifier;
 use Capell\SiteDiscovery\Data\UrlChangeNotificationResultData;
-use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 
@@ -41,7 +41,7 @@ final class IndexNowUrlChangeNotifier implements UrlChangeNotifier
                 ->acceptJson()
                 ->asJson()
                 ->post($endpoint, $payload);
-        } catch (RequestException $exception) {
+        } catch (ConnectionException $exception) {
             return new UrlChangeNotificationResultData(
                 notifier: self::NotifierName,
                 urls: $payload['urlList'],
