@@ -6,9 +6,10 @@ Start at the [package README](../README.md) when deciding whether to install thi
 
 ## Guides
 
-| Doc                     | Use it for                                                                         |
-| ----------------------- | ---------------------------------------------------------------------------------- |
-| [Overview](overview.md) | Package boundary, runtime surfaces, install notes, and first troubleshooting path. |
+| Doc                                             | Use it for                                                                         |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------- |
+| [Change Notifications](change-notifications.md) | IndexNow setup, notifier contract usage, and operational boundaries.               |
+| [Overview](overview.md)                         | Package boundary, runtime surfaces, install notes, and first troubleshooting path. |
 
 ## Read Next
 
