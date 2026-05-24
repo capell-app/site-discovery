@@ -7,6 +7,7 @@ Site Discovery resolves public Capell URLs and exposes them through HTML sitemap
 ## What This Package Adds
 
 - Discoverable URL data and source contracts.
+- Discovery output data and source contracts for public machine-readable outputs such as `llms.txt`.
 - HTML sitemap page renderables and Livewire components.
 - XML sitemap generation with chunking and incremental state tracking.
 - Site and Page admin actions for sitemap access/generation.

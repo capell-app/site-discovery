@@ -14,6 +14,7 @@ Site Discovery owns public sitemap and discoverability output for Capell sites.
 ## Why It Helps Your Capell Workflow
 
 - Resolves public discoverable pages and URLs, then exposes HTML and XML sitemap outputs.
+- Provides a discovery-output contract so packages can advertise public machine-readable outputs such as `llms.txt` without coupling Site Discovery to consumer packages.
 - Helps owners and search tools find the pages Capell intends to publish without each package building its own crawler view.
 - Gives developers a shared discovery surface that SEO Suite, Blog, Search, and audits can use consistently.
 
@@ -65,7 +66,7 @@ Site Discovery owns public sitemap and discoverability output for Capell sites.
 
 ## Extension Points
 
-- Contracts: `DiscoverableUrlSource`, `Sitemapable`.
+- Contracts: `DiscoverableUrlSource`, `DiscoveryOutputSource`, `Sitemapable`.
 - Listeners: `RegenerateSitemapsOnPageDeleted`, `RegenerateSitemapsOnPageSaved`, `RegenerateSitemapsOnSiteCreated`.
 - Register Capell extension points, routes, migrations, settings, render hooks, and resources from service providers.
 

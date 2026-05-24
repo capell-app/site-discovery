@@ -22,6 +22,7 @@ use Capell\Core\Models\Site;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Renderables\RenderableRegistry;
 use Capell\SiteDiscovery\Console\Commands\XmlSitemapCommand;
+use Capell\SiteDiscovery\Contracts\DiscoveryOutputSource;
 use Capell\SiteDiscovery\Filament\Extenders\Page\SitemapResourceHeaderActionExtender;
 use Capell\SiteDiscovery\Filament\Extenders\Site\SitemapSiteHeaderActionExtender;
 use Capell\SiteDiscovery\Filament\Extenders\Site\SitemapSiteRecordActionExtender;
@@ -32,6 +33,7 @@ use Capell\SiteDiscovery\Livewire\Page\Sitemap as SitemapLivewireComponent;
 use Capell\SiteDiscovery\Livewire\Tools\SitemapTool;
 use Capell\SiteDiscovery\Support\AdminTools\SitemapAdminTool;
 use Capell\SiteDiscovery\Support\Creator\SitemapPageCreator;
+use Capell\SiteDiscovery\Support\DiscoveryOutputRegistry;
 use Capell\SiteDiscovery\Support\Interceptors\SitemapPageTypeInterceptor;
 use Capell\SiteDiscovery\Support\Sitemap\Pages\PagesSitemap;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageRegistry;
@@ -86,6 +88,7 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
             ->registerSitemapPageType()
             ->registerSitemapDefaultPage()
             ->registerSitemapRegistry()
+            ->registerDiscoveryOutputRegistry()
             ->registerSitemapEventListeners()
             ->registerFrontendViews();
     }
@@ -174,6 +177,22 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
         /** @var SitemapPageRegistry $registry */
         $registry = $this->app->make(SitemapPageRegistry::class);
         $registry->register('default', PagesSitemap::class);
+
+        return $this;
+    }
+
+    private function registerDiscoveryOutputRegistry(): self
+    {
+        $this->app->singleton(DiscoveryOutputRegistry::class);
+
+        /** @var DiscoveryOutputRegistry $registry */
+        $registry = $this->app->make(DiscoveryOutputRegistry::class);
+
+        foreach ($this->app->tagged('capell-site-discovery:discovery-output-sources') as $source) {
+            if ($source instanceof DiscoveryOutputSource) {
+                $registry->register($source);
+            }
+        }
 
         return $this;
     }
