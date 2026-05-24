@@ -6,7 +6,6 @@ namespace Capell\SiteDiscovery\Data;
 
 use Capell\Core\Actions\GetEditPageResourceUrlAction;
 use Capell\Core\Contracts\Pageable;
-use Capell\Core\Exceptions\UrlMissingSiteDomainException;
 use Capell\Core\Models\Page;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
@@ -55,7 +54,7 @@ class SitemapPageData extends Data
         }
 
         return new self(
-            label: $page->translation?->label ?? $page->name,
+            label: $page->translation->label ?? $page->name,
             url: self::pageUrl($page),
             children: $page->hasPageHierarchy()
                 ? $page->children
@@ -87,10 +86,6 @@ class SitemapPageData extends Data
 
     private static function pageUrl(Pageable $page): string
     {
-        try {
-            return $page->pageUrl->full_url;
-        } catch (UrlMissingSiteDomainException) {
-            return $page->pageUrl->url ?? '';
-        }
+        return $page->pageUrl->full_url;
     }
 }

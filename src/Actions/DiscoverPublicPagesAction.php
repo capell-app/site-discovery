@@ -65,15 +65,15 @@ final class DiscoverPublicPagesAction
             ->ordered()
             ->get()
             ->filter(fn (Page $page): bool => ! $this->hasNoIndexDirective($page->meta ?? [])
-                && ! $this->hasNoIndexDirective($page->translation?->meta ?? []))
+                && ! $this->hasNoIndexDirective($page->translation->meta ?? []))
             ->map(function (Page $page) use ($site): DiscoverablePageData {
                 $page->setRelation('site', $site);
                 Page::setResolvedPageUrlSiteDomain($page, $site);
 
                 return new DiscoverablePageData(
                     pageId: (int) $page->getKey(),
-                    title: trim(strip_tags($page->translation?->title ?? $page->translation?->label ?? $page->name ?? '')),
-                    url: $page->pageUrl?->full_url ?? '',
+                    title: trim(strip_tags($page->translation->title ?? $page->translation->label ?? $page->name ?? '')),
+                    url: $page->pageUrl->full_url ?? '',
                     lastModified: $page->updated_at,
                     priority: is_numeric($page->meta['priority'] ?? null) ? (float) $page->meta['priority'] : null,
                     changeFrequency: is_string($page->meta['changefreq'] ?? null) ? $page->meta['changefreq'] : null,

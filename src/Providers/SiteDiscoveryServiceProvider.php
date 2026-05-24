@@ -71,6 +71,11 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
         });
     }
 
+    protected function isPackageInstalled(): bool
+    {
+        return CapellCore::isPackageInstalled(self::$packageName);
+    }
+
     private function bootInstalledPackage(): self
     {
         return $this
@@ -189,10 +194,5 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'capell-site-discovery');
 
         return $this;
-    }
-
-    private function isPackageInstalled(): bool
-    {
-        return CapellCore::isPackageInstalled(self::$packageName);
     }
 }

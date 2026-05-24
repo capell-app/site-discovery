@@ -14,6 +14,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
 
@@ -55,7 +56,11 @@ class SitemapTool extends Component
 
     private function deleteAllSitemaps(Collection $sites): void
     {
-        $sites->each(function (Site $site): void {
+        $sites->each(function (Model $site): void {
+            if (! $site instanceof Site) {
+                return;
+            }
+
             resolve(XmlSitemapGenerator::class)->delete($site);
         });
     }

@@ -13,18 +13,14 @@
         "bundle": "search-seo"
     },
     "namespace": "Capell\\SiteDiscovery",
-    "surfaces": [
-        "admin",
-        "frontend",
-        "console"
-    ],
+    "surfaces": ["admin", "frontend", "console"],
     "dependencies": {
         "requires": [
             "capell-app/admin",
             "capell-app/core",
             "capell-app/frontend"
         ],
-        "optional": [],
+        "supports": [],
         "conflicts": []
     },
     "providers": {
@@ -59,15 +55,10 @@
     "performance": {
         "frontendRenderBudgetMs": 20,
         "adminQueryBudget": 40,
-        "cacheTags": [
-            "site-discovery"
-        ],
+        "cacheTags": ["site-discovery"],
         "cacheSafety": {
             "cacheable": false,
-            "variesBy": [
-                "site",
-                "locale"
-            ],
+            "variesBy": ["site", "locale"],
             "sensitiveOutput": false,
             "invalidationSources": [],
             "queueInvalidation": true
@@ -118,16 +109,9 @@
                 "caption": "Site Discovery extension preview"
             }
         ],
-        "categories": [
-            "admin",
-            "console",
-            "frontend",
-            "search-seo"
-        ]
+        "categories": ["admin", "console", "frontend", "search-seo"]
     },
     "contributionTraceability": {
-        "deferredContributions": [
-            "route"
-        ]
+        "deferredContributions": ["route"]
     }
 }
