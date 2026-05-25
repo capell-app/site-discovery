@@ -43,6 +43,7 @@ use Capell\SiteDiscovery\Support\Sitemap\SitemapPageType;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Collection;
 use Livewire\Livewire;
+use Override;
 use Spatie\LaravelPackageTools\Package;
 
 final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
@@ -76,6 +77,7 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
         });
     }
 
+    #[Override]
     protected function isPackageInstalled(): bool
     {
         return CapellCore::isPackageInstalled(self::$packageName);

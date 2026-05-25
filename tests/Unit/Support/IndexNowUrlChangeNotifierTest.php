@@ -45,7 +45,7 @@ it('submits public url changes to indexnow', function (): void {
 });
 
 it('reports skipped indexnow notifications when no key is configured', function (): void {
-    config()->set('capell-site-discovery.indexnow.key', null);
+    config()->set('capell-site-discovery.indexnow.key');
 
     Http::fake();
 

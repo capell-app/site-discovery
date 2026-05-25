@@ -8,7 +8,7 @@
 
 <div class="capell-tools-sitemap-tool">
     <button
-        class="fi-dropdown-list-item fi-dropdown-list-item-color-gray flex w-full items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm outline-none transition-colors duration-75 hover:bg-gray-50 focus:bg-gray-50 disabled:pointer-events-none disabled:opacity-70 dark:hover:bg-white/5 dark:focus:bg-white/5"
+        class="fi-dropdown-list-item fi-dropdown-list-item-color-gray flex w-full items-center gap-2 rounded-md p-2 text-sm whitespace-nowrap transition-colors duration-75 outline-none hover:bg-gray-50 focus:bg-gray-50 disabled:pointer-events-none disabled:opacity-70 dark:hover:bg-white/5 dark:focus:bg-white/5"
         type="button"
         wire:click="generate"
         wire:loading.attr="disabled"

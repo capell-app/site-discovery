@@ -41,12 +41,12 @@ final class IndexNowUrlChangeNotifier implements UrlChangeNotifier
                 ->acceptJson()
                 ->asJson()
                 ->post($endpoint, $payload);
-        } catch (ConnectionException $exception) {
+        } catch (ConnectionException $connectionException) {
             return new UrlChangeNotificationResultData(
                 notifier: self::NotifierName,
                 urls: $payload['urlList'],
                 accepted: false,
-                message: $exception->getMessage(),
+                message: $connectionException->getMessage(),
             );
         }
 
