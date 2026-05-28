@@ -7,7 +7,7 @@ $language = Frontend::language();
 ?>
 
 <x-capell::layout class="public-sitemap-page page-sitemap">
-    <div class="vsitemap mb-20 overflow-x-auto">
+    <div class="vsitemap mb-20">
         <ul>
             @if ($this->results)
                 @foreach ($this->results as $sitemapPage)
@@ -21,9 +21,8 @@ $language = Frontend::language();
         <style>
             /***** Vertical Sitemap from https://github.com/kanyarut/VisualSitemap/blob/master/sitemap.css *****/
             .vsitemap {
-                --color-line: #ccc;
-                --item-width: 200px;
-                --item-gap: 20px;
+                --color-line: rgb(203 213 225);
+                --item-gap: 0.75rem;
                 text-align: left;
             }
 
@@ -32,56 +31,18 @@ $language = Frontend::language();
             }
 
             .vsitemap ul {
-                margin: 0 var(--item-gap);
+                display: grid;
+                gap: var(--item-gap);
+                margin: 0;
                 list-style: none;
                 padding: 0;
             }
 
             .vsitemap ul > li {
-                display: flex;
-                flex-direction: row;
-                align-items: flex-start;
+                display: grid;
+                gap: var(--item-gap);
                 margin: 0 0 calc(var(--item-gap) / 2);
                 position: relative;
-            }
-
-            .vsitemap ul > li:before {
-                content: '';
-                position: absolute;
-                top: 0.9em;
-                height: 1px;
-                left: calc(-1 * var(--item-gap) / 2);
-                width: calc(var(--item-gap) / 2);
-                background: var(--color-line);
-            }
-
-            /* Draw Line */
-            .vsitemap ul > li:first-child:before {
-                width: var(--item-gap);
-                left: calc(-1 * var(--item-gap));
-            }
-
-            .vsitemap ul li:after {
-                content: '';
-                position: absolute;
-                top: calc(-1 * var(--item-gap));
-                left: calc((var(--item-gap) / 2) - var(--item-gap));
-                bottom: 0;
-                width: 1px;
-                background: var(--color-line);
-            }
-
-            .vsitemap ul li:first-child:after {
-                top: 1em;
-            }
-
-            .vsitemap ul li:last-child:after {
-                bottom: auto;
-                height: calc(var(--item-gap) + 1em);
-            }
-
-            .vsitemap ul li:only-child:after {
-                display: none;
             }
 
             /* Box Item */
@@ -95,68 +56,26 @@ $language = Frontend::language();
                 line-height: 1.5em;
                 display: block;
                 text-decoration: none;
-                padding: 0.2em 0.5em;
-                border-radius: 3px;
-                width: var(--item-width);
+                padding: 0.75rem 1rem;
+                border: 1px solid rgb(226 232 240);
+                border-radius: 0.5rem;
+                background: white;
+                color: rgb(15 23 42);
+                font-weight: 700;
+                transition:
+                    border-color 150ms ease,
+                    color 150ms ease;
             }
 
-            /* Responsive */
-            /* tablet */
-            @media only screen and (max-width: 768px) {
-                .vsitemap > ul > li > ul > li ul li {
-                    flex-direction: column;
-                }
-
-                .vsitemap > ul > li > ul > li ul li ul {
-                    margin-top: calc(var(--item-gap) / 2);
-                }
-
-                .vsitemap > ul > li > ul > li > ul li:after {
-                    left: calc(-1 * var(--item-gap) / 2);
-                }
-
-                .vsitemap > ul > li > ul > li > ul > li li:first-child:before {
-                    width: calc(var(--item-gap) / 2);
-                    left: calc(-1 * var(--item-gap) / 2);
-                }
-
-                .vsitemap > ul > li > ul > li > ul > li li:first-child:after {
-                    top: calc(-1 * var(--item-gap) / 2);
-                }
-
-                .vsitemap > ul > li > ul > li > ul > li li:only-child:after {
-                    display: block;
-                    height: calc(var(--item-gap) / 2 + 1em);
-                }
+            .vsitemap a:hover,
+            .vsitemap a:focus {
+                border-color: rgb(15 118 110);
+                color: rgb(15 118 110);
             }
 
-            /* mobile */
-            @media only screen and (max-width: 576px) {
-                .vsitemap > ul > li ul li {
-                    flex-direction: column;
-                }
-
-                .vsitemap > ul > li ul li ul {
-                    margin-top: calc(var(--item-gap) / 2);
-                }
-
-                .vsitemap > ul > li > ul li:after {
-                    left: calc(-1 * var(--item-gap) / 2);
-                }
-
-                .vsitemap > ul > li > ul > li li:first-child:before {
-                    width: calc(var(--item-gap) / 2);
-                    left: calc(-1 * var(--item-gap) / 2);
-                }
-
-                .vsitemap > ul > li > ul > li li:first-child:after {
-                    top: calc(-1 * var(--item-gap) / 2);
-                }
-
-                .vsitemap > ul > li > ul > li li:only-child:after {
-                    display: block;
-                    height: calc(var(--item-gap) / 2 + 1em);
-                }
+            .vsitemap li li {
+                padding-left: 1rem;
+                border-left: 1px solid var(--color-line);
             }
 
             /***** End Vertical Sitemap *****/
