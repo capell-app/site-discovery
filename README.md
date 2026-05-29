@@ -1,10 +1,6 @@
 # Site Discovery
 
-- Public discoverable page and URL APIs.
-- HTML sitemap page type and frontend component.
-- XML sitemap generation with chunking and incremental state.
-- Sitemap admin page, admin actions, and generation tool.
-- Lifecycle listeners that regenerate sitemap output when pages or sites change.
+Site Discovery owns public sitemap and discoverability output for Capell sites.
 
 ## At A Glance
 
@@ -14,6 +10,21 @@
 - Service providers: `packages/site-discovery/src/Providers/SiteDiscoveryServiceProvider.php`
 - Capell dependencies: `capell-app/admin`, `capell-app/core`, `capell-app/frontend`
 - Third-party dependencies: `icamys/php-sitemap-generator`
+
+## Why It Helps Your Capell Workflow
+
+- Resolves public discoverable pages and URLs, then exposes HTML and XML sitemap outputs.
+- Provides a discovery-output contract so packages can advertise public machine-readable outputs such as `llms.txt` without coupling Site Discovery to consumer packages.
+- Provides a URL change notification contract so packages can submit public URL changes to IndexNow-style services without hard-coding providers into sitemap generation.
+- Includes an optional IndexNow notifier, disabled by default until `capell-site-discovery.indexnow.enabled` and a key are configured.
+- Helps owners and search tools find the pages Capell intends to publish without each package building its own crawler view.
+- Gives developers a shared discovery surface that SEO Suite, Blog, Search, and audits can use consistently.
+
+## Best Used With
+
+- [SEO Suite](../seo-suite/README.md)
+- [Search](../search/README.md)
+- [Blog](../blog/README.md)
 
 ## What It Adds
 
@@ -57,7 +68,8 @@
 
 ## Extension Points
 
-- Contracts: `DiscoverableUrlSource`, `Sitemapable`.
+- Contracts: `DiscoverableUrlSource`, `DiscoveryOutputSource`, `UrlChangeNotifier`, `Sitemapable`.
+- IndexNow: enable `capell-site-discovery.indexnow.enabled` and set `capell-site-discovery.indexnow.key` to submit URL changes through the built-in notifier.
 - Listeners: `RegenerateSitemapsOnPageDeleted`, `RegenerateSitemapsOnPageSaved`, `RegenerateSitemapsOnSiteCreated`.
 - Register Capell extension points, routes, migrations, settings, render hooks, and resources from service providers.
 
@@ -70,6 +82,7 @@
 
 ## Docs
 
+- [docs index](docs/README.md)
 - [overview.md](docs/overview.md)
 - [screenshots.json](docs/screenshots.json)
 

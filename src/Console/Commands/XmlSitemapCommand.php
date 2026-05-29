@@ -54,18 +54,21 @@ class XmlSitemapCommand extends Command
     {
         $generator->delete($site);
 
-        $currentDomain = null;
+        $currentDomain = new class
+        {
+            public ?SiteDomain $domain = null;
+        };
 
         $generator->process(
             site: $site,
-            start: function (SiteDomain $domain) use (&$currentDomain): void {
-                $currentDomain = $domain;
+            start: function (SiteDomain $domain) use ($currentDomain): void {
+                $currentDomain->domain = $domain;
             },
-            end: function (int $total, string $filePath) use (&$currentDomain, &$rows): void {
-                throw_unless($currentDomain instanceof SiteDomain, RuntimeException::class, 'Missing domain context in sitemap processing.');
+            end: function (int $total, string $filePath) use ($currentDomain, &$rows): void {
+                throw_unless($currentDomain->domain instanceof SiteDomain, RuntimeException::class, 'Missing domain context in sitemap processing.');
                 $rows[] = [
-                    $currentDomain->domain,
-                    $currentDomain->language->name,
+                    $currentDomain->domain->domain,
+                    $currentDomain->domain->language->name,
                     $total,
                     $filePath,
                 ];
@@ -78,18 +81,21 @@ class XmlSitemapCommand extends Command
      */
     private function runIncremental(XmlSitemapGenerator $generator, Site $site, array &$rows): void
     {
-        $currentDomain = null;
+        $currentDomain = new class
+        {
+            public ?SiteDomain $domain = null;
+        };
 
         $generator->processIncremental(
             site: $site,
-            start: function (SiteDomain $domain) use (&$currentDomain): void {
-                $currentDomain = $domain;
+            start: function (SiteDomain $domain) use ($currentDomain): void {
+                $currentDomain->domain = $domain;
             },
-            end: function (int $total, string $filePath, bool $regenerated) use (&$currentDomain, &$rows): void {
-                throw_unless($currentDomain instanceof SiteDomain, RuntimeException::class, 'Missing domain context in sitemap processing.');
+            end: function (int $total, string $filePath, bool $regenerated) use ($currentDomain, &$rows): void {
+                throw_unless($currentDomain->domain instanceof SiteDomain, RuntimeException::class, 'Missing domain context in sitemap processing.');
                 $rows[] = [
-                    $currentDomain->domain,
-                    $currentDomain->language->name,
+                    $currentDomain->domain->domain,
+                    $currentDomain->domain->language->name,
                     $total,
                     $regenerated ? $filePath : '—',
                     $regenerated ? '<fg=green>regenerated</>' : '<fg=yellow>skipped</>',
@@ -98,6 +104,9 @@ class XmlSitemapCommand extends Command
         );
     }
 
+    /**
+     * @return Collection<int, Site>
+     */
     private function getSites(): Collection
     {
         /** @var class-string<Site> $model */

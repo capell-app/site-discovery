@@ -90,9 +90,9 @@ class XmlSitemapGenerator
         if (! $storage->exists($filePath)) {
             throw new SitemapGeneratorException(
                 '[SitemapGenerator] Sitemap XML file not found: ' . $filePath .
-                ' | path_exists=' . ($storage->exists($filePath) ? 'yes' : 'no') .
+                ' | path_exists=no' .
                 ' | dir_exists=' . ($storage->exists($directory) ? 'yes' : 'no') .
-                ' | dir_contents=' . json_encode($storage->exists($directory) ? $storage->allFiles($directory) : null),
+                ' | dir_contents=' . json_encode($storage->allFiles($directory)),
             );
         }
 
@@ -366,10 +366,7 @@ class XmlSitemapGenerator
             return [];
         }
 
-        return $children
-            ->filter(fn (mixed $child): bool => $child instanceof SitemapPageData)
-            ->values()
-            ->all();
+        return $children->values()->all();
     }
 
     /**

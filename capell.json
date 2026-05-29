@@ -20,7 +20,7 @@
             "capell-app/core",
             "capell-app/frontend"
         ],
-        "optional": [],
+        "supports": [],
         "conflicts": []
     },
     "providers": {
@@ -102,7 +102,13 @@
     },
     "marketplace": {
         "summary": "Site Discovery resolves public discoverable pages and URLs, then exposes HTML and XML sitemap outputs.",
-        "screenshots": [],
+        "screenshots": [
+            {
+                "path": "docs/assets/marketplace/extension-card.jpg",
+                "alt": "Site Discovery extension preview image",
+                "caption": "Site Discovery extension preview"
+            }
+        ],
         "categories": ["admin", "console", "frontend", "search-seo"]
     },
     "contributionTraceability": {

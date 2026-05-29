@@ -55,14 +55,14 @@ class SiteDiscoveryTestCase extends AbstractTestCase
         CapellCore::forcePackageInstalled(AdminServiceProvider::$packageName);
         CapellCore::registerPackage(
             FrontendServiceProvider::$packageName,
-            path: realpath(__DIR__ . '/../../frontend'),
+            path: realpath(__DIR__ . '/../../frontend') ?: null,
         );
         CapellCore::forcePackageInstalled(FrontendServiceProvider::$packageName);
         CapellCore::forcePackageInstalled(SiteDiscoveryServiceProvider::$packageName);
 
         CapellCore::registerPackage(
             NavigationServiceProvider::$packageName,
-            path: realpath(__DIR__ . '/../../navigation'),
+            path: realpath(__DIR__ . '/../../navigation') ?: null,
         );
         CapellCore::forcePackageInstalled(NavigationServiceProvider::$packageName);
     }

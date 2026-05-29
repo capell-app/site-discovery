@@ -163,6 +163,9 @@ describe('SitemapBuilder', function (): void {
 
         $builder->addPages(new class implements Sitemapable
         {
+            /**
+             * @return Collection<array-key, mixed>
+             */
             public function fetch(): Collection
             {
                 return collect([
@@ -188,6 +191,9 @@ describe('SitemapBuilder', function (): void {
 
         $builder->addPages(new class implements Sitemapable
         {
+            /**
+             * @return Collection<array-key, mixed>
+             */
             public function fetch(): Collection
             {
                 return collect([

@@ -13,9 +13,9 @@
     "license": "proprietary",
     "require": {
         "php": "^8.3",
-        "capell-app/admin": "*",
-        "capell-app/core": "*",
-        "capell-app/frontend": "*",
+        "capell-app/admin": "^4.0 || 4.x-dev",
+        "capell-app/core": "^4.0 || 4.x-dev",
+        "capell-app/frontend": "^4.0 || 4.x-dev",
         "icamys/php-sitemap-generator": "^4.4"
     },
     "require-dev": {
@@ -36,5 +36,18 @@
     "config": {
         "sort-packages": true
     },
-    "prefer-stable": true
+    "prefer-stable": true,
+    "type": "library",
+    "homepage": "https://github.com/capell-app/site-discovery",
+    "authors": [
+        {
+            "name": "Capell Team",
+            "email": "team@capell.app",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "source": "https://github.com/capell-app/capell-packages",
+        "docs": "https://docs.capell.app/packages/site-discovery"
+    }
 }

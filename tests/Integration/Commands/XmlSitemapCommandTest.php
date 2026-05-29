@@ -9,8 +9,6 @@ use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Illuminate\Console\Command;
 
-use function Pest\Laravel\artisan;
-
 uses(SiteDiscoveryTestCase::class);
 
 /**
@@ -90,7 +88,7 @@ it('generates full XML sitemaps for the selected enabled site', function (): voi
     $generator = seoSuiteCommandFakeXmlSitemapGenerator();
     app()->instance(XmlSitemapGenerator::class, $generator);
 
-    artisan('capell:xml-sitemap', ['--site' => $selectedSite->id])
+    $this->artisan('capell:xml-sitemap', ['--site' => $selectedSite->id])
         ->expectsOutputToContain('1 sitemap generated successfully')
         ->assertExitCode(Command::SUCCESS);
 
@@ -108,7 +106,7 @@ it('runs incremental sitemap generation without deleting existing files', functi
     $generator = seoSuiteCommandFakeXmlSitemapGenerator();
     app()->instance(XmlSitemapGenerator::class, $generator);
 
-    artisan('capell:xml-sitemap', [
+    $this->artisan('capell:xml-sitemap', [
         '--site' => $site->id,
         '--incremental' => true,
     ])

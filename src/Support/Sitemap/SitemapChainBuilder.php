@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Capell\SiteDiscovery\Support\Sitemap;
 
 use Capell\Core\Actions\GetEditPageResourceUrlAction;
-use Capell\Core\Exceptions\UrlMissingSiteDomainException;
 use Capell\Core\Models\Page;
 use Capell\SiteDiscovery\Data\SitemapPageData;
 use Illuminate\Support\Collection;
@@ -21,7 +20,7 @@ final class SitemapChainBuilder
     public static function build(Page $page, ?Collection $children = null, bool $withEditUrl = false): SitemapPageData
     {
         $node = new SitemapPageData(
-            label: $page->translation?->label ?? $page->name,
+            label: $page->translation->label ?? $page->name,
             url: self::pageUrl($page),
             children: $children,
             lastModified: SitemapPageData::resolveLastModified($page),
@@ -35,7 +34,7 @@ final class SitemapChainBuilder
         $ancestor = $page->parent;
         while ($ancestor !== null) {
             $node = new SitemapPageData(
-                label: $ancestor->translation?->label ?? $ancestor->name,
+                label: $ancestor->translation->label ?? $ancestor->name,
                 url: self::pageUrl($ancestor),
                 children: collect([$node]),
                 lastModified: SitemapPageData::resolveLastModified($ancestor),
@@ -64,10 +63,6 @@ final class SitemapChainBuilder
 
     private static function pageUrl(Page $page): string
     {
-        try {
-            return $page->pageUrl->full_url;
-        } catch (UrlMissingSiteDomainException) {
-            return $page->pageUrl->url;
-        }
+        return $page->pageUrl->full_url;
     }
 }

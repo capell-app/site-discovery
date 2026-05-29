@@ -17,6 +17,9 @@ use LogicException;
 
 class PagesSitemap extends AbstractSitemapPages
 {
+    /**
+     * @return Collection<array-key, mixed>
+     */
     public function fetch(): Collection
     {
         throw_if($this->site->id === null, LogicException::class, 'Site ID is null in DefaultPages::fetch(). Ensure the Site model is persisted and loaded.');

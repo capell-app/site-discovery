@@ -9,7 +9,6 @@ use Capell\Admin\Contracts\Extenders\ResourceHeaderActionExtender;
 use Capell\Admin\Contracts\Extenders\SiteHeaderActionExtender;
 use Capell\Admin\Contracts\Extenders\SiteRecordActionExtender;
 use Capell\Core\Actions\RegisterBlazeOptimizedViewsAction;
-use Capell\Core\Data\PackageData;
 use Capell\Core\Data\RenderableDefinitionData;
 use Capell\Core\Enums\BlueprintSubjectEnum;
 use Capell\Core\Enums\PackageTypeEnum;
@@ -23,6 +22,8 @@ use Capell\Core\Models\Site;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Renderables\RenderableRegistry;
 use Capell\SiteDiscovery\Console\Commands\XmlSitemapCommand;
+use Capell\SiteDiscovery\Contracts\DiscoveryOutputSource;
+use Capell\SiteDiscovery\Contracts\UrlChangeNotifier;
 use Capell\SiteDiscovery\Filament\Extenders\Page\SitemapResourceHeaderActionExtender;
 use Capell\SiteDiscovery\Filament\Extenders\Site\SitemapSiteHeaderActionExtender;
 use Capell\SiteDiscovery\Filament\Extenders\Site\SitemapSiteRecordActionExtender;
@@ -33,6 +34,8 @@ use Capell\SiteDiscovery\Livewire\Page\Sitemap as SitemapLivewireComponent;
 use Capell\SiteDiscovery\Livewire\Tools\SitemapTool;
 use Capell\SiteDiscovery\Support\AdminTools\SitemapAdminTool;
 use Capell\SiteDiscovery\Support\Creator\SitemapPageCreator;
+use Capell\SiteDiscovery\Support\DiscoveryOutputRegistry;
+use Capell\SiteDiscovery\Support\IndexNow\IndexNowUrlChangeNotifier;
 use Capell\SiteDiscovery\Support\Interceptors\SitemapPageTypeInterceptor;
 use Capell\SiteDiscovery\Support\Sitemap\Pages\PagesSitemap;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageRegistry;
@@ -40,6 +43,7 @@ use Capell\SiteDiscovery\Support\Sitemap\SitemapPageType;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Collection;
 use Livewire\Livewire;
+use Override;
 use Spatie\LaravelPackageTools\Package;
 
 final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
@@ -54,6 +58,7 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
     {
         $package
             ->name(self::$name)
+            ->hasConfigFile()
             ->hasViews(self::$name)
             ->hasTranslations()
             ->hasCommands([
@@ -72,6 +77,12 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
         });
     }
 
+    #[Override]
+    protected function isPackageInstalled(): bool
+    {
+        return CapellCore::isPackageInstalled(self::$packageName);
+    }
+
     private function bootInstalledPackage(): self
     {
         return $this
@@ -82,6 +93,8 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
             ->registerSitemapPageType()
             ->registerSitemapDefaultPage()
             ->registerSitemapRegistry()
+            ->registerDiscoveryOutputRegistry()
+            ->registerUrlChangeNotifiers()
             ->registerSitemapEventListeners()
             ->registerFrontendViews();
     }
@@ -174,6 +187,35 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
         return $this;
     }
 
+    private function registerDiscoveryOutputRegistry(): self
+    {
+        $this->app->singleton(DiscoveryOutputRegistry::class);
+
+        /** @var DiscoveryOutputRegistry $registry */
+        $registry = $this->app->make(DiscoveryOutputRegistry::class);
+
+        foreach ($this->app->tagged('capell-site-discovery:discovery-output-sources') as $source) {
+            if ($source instanceof DiscoveryOutputSource) {
+                $registry->register($source);
+            }
+        }
+
+        return $this;
+    }
+
+    private function registerUrlChangeNotifiers(): self
+    {
+        if (config('capell-site-discovery.indexnow.enabled') !== true) {
+            return $this;
+        }
+
+        $this->app->tag([
+            IndexNowUrlChangeNotifier::class,
+        ], UrlChangeNotifier::TAG);
+
+        return $this;
+    }
+
     private function registerSitemapEventListeners(): self
     {
         $events = $this->app->make(Dispatcher::class);
@@ -190,12 +232,5 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'capell-site-discovery');
 
         return $this;
-    }
-
-    private function isPackageInstalled(): bool
-    {
-        $package = CapellCore::getPackage(self::$packageName);
-
-        return $package instanceof PackageData && $package->isInstalled();
     }
 }
