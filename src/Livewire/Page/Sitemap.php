@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Capell\SiteDiscovery\Livewire\Page;
 
 use Capell\Core\Contracts\Pageable;
+use Capell\Core\Models\Language;
+use Capell\Core\Models\PageUrl;
 use Capell\Core\Models\Site;
+use Capell\Core\Models\SiteDomain;
 use Capell\Frontend\Facades\Frontend;
 use Capell\Frontend\Livewire\Page\AbstractPage;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapBuilder;
@@ -23,20 +26,30 @@ class Sitemap extends AbstractPage
     protected function setup(): void
     {
         $page = Frontend::page();
-        $url = $page->pageUrl->full_url;
         $site = Frontend::site();
+        $language = Frontend::language();
+
+        abort_unless($page instanceof Pageable && $site instanceof Site && $language instanceof Language, 404);
+
+        $pageUrl = $page->pageUrl;
+        abort_unless($pageUrl instanceof PageUrl, 404);
+
+        $siteDomain = $site->siteDomain;
+        abort_unless($siteDomain instanceof SiteDomain, 404);
+
+        $url = $pageUrl->full_url;
 
         /** @noRector RectorLaravel\Rector\If_\AbortIfRector */
         $requestPath = '/' . trim(request()->path(), '/');
-        if ($page instanceof Pageable && (str_ends_with($requestPath, '-xml') || str_ends_with($url, '-xml'))) {
+        if (str_ends_with($requestPath, '-xml') || str_ends_with($url, '-xml')) {
             $downloadFilename = (str_ends_with($url, '-xml') ? substr($url, 0, -4) : $url) . '.xml';
             throw new HttpResponseException($this->returnXmlSitemap($downloadFilename, $site));
         }
 
         $sitemapLoader = new SitemapBuilder(
             site: $site,
-            domain: $site->siteDomain,
-            language: Frontend::language(),
+            domain: $siteDomain,
+            language: $language,
         );
 
         $this->results = $sitemapLoader->build();
@@ -44,7 +57,11 @@ class Sitemap extends AbstractPage
 
     private function returnXmlSitemap(string $downloadFilename, Site $site): Response|StreamedResponse
     {
-        $domainKey = $site->siteDomain->getDomainKey();
+        $siteDomain = $site->siteDomain;
+
+        abort_unless($siteDomain instanceof SiteDomain, 404);
+
+        $domainKey = $siteDomain->getDomainKey();
 
         // Support paginated sitemaps: ?p=N serves the Nth chunk file.
         $chunkPage = request()->query('p');

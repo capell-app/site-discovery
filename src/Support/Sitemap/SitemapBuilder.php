@@ -9,6 +9,7 @@ use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
 use Capell\SiteDiscovery\Contracts\Sitemapable;
 use Capell\SiteDiscovery\Data\SitemapPageData;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 
 class SitemapBuilder
@@ -97,10 +98,22 @@ class SitemapBuilder
 
     private function mergeNodeAttributes(SitemapPageData $existing, SitemapPageData $incoming): SitemapPageData
     {
-        foreach (['label', 'lastModified', 'changeFrequency', 'priority', 'editUrl'] as $key) {
-            if (($incoming->{$key} ?? null) !== null) {
-                $existing->{$key} = $incoming->{$key};
-            }
+        $existing->label = $incoming->label;
+
+        if ($incoming->lastModified instanceof CarbonImmutable) {
+            $existing->lastModified = $incoming->lastModified;
+        }
+
+        if ($incoming->changeFrequency !== null) {
+            $existing->changeFrequency = $incoming->changeFrequency;
+        }
+
+        if ($incoming->priority !== null) {
+            $existing->priority = $incoming->priority;
+        }
+
+        if ($incoming->editUrl !== null) {
+            $existing->editUrl = $incoming->editUrl;
         }
 
         return $existing;

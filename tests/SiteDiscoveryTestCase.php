@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\SiteDiscovery\Tests;
 
 use Capell\Admin\Providers\AdminServiceProvider;
+use Capell\Admin\Providers\Filament\AdminPanelProvider;
 use Capell\Core\Facades\CapellCore;
 use Capell\Frontend\Contracts\FrontendContextReader;
 use Capell\Frontend\Providers\FrontendServiceProvider;
@@ -34,6 +35,7 @@ class SiteDiscoveryTestCase extends AbstractTestCase
         return [
             ...parent::getPackageProviders($app),
             AdminServiceProvider::class,
+            AdminPanelProvider::class,
             SiteDiscoveryServiceProvider::class,
             FrontendServiceProvider::class,
             LivewireServiceProvider::class,

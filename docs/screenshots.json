@@ -64,6 +64,30 @@
             "notes": "Run capell:xml-sitemap in the host app before capture. The endpoint serves the generated domain XML file.",
             "useCase": "A crawler or operator reviews generated XML sitemap output after running sitemap generation.",
             "screenshotPath": "public/docs/screenshots/packages/site-discovery/xml-sitemap-output.png"
+        },
+        {
+            "id": "public-url-registry-page",
+            "title": "Public URL Registry parity page.",
+            "package": "site-discovery",
+            "surface": "admin",
+            "targetType": "admin-surface",
+            "target": "PublicUrlRegistryPage",
+            "required": true,
+            "notes": "Capture registry rows with source package, canonical URL, sitemap, AI Discovery, Search, HTML Cache, and Agent Delivery statuses visible.",
+            "useCase": "An administrator audits generated-output parity for public URLs across installed packages.",
+            "screenshotPath": "public/docs/screenshots/packages/site-discovery/public-url-registry-page.png"
+        },
+        {
+            "id": "public-url-quality-report",
+            "title": "Public URL Registry quality report.",
+            "package": "site-discovery",
+            "surface": "admin",
+            "targetType": "admin-surface",
+            "target": "PublicUrlRegistryPage",
+            "required": true,
+            "notes": "Capture the registry page with missing output or quality errors visible after seeding at least one missing downstream output.",
+            "useCase": "An administrator filters the registry to find URLs missing generated outputs or failing sitemap quality checks.",
+            "screenshotPath": "public/docs/screenshots/packages/site-discovery/public-url-quality-report.png"
         }
     ]
 }

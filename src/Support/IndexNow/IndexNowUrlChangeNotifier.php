@@ -27,7 +27,7 @@ final class IndexNowUrlChangeNotifier implements UrlChangeNotifier
         if ($key === null) {
             return new UrlChangeNotificationResultData(
                 notifier: self::NotifierName,
-                urls: $urls->values()->all(),
+                urls: array_values($urls->values()->all()),
                 accepted: false,
                 message: 'IndexNow key is not configured.',
             );
@@ -66,7 +66,7 @@ final class IndexNowUrlChangeNotifier implements UrlChangeNotifier
      */
     private function payload(Collection $urls, string $key, ?SiteDomain $domain): array
     {
-        $urlList = $urls->values()->all();
+        $urlList = array_values($urls->values()->all());
         $host = $domain instanceof SiteDomain && is_string($domain->domain) && $domain->domain !== ''
             ? $domain->domain
             : $this->hostFromUrl($urlList[0]);

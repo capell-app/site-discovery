@@ -7,7 +7,10 @@ use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
 use Capell\SiteDiscovery\Actions\GenerateSitemapAction;
+use Capell\SiteDiscovery\Enums\SitemapCacheKey;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
+use Illuminate\Queue\Middleware\WithoutOverlapping;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 uses(SiteDiscoveryTestCase::class);
@@ -42,4 +45,33 @@ it('handles the sitemap generation', function (): void {
         $filename = $domain->getDomainKey() . '.xml';
         $storage->assertExists($dir . ('/' . $filename));
     });
+});
+
+it('exposes per-site queue middleware to prevent overlapping sitemap jobs', function (): void {
+    $site = Site::factory()->create();
+
+    // @phpstan-ignore-next-line arguments.count
+    $middleware = (new GenerateSitemapAction)->getJobMiddleware($site);
+
+    expect($middleware)->toHaveCount(1)
+        ->and($middleware[0])->toBeInstanceOf(WithoutOverlapping::class);
+});
+
+it('cleans the generating counter when a site sitemap generation lock is already held', function (): void {
+    config(['capell.sitemap.lock_wait_seconds' => 0]);
+
+    $site = Site::factory()->create();
+    $lock = Cache::lock('capell-site-discovery:sitemap:' . $site->getKey(), 900);
+    $lock->get();
+
+    Cache::put(SitemapCacheKey::Generating->value, 1);
+
+    try {
+        expect(fn (): string => GenerateSitemapAction::run($site))
+            ->toThrow(Exception::class, 'Sitemap generation is already running for this site.');
+
+        expect(Cache::has(SitemapCacheKey::Generating->value))->toBeFalse();
+    } finally {
+        $lock->release();
+    }
 });

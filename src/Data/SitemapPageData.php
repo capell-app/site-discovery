@@ -7,8 +7,10 @@ namespace Capell\SiteDiscovery\Data;
 use Capell\Core\Actions\GetEditPageResourceUrlAction;
 use Capell\Core\Contracts\Pageable;
 use Capell\Core\Models\Page;
+use Capell\Core\Models\PageUrl;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
+use RuntimeException;
 use Spatie\LaravelData\Attributes\MapInputName;
 use Spatie\LaravelData\Attributes\WithCast;
 use Spatie\LaravelData\Attributes\WithTransformer;
@@ -72,20 +74,27 @@ class SitemapPageData extends Data
 
     public static function resolveLastModified(Pageable $page): CarbonImmutable
     {
-        return collect([
+        $lastModified = collect([
             $page->published_at ?? null,
             $page->visible_from ?? null,
             $page->updated_at ?? null,
             $page->created_at ?? null,
         ])
             ->filter()
-            ->map(fn (mixed $date): CarbonImmutable => CarbonImmutable::make($date))
+            ->map(fn (mixed $date): ?CarbonImmutable => CarbonImmutable::make($date))
+            ->filter(fn (?CarbonImmutable $date): bool => $date instanceof CarbonImmutable)
             ->sort()
-            ->last() ?? CarbonImmutable::make(now());
+            ->last();
+
+        return $lastModified instanceof CarbonImmutable ? $lastModified : CarbonImmutable::now();
     }
 
     private static function pageUrl(Pageable $page): string
     {
-        return $page->pageUrl->full_url;
+        $pageUrl = $page->pageUrl;
+
+        throw_unless($pageUrl instanceof PageUrl, RuntimeException::class, 'Sitemap page requires a page URL.');
+
+        return $pageUrl->full_url;
     }
 }

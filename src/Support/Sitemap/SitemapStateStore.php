@@ -60,10 +60,12 @@ class SitemapStateStore
             $storage->makeDirectory($stateDir);
         }
 
-        $storage->put($this->statePath($domainKey), json_encode([
+        $contents = json_encode([
             'generated_at' => now()->toAtomString(),
             'urls' => $urlLastModMap,
-        ], JSON_PRETTY_PRINT));
+        ], JSON_PRETTY_PRINT);
+
+        $storage->put($this->statePath($domainKey), $contents === false ? '{}' : $contents);
     }
 
     /**
