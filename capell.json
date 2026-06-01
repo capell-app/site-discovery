@@ -39,6 +39,10 @@
             "pageClass": "Capell\\SiteDiscovery\\Filament\\Pages\\PublicUrlRegistryPage",
             "labelKey": "capell-site-discovery::generic.public_url_registry",
             "permission": "View:PublicUrlRegistryPage"
+        },
+        {
+            "type": "route",
+            "class": "Capell\\SiteDiscovery\\Manifest\\SiteDiscoveryFrontendRoutesContribution"
         }
     ],
     "database": {
@@ -130,6 +134,6 @@
         "categories": ["admin", "console", "frontend", "search-seo"]
     },
     "contributionTraceability": {
-        "deferredContributions": ["route"]
+        "deferredContributions": []
     }
 }

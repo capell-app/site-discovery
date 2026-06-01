@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 use Capell\Admin\Support\Extensions\ExtensionPageRegistry;
 use Capell\Core\Contracts\Extensions\ExtensionContribution;
+use Capell\Core\Contracts\Extensions\RegistersExtensionRoute;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
 use Capell\SiteDiscovery\Actions\BuildGeneratedOutputParityReportAction;
+use Capell\SiteDiscovery\Actions\BuildPublicUrlRegistryAction;
+use Capell\SiteDiscovery\Actions\GenerateSitemapAction;
+use Capell\SiteDiscovery\Actions\ValidateSitemapQualityAction;
 use Capell\SiteDiscovery\Contracts\GeneratedOutputCoverageSource;
 use Capell\SiteDiscovery\Contracts\PublicUrlContributor;
 use Capell\SiteDiscovery\Data\PublicUrlData;
@@ -16,6 +20,7 @@ use Capell\SiteDiscovery\Enums\GeneratedOutputParityStatus;
 use Capell\SiteDiscovery\Enums\PublicUrlIndexability;
 use Capell\SiteDiscovery\Filament\Pages\PublicUrlRegistryPage;
 use Capell\SiteDiscovery\Manifest\PublicUrlRegistryPageContribution;
+use Capell\SiteDiscovery\Manifest\SiteDiscoveryFrontendRoutesContribution;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Capell\Tests\Support\Concerns\CreatesAdminUser;
 use Illuminate\Support\Collection;
@@ -176,11 +181,15 @@ it('declares the public url registry page in the package manifest', function ():
         'labelKey' => 'capell-site-discovery::generic.public_url_registry',
         'permission' => 'View:PublicUrlRegistryPage',
     ])
+        ->and($manifest['contributes'])->toContain([
+            'type' => 'route',
+            'class' => SiteDiscoveryFrontendRoutesContribution::class,
+        ])
         ->and($manifest['actions'])->toMatchArray([
             'buildGeneratedOutputParityReport' => BuildGeneratedOutputParityReportAction::class,
-            'buildPublicUrlRegistry' => 'Capell\\SiteDiscovery\\Actions\\BuildPublicUrlRegistryAction',
-            'generateSitemap' => 'Capell\\SiteDiscovery\\Actions\\GenerateSitemapAction',
-            'validateSitemapQuality' => 'Capell\\SiteDiscovery\\Actions\\ValidateSitemapQualityAction',
+            'buildPublicUrlRegistry' => BuildPublicUrlRegistryAction::class,
+            'generateSitemap' => GenerateSitemapAction::class,
+            'validateSitemapQuality' => ValidateSitemapQualityAction::class,
         ])
         ->and($manifest['capabilities'])->toContain(
             'site-discovery-public-url-registry',
@@ -189,7 +198,8 @@ it('declares the public url registry page in the package manifest', function ():
             'site-discovery-generated-output-parity',
         )
         ->and(class_implements(PublicUrlRegistryPageContribution::class))->toContain(ExtensionContribution::class)
-        ->and($manifest['contributionTraceability']['deferredContributions'])->not->toContain('admin-page');
+        ->and(class_implements(SiteDiscoveryFrontendRoutesContribution::class))->toContain(RegistersExtensionRoute::class)
+        ->and($manifest['contributionTraceability']['deferredContributions'])->toBe([]);
 });
 
 it('renders registry parity rows and filters missing output in the admin page', function (): void {
