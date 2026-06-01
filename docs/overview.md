@@ -60,7 +60,7 @@ Site Discovery registers `CmsPagePublicUrlContributor` for existing public CMS p
 
 ## Quality And Parity
 
-`ValidateSitemapQualityAction` returns typed errors for invalid registry status, invalid content type, private URLs, duplicate URLs, missing or stale `lastmod`, and malformed sitemap XML.
+`ValidateSitemapQualityAction` returns typed errors for invalid registry status, invalid content type, private URLs, duplicate URLs, missing or stale `lastmod`, malformed sitemap XML, and optional routed status checks. Callers can pass a status resolver to flag canonical URLs that resolve as redirects or non-200 responses without forcing network access into the default quality gate.
 
 `BuildGeneratedOutputParityReportAction` compares registry entries against generated sitemap XML and tagged downstream coverage sources. `GeneratedOutputCoverageSource` keeps package-specific reads inside the owning package: SEO Suite contributes AI Discovery coverage, Search contributes search-indexable URL coverage, HTML Cache contributes cached URL records, and Agent Delivery contributes manifest-resolvable page URLs. The Public URL Registry admin page shows present, missing, not eligible, and unknown statuses for sitemap, AI Discovery, Search, HTML Cache, and Agent Delivery coverage.
 
@@ -81,7 +81,6 @@ Apache should keep Laravel's standard `!-f` / `!-d` front-controller rewrite. Do
 ## Approved Roadmap
 
 - Migrate any remaining package-owned dynamic URLs into package-local `PublicUrlContributor` implementations.
-- Extend sitemap quality gates with optional routed HTTP status checks for canonical `200` URLs and redirects.
 - Add sitemap index and sharding support by source or content type when URL counts grow.
 - Extend downstream parity sources so SEO Suite can compare sitemap coverage with robots, schema, Search Console, and public-output audits.
 - Add diagnostics for `/sitemap`, `/sitemap-xml`, and host aliases such as `/sitemap.xml`, including status code, content type, XML validity, and nginx/Apache static-handler behavior.
@@ -94,7 +93,7 @@ Apache should keep Laravel's standard `!-f` / `!-d` front-controller rewrite. Do
 - `html-sitemap-page.png`: public `/sitemap` output.
 - `xml-sitemap-output.png`: `/sitemap-xml` output after `capell:xml-sitemap`.
 
-Captured files live in the host app under `public/docs/screenshots/packages/site-discovery`.
+Captured files live in the host app under `packages/site-discovery/docs/screenshots`.
 
 ## Public Safety Notes
 

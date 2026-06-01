@@ -32,7 +32,15 @@
         "admin": [],
         "frontend": []
     },
-    "contributes": [],
+    "contributes": [
+        {
+            "type": "admin-page",
+            "class": "Capell\\SiteDiscovery\\Manifest\\PublicUrlRegistryPageContribution",
+            "pageClass": "Capell\\SiteDiscovery\\Filament\\Pages\\PublicUrlRegistryPage",
+            "labelKey": "capell-site-discovery::generic.public_url_registry",
+            "permission": "View:PublicUrlRegistryPage"
+        }
+    ],
     "database": {
         "migrations": false,
         "settings": false,
@@ -45,12 +53,22 @@
         "doctor": null
     },
     "settings": [],
+    "actions": {
+        "buildGeneratedOutputParityReport": "Capell\\SiteDiscovery\\Actions\\BuildGeneratedOutputParityReportAction",
+        "buildPublicUrlRegistry": "Capell\\SiteDiscovery\\Actions\\BuildPublicUrlRegistryAction",
+        "generateSitemap": "Capell\\SiteDiscovery\\Actions\\GenerateSitemapAction",
+        "validateSitemapQuality": "Capell\\SiteDiscovery\\Actions\\ValidateSitemapQualityAction"
+    },
     "permissions": [],
     "capabilities": [
         "site-discovery",
         "site-discovery-admin",
         "site-discovery-console",
-        "site-discovery-frontend"
+        "site-discovery-frontend",
+        "site-discovery-public-url-registry",
+        "site-discovery-sitemap-quality-gates",
+        "site-discovery-routed-status-quality-gates",
+        "site-discovery-generated-output-parity"
     ],
     "performance": {
         "frontendRenderBudgetMs": 20,
@@ -112,6 +130,6 @@
         "categories": ["admin", "console", "frontend", "search-seo"]
     },
     "contributionTraceability": {
-        "deferredContributions": ["admin-page", "route"]
+        "deferredContributions": ["route"]
     }
 }

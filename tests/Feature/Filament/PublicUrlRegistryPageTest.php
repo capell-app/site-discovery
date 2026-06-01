@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Capell\Admin\Support\Extensions\ExtensionPageRegistry;
+use Capell\Core\Contracts\Extensions\ExtensionContribution;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
@@ -14,6 +15,7 @@ use Capell\SiteDiscovery\Data\PublicUrlRegistryEntryData;
 use Capell\SiteDiscovery\Enums\GeneratedOutputParityStatus;
 use Capell\SiteDiscovery\Enums\PublicUrlIndexability;
 use Capell\SiteDiscovery\Filament\Pages\PublicUrlRegistryPage;
+use Capell\SiteDiscovery\Manifest\PublicUrlRegistryPageContribution;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Capell\Tests\Support\Concerns\CreatesAdminUser;
 use Illuminate\Support\Collection;
@@ -158,6 +160,36 @@ it('registers the public url registry as a site discovery extension page', funct
     expect($extensionPages)->toContain(PublicUrlRegistryPage::class)
         ->and(PublicUrlRegistryPage::getNavigationLabel())->toBe(__('capell-site-discovery::generic.public_url_registry'))
         ->and(PublicUrlRegistryPage::getNavigationGroup())->toBe(__('capell-admin::navigation.group_monitoring'));
+});
+
+it('declares the public url registry page in the package manifest', function (): void {
+    $manifest = json_decode(
+        (string) file_get_contents(dirname(__DIR__, 3) . '/capell.json'),
+        associative: true,
+        flags: JSON_THROW_ON_ERROR,
+    );
+
+    expect($manifest['contributes'])->toContain([
+        'type' => 'admin-page',
+        'class' => PublicUrlRegistryPageContribution::class,
+        'pageClass' => PublicUrlRegistryPage::class,
+        'labelKey' => 'capell-site-discovery::generic.public_url_registry',
+        'permission' => 'View:PublicUrlRegistryPage',
+    ])
+        ->and($manifest['actions'])->toMatchArray([
+            'buildGeneratedOutputParityReport' => BuildGeneratedOutputParityReportAction::class,
+            'buildPublicUrlRegistry' => 'Capell\\SiteDiscovery\\Actions\\BuildPublicUrlRegistryAction',
+            'generateSitemap' => 'Capell\\SiteDiscovery\\Actions\\GenerateSitemapAction',
+            'validateSitemapQuality' => 'Capell\\SiteDiscovery\\Actions\\ValidateSitemapQualityAction',
+        ])
+        ->and($manifest['capabilities'])->toContain(
+            'site-discovery-public-url-registry',
+            'site-discovery-sitemap-quality-gates',
+            'site-discovery-routed-status-quality-gates',
+            'site-discovery-generated-output-parity',
+        )
+        ->and(class_implements(PublicUrlRegistryPageContribution::class))->toContain(ExtensionContribution::class)
+        ->and($manifest['contributionTraceability']['deferredContributions'])->not->toContain('admin-page');
 });
 
 it('renders registry parity rows and filters missing output in the admin page', function (): void {

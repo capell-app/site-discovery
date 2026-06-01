@@ -310,3 +310,46 @@ it('detects malformed XML in the sitemap quality gate', function (): void {
     expect($report->passed)->toBeFalse()
         ->and($report->hasError(SitemapQualityError::MalformedXml))->toBeTrue();
 });
+
+it('optionally detects routed redirect and non-ok statuses in the sitemap quality gate', function (): void {
+    $entries = [
+        new PublicUrlRegistryEntryData(
+            canonicalUrl: 'https://example.com/ok',
+            sourcePackage: 'capell-app/test',
+            siteKey: (int) $this->site->getKey(),
+            languageKey: (int) $this->language->getKey(),
+            siteId: (int) $this->site->getKey(),
+            languageId: (int) $this->language->getKey(),
+        ),
+        new PublicUrlRegistryEntryData(
+            canonicalUrl: 'https://example.com/redirect',
+            sourcePackage: 'capell-app/test',
+            siteKey: (int) $this->site->getKey(),
+            languageKey: (int) $this->language->getKey(),
+            siteId: (int) $this->site->getKey(),
+            languageId: (int) $this->language->getKey(),
+        ),
+        new PublicUrlRegistryEntryData(
+            canonicalUrl: 'https://example.com/missing',
+            sourcePackage: 'capell-app/test',
+            siteKey: (int) $this->site->getKey(),
+            languageKey: (int) $this->language->getKey(),
+            siteId: (int) $this->site->getKey(),
+            languageId: (int) $this->language->getKey(),
+        ),
+    ];
+
+    $report = ValidateSitemapQualityAction::run(
+        entries: $entries,
+        statusResolver: static fn (string $url): int => match ($url) {
+            'https://example.com/redirect' => 301,
+            'https://example.com/missing' => 404,
+            default => 200,
+        },
+    );
+
+    expect($report->passed)->toBeFalse()
+        ->and($report->hasError(SitemapQualityError::RedirectStatus))->toBeTrue()
+        ->and($report->hasError(SitemapQualityError::UnexpectedStatus))->toBeTrue()
+        ->and($report->hasErrorsForUrl('https://example.com/ok'))->toBeFalse();
+});

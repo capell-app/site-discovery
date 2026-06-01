@@ -17,7 +17,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
 use SimpleXMLElement;
 
 /**
- * @method static SitemapQualityReportData run(iterable<array-key, PublicUrlRegistryEntryData|SitemapUrlItemData|string> $entries = [], ?string $xml = null, bool $requireLastModified = false, ?CarbonInterface $staleBefore = null)
+ * @method static SitemapQualityReportData run(iterable<array-key, PublicUrlRegistryEntryData|SitemapUrlItemData|string> $entries = [], ?string $xml = null, bool $requireLastModified = false, ?CarbonInterface $staleBefore = null, ?callable $statusResolver = null)
  */
 final class ValidateSitemapQualityAction
 {
@@ -31,6 +31,7 @@ final class ValidateSitemapQualityAction
         ?string $xml = null,
         bool $requireLastModified = false,
         ?CarbonInterface $staleBefore = null,
+        ?callable $statusResolver = null,
     ): SitemapQualityReportData {
         $errors = [];
         $seenUrls = [];
@@ -43,7 +44,7 @@ final class ValidateSitemapQualityAction
                 continue;
             }
 
-            $urlErrors = $this->validateEntry($entry, $url, $requireLastModified, $staleBefore);
+            $urlErrors = $this->validateEntry($entry, $url, $requireLastModified, $staleBefore, $statusResolver);
             $duplicateKey = $this->duplicateKey($url);
 
             if ($duplicateKey !== null && isset($seenUrls[$duplicateKey])) {
@@ -85,6 +86,7 @@ final class ValidateSitemapQualityAction
         string $url,
         bool $requireLastModified,
         ?CarbonInterface $staleBefore,
+        ?callable $statusResolver,
     ): array {
         $errors = [];
 
@@ -139,6 +141,28 @@ final class ValidateSitemapQualityAction
                     'staleBefore' => CarbonImmutable::instance($staleBefore)->toAtomString(),
                 ],
             );
+        }
+
+        if ($statusResolver !== null) {
+            $statusCode = $statusResolver($url, $entry);
+
+            if (is_int($statusCode)) {
+                if ($statusCode >= 300 && $statusCode < 400) {
+                    $errors[] = new SitemapQualityErrorData(
+                        code: SitemapQualityError::RedirectStatus,
+                        url: $url,
+                        message: 'Sitemap URL resolves to a redirect instead of the canonical public URL.',
+                        context: ['status' => $statusCode],
+                    );
+                } elseif ($statusCode !== 200) {
+                    $errors[] = new SitemapQualityErrorData(
+                        code: SitemapQualityError::UnexpectedStatus,
+                        url: $url,
+                        message: 'Sitemap URL does not resolve with an HTTP 200 status.',
+                        context: ['status' => $statusCode],
+                    );
+                }
+            }
         }
 
         return $errors;

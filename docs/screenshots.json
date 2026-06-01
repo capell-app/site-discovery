@@ -3,7 +3,7 @@
     "composerName": "capell-app/site-discovery",
     "generatedFor": "deployment-screenshot-runner",
     "requiresInstalledPackage": true,
-    "outputDirectory": "public/docs/screenshots/packages/site-discovery",
+    "outputDirectory": "packages/site-discovery/docs/screenshots",
     "entries": [
         {
             "id": "page-sitemap-action",
@@ -15,7 +15,7 @@
             "required": true,
             "notes": "Capture the package-added Sitemap header action on the core Pages resource.",
             "useCase": "An editor uses the package-added sitemap action on the core Pages resource.",
-            "screenshotPath": "public/docs/screenshots/packages/site-discovery/page-sitemap-action.png"
+            "screenshotPath": "packages/site-discovery/docs/screenshots/page-sitemap-action.png"
         },
         {
             "id": "site-sitemap-action",
@@ -27,7 +27,7 @@
             "required": true,
             "notes": "Capture the package-added Sitemap header or row action on the core Sites resource.",
             "useCase": "An editor uses the package-added sitemap action on the core Sites resource.",
-            "screenshotPath": "public/docs/screenshots/packages/site-discovery/site-sitemap-action.png"
+            "screenshotPath": "packages/site-discovery/docs/screenshots/site-sitemap-action.png"
         },
         {
             "id": "sitemap-generation-tool",
@@ -39,7 +39,7 @@
             "required": true,
             "notes": "Capture the Livewire sitemap generation tool after demo pages are seeded.",
             "useCase": "An administrator generates or reviews sitemap output after demo pages are seeded.",
-            "screenshotPath": "public/docs/screenshots/packages/site-discovery/sitemap-generation-tool.png"
+            "screenshotPath": "packages/site-discovery/docs/screenshots/sitemap-generation-tool.png"
         },
         {
             "id": "html-sitemap-page",
@@ -51,7 +51,7 @@
             "required": true,
             "notes": "Capture public sitemap output with only discoverable public pages visible.",
             "useCase": "A visitor opens the public HTML sitemap and sees only discoverable public pages.",
-            "screenshotPath": "public/docs/screenshots/packages/site-discovery/html-sitemap-page.png"
+            "screenshotPath": "packages/site-discovery/docs/screenshots/html-sitemap-page.png"
         },
         {
             "id": "xml-sitemap-output",
@@ -63,7 +63,7 @@
             "required": true,
             "notes": "Run capell:xml-sitemap in the host app before capture. The endpoint serves the generated domain XML file.",
             "useCase": "A crawler or operator reviews generated XML sitemap output after running sitemap generation.",
-            "screenshotPath": "public/docs/screenshots/packages/site-discovery/xml-sitemap-output.png"
+            "screenshotPath": "packages/site-discovery/docs/screenshots/xml-sitemap-output.png"
         },
         {
             "id": "public-url-registry-page",
@@ -75,7 +75,7 @@
             "required": true,
             "notes": "Capture registry rows with source package, canonical URL, sitemap, AI Discovery, Search, HTML Cache, and Agent Delivery statuses visible.",
             "useCase": "An administrator audits generated-output parity for public URLs across installed packages.",
-            "screenshotPath": "public/docs/screenshots/packages/site-discovery/public-url-registry-page.png"
+            "screenshotPath": "packages/site-discovery/docs/screenshots/public-url-registry-page.png"
         },
         {
             "id": "public-url-quality-report",
@@ -87,7 +87,7 @@
             "required": true,
             "notes": "Capture the registry page with missing output or quality errors visible after seeding at least one missing downstream output.",
             "useCase": "An administrator filters the registry to find URLs missing generated outputs or failing sitemap quality checks.",
-            "screenshotPath": "public/docs/screenshots/packages/site-discovery/public-url-quality-report.png"
+            "screenshotPath": "packages/site-discovery/docs/screenshots/public-url-quality-report.png"
         }
     ]
 }

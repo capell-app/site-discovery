@@ -12,5 +12,7 @@ enum SitemapQualityError: string
     case DuplicateUrl = 'duplicate_url';
     case MissingLastModified = 'missing_last_modified';
     case StaleLastModified = 'stale_last_modified';
+    case RedirectStatus = 'redirect_status';
+    case UnexpectedStatus = 'unexpected_status';
     case MalformedXml = 'malformed_xml';
 }
