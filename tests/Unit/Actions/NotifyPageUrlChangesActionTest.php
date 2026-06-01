@@ -73,7 +73,7 @@ it('notifies public urls for a saved or deleted page', function (): void {
          */
         public function notify(Site $site, Language $language, Collection $urls, ?SiteDomain $domain = null): UrlChangeNotificationResultData
         {
-            $this->urls = $urls->values()->all();
+            $this->urls = array_values($urls->all());
 
             return new UrlChangeNotificationResultData(
                 notifier: 'test',

@@ -1,11 +1,3 @@
-<?php
-use Capell\Frontend\Facades\Frontend;
-
-$site = Frontend::site();
-$language = Frontend::language();
-
-?>
-
 <x-capell::layout class="public-sitemap-page page-sitemap">
     <div class="vsitemap mb-20">
         <ul>

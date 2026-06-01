@@ -8,7 +8,9 @@ use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
 use Capell\SiteDiscovery\Contracts\DiscoverableUrlSource;
+use Capell\SiteDiscovery\Contracts\PublicUrlContributor;
 use Capell\SiteDiscovery\Data\DiscoverableUrlData;
+use Capell\SiteDiscovery\Data\PublicUrlData;
 use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Illuminate\Support\Collection;
@@ -350,21 +352,41 @@ it('writes contributed URLs only to the matching domain sitemap', function (): v
         ])
         ->create();
 
-    app()->instance('site-discovery-sitemap-test-source', new class implements DiscoverableUrlSource
+    app()->instance('site-discovery-sitemap-test-source', new readonly class($site, $language) implements PublicUrlContributor
     {
+        public function __construct(
+            private Site $site,
+            private Language $language,
+        ) {}
+
         /**
-         * @return Collection<int, DiscoverableUrlData>
+         * @return Collection<int, PublicUrlData>
          */
-        public function discover(Site $site, Language $language, ?SiteDomain $domain = null): Collection
+        public function publicUrls(): Collection
         {
             return collect([
-                new DiscoverableUrlData(loc: 'https://example.com/contributed'),
-                new DiscoverableUrlData(loc: 'https://secondary.example.com/contributed'),
-                new DiscoverableUrlData(loc: 'https://wrong.example.com/contributed'),
+                new PublicUrlData(
+                    canonicalUrl: 'https://example.com/contributed',
+                    sourcePackage: 'capell-app/test',
+                    site: $this->site,
+                    language: $this->language,
+                ),
+                new PublicUrlData(
+                    canonicalUrl: 'https://secondary.example.com/contributed',
+                    sourcePackage: 'capell-app/test',
+                    site: $this->site,
+                    language: $this->language,
+                ),
+                new PublicUrlData(
+                    canonicalUrl: 'https://wrong.example.com/contributed',
+                    sourcePackage: 'capell-app/test',
+                    site: $this->site,
+                    language: $this->language,
+                ),
             ]);
         }
     });
-    app()->tag(['site-discovery-sitemap-test-source'], 'capell-site-discovery:discoverable-url-sources');
+    app()->tag(['site-discovery-sitemap-test-source'], PublicUrlContributor::TAG);
 
     (new XmlSitemapGenerator)->process($site);
 
@@ -380,4 +402,34 @@ it('writes contributed URLs only to the matching domain sitemap', function (): v
         ->toContain('https://secondary.example.com/contributed')
         ->not()->toContain('https://example.com/contributed')
         ->not()->toContain('https://wrong.example.com/contributed');
+});
+
+it('keeps legacy discoverable URL sources in generated sitemaps', function (): void {
+    $language = Language::factory()->create();
+    $siteDomain = SiteDomain::factory()->state([
+        'domain' => 'example.com',
+        'language_id' => $language->id,
+        'scheme' => 'https',
+        'path' => null,
+    ])->create();
+
+    app()->instance('site-discovery-legacy-sitemap-test-source', new class implements DiscoverableUrlSource
+    {
+        /**
+         * @return Collection<int, DiscoverableUrlData>
+         */
+        public function discover(Site $site, Language $language, ?SiteDomain $domain = null): Collection
+        {
+            return collect([
+                new DiscoverableUrlData(loc: 'https://example.com/legacy-contributed'),
+            ]);
+        }
+    });
+    app()->tag(['site-discovery-legacy-sitemap-test-source'], 'capell-site-discovery:discoverable-url-sources');
+
+    (new XmlSitemapGenerator)->process($siteDomain->site);
+
+    $xml = Storage::disk('local')->get('sitemaps_test_inc/' . $siteDomain->getDomainKey() . '.xml');
+
+    expect($xml)->toContain('https://example.com/legacy-contributed');
 });

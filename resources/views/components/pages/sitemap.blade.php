@@ -1,10 +1,16 @@
 <x-filament-panels::page class="capell-pages-sitemap">
     <div class="grid gap-4 sm:grid-cols-2">
-        <label for="site_id" class="sr-only">
+        <label
+            for="site_id"
+            class="sr-only"
+        >
             {{ __('capell-admin::form.site') }}
         </label>
         <x-filament::input.wrapper>
-            <x-filament::input.select id="site_id" wire:model.live="site_id">
+            <x-filament::input.select
+                id="site_id"
+                wire:model.live="site_id"
+            >
                 @foreach ($sites as $site)
                     <option value="{{ $site->id }}">
                         {{ $site->name }}
@@ -15,7 +21,10 @@
         </x-filament::input.wrapper>
 
         @if ($site_languages)
-            <label for="language_id" class="sr-only">
+            <label
+                for="language_id"
+                class="sr-only"
+            >
                 {{ __('capell-admin::form.language') }}
             </label>
             <x-filament::input.wrapper>

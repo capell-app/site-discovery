@@ -44,6 +44,10 @@ final class SitemapPageType
             BlueprintInterceptorInterface::class,
         );
 
+        if (! $blueprint instanceof Blueprint) {
+            $blueprint = Blueprint::query()->where('key', self::Key)->firstOrFail();
+        }
+
         $blueprint->forceFill([
             'component' => self::ComponentView,
             'is_livewire' => true,

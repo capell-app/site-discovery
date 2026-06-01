@@ -15,7 +15,11 @@
         </span>
     </a>
 
-    <a class="sitemap-icon" href="{{ $sitemapPage->url }}" target="_blank">
+    <a
+        class="sitemap-icon"
+        href="{{ $sitemapPage->url }}"
+        target="_blank"
+    >
         @svg('heroicon-o-arrow-top-right-on-square', 'inline-block h-4 w-4 stroke-current')
     </a>
 

@@ -134,9 +134,13 @@ it('discovers public URLs from pages and contributor sources', function (): void
          */
         public function discover(Site $site, Language $language, ?SiteDomain $domain = null): Collection
         {
+            $siteDomain = $domain ?? $site->siteDomain;
+
+            throw_unless($siteDomain instanceof SiteDomain, RuntimeException::class, 'Expected the site to have a site domain.');
+
             return collect([
-                new DiscoverableUrlData(loc: ($domain ?? $site->siteDomain)->full_url . '/contributed'),
-                new DiscoverableUrlData(loc: ($domain ?? $site->siteDomain)->full_url . '/contributed'),
+                new DiscoverableUrlData(loc: $siteDomain->full_url . '/contributed'),
+                new DiscoverableUrlData(loc: $siteDomain->full_url . '/contributed'),
             ]);
         }
     };

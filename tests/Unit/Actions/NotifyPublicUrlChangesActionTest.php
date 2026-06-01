@@ -26,7 +26,7 @@ it('notifies tagged URL change notifiers with unique public URLs', function (): 
          */
         public function notify(Site $site, Language $language, Collection $urls, ?SiteDomain $domain = null): UrlChangeNotificationResultData
         {
-            $this->receivedUrls = $urls->all();
+            $this->receivedUrls = array_values($urls->all());
 
             return new UrlChangeNotificationResultData(
                 notifier: 'test-notifier',

@@ -6,8 +6,10 @@ namespace Capell\SiteDiscovery\Support\Sitemap;
 
 use Capell\Core\Actions\GetEditPageResourceUrlAction;
 use Capell\Core\Models\Page;
+use Capell\Core\Models\PageUrl;
 use Capell\SiteDiscovery\Data\SitemapPageData;
 use Illuminate\Support\Collection;
+use RuntimeException;
 
 final class SitemapChainBuilder
 {
@@ -63,6 +65,10 @@ final class SitemapChainBuilder
 
     private static function pageUrl(Page $page): string
     {
-        return $page->pageUrl->full_url;
+        $pageUrl = $page->pageUrl;
+
+        throw_unless($pageUrl instanceof PageUrl, RuntimeException::class, 'Sitemap page requires a page URL.');
+
+        return $pageUrl->full_url;
     }
 }

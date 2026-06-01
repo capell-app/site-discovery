@@ -8,6 +8,7 @@ use Capell\Admin\Contracts\AdminTools\AdminToolItem;
 use Capell\Admin\Contracts\Extenders\ResourceHeaderActionExtender;
 use Capell\Admin\Contracts\Extenders\SiteHeaderActionExtender;
 use Capell\Admin\Contracts\Extenders\SiteRecordActionExtender;
+use Capell\Admin\Facades\CapellAdmin;
 use Capell\Core\Actions\RegisterBlazeOptimizedViewsAction;
 use Capell\Core\Data\RenderableDefinitionData;
 use Capell\Core\Enums\BlueprintSubjectEnum;
@@ -23,10 +24,12 @@ use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Renderables\RenderableRegistry;
 use Capell\SiteDiscovery\Console\Commands\XmlSitemapCommand;
 use Capell\SiteDiscovery\Contracts\DiscoveryOutputSource;
+use Capell\SiteDiscovery\Contracts\PublicUrlContributor;
 use Capell\SiteDiscovery\Contracts\UrlChangeNotifier;
 use Capell\SiteDiscovery\Filament\Extenders\Page\SitemapResourceHeaderActionExtender;
 use Capell\SiteDiscovery\Filament\Extenders\Site\SitemapSiteHeaderActionExtender;
 use Capell\SiteDiscovery\Filament\Extenders\Site\SitemapSiteRecordActionExtender;
+use Capell\SiteDiscovery\Filament\Pages\PublicUrlRegistryPage;
 use Capell\SiteDiscovery\Listeners\Sitemap\RegenerateSitemapsOnPageDeleted;
 use Capell\SiteDiscovery\Listeners\Sitemap\RegenerateSitemapsOnPageSaved;
 use Capell\SiteDiscovery\Listeners\Sitemap\RegenerateSitemapsOnSiteCreated;
@@ -37,6 +40,7 @@ use Capell\SiteDiscovery\Support\Creator\SitemapPageCreator;
 use Capell\SiteDiscovery\Support\DiscoveryOutputRegistry;
 use Capell\SiteDiscovery\Support\IndexNow\IndexNowUrlChangeNotifier;
 use Capell\SiteDiscovery\Support\Interceptors\SitemapPageTypeInterceptor;
+use Capell\SiteDiscovery\Support\PublicUrls\CmsPagePublicUrlContributor;
 use Capell\SiteDiscovery\Support\Sitemap\Pages\PagesSitemap;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageRegistry;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageType;
@@ -88,11 +92,13 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
         return $this
             ->registerBlazeComponents()
             ->registerAdminExtenders()
+            ->registerAdminPages()
             ->registerPageRenderables()
             ->registerLivewireComponents()
             ->registerSitemapPageType()
             ->registerSitemapDefaultPage()
             ->registerSitemapRegistry()
+            ->registerPublicUrlContributors()
             ->registerDiscoveryOutputRegistry()
             ->registerUrlChangeNotifiers()
             ->registerSitemapEventListeners()
@@ -123,6 +129,15 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
         $this->app->tag([
             SitemapAdminTool::class,
         ], AdminToolItem::TAG);
+
+        return $this;
+    }
+
+    private function registerAdminPages(): self
+    {
+        if (class_exists(CapellAdmin::class)) {
+            CapellAdmin::registerExtensionPage(self::$packageName, PublicUrlRegistryPage::class);
+        }
 
         return $this;
     }
@@ -183,6 +198,14 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
         /** @var SitemapPageRegistry $registry */
         $registry = $this->app->make(SitemapPageRegistry::class);
         $registry->register('default', PagesSitemap::class);
+
+        return $this;
+    }
+
+    private function registerPublicUrlContributors(): self
+    {
+        $this->app->singleton(CmsPagePublicUrlContributor::class);
+        $this->app->tag([CmsPagePublicUrlContributor::class], PublicUrlContributor::TAG);
 
         return $this;
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\SiteDiscovery\Console\Commands;
 
+use Capell\Core\Models\Language;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
 use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
@@ -66,9 +67,13 @@ class XmlSitemapCommand extends Command
             },
             end: function (int $total, string $filePath) use ($currentDomain, &$rows): void {
                 throw_unless($currentDomain->domain instanceof SiteDomain, RuntimeException::class, 'Missing domain context in sitemap processing.');
+                $language = $currentDomain->domain->language;
+
+                throw_unless($language instanceof Language, RuntimeException::class, 'Missing language context in sitemap processing.');
+
                 $rows[] = [
                     $currentDomain->domain->domain,
-                    $currentDomain->domain->language->name,
+                    $language->name,
                     $total,
                     $filePath,
                 ];
@@ -93,9 +98,13 @@ class XmlSitemapCommand extends Command
             },
             end: function (int $total, string $filePath, bool $regenerated) use ($currentDomain, &$rows): void {
                 throw_unless($currentDomain->domain instanceof SiteDomain, RuntimeException::class, 'Missing domain context in sitemap processing.');
+                $language = $currentDomain->domain->language;
+
+                throw_unless($language instanceof Language, RuntimeException::class, 'Missing language context in sitemap processing.');
+
                 $rows[] = [
                     $currentDomain->domain->domain,
-                    $currentDomain->domain->language->name,
+                    $language->name,
                     $total,
                     $regenerated ? $filePath : '—',
                     $regenerated ? '<fg=green>regenerated</>' : '<fg=yellow>skipped</>',

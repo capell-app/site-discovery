@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace Capell\SiteDiscovery\Support\Sitemap;
 
 use Capell\Core\Enums\CacheEnum;
+use Capell\Core\Models\Language;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
+use Capell\SiteDiscovery\Actions\BuildPublicUrlRegistryAction;
 use Capell\SiteDiscovery\Actions\DiscoverPublicUrlsAction;
+use Capell\SiteDiscovery\Actions\ValidateSitemapQualityAction;
 use Capell\SiteDiscovery\Data\DiscoverableUrlData;
+use Capell\SiteDiscovery\Data\PublicUrlRegistryEntryData;
 use Capell\SiteDiscovery\Data\SitemapPageData;
 use Capell\SiteDiscovery\Data\SitemapUrlItemData;
 use Capell\SiteDiscovery\Exceptions\SitemapGeneratorException;
@@ -97,7 +101,8 @@ class XmlSitemapGenerator
         }
 
         $xml = $storage->get($filePath);
-        throw_if($xml === false, SitemapGeneratorException::class, 'Failed to read sitemap XML file: ' . $filePath);
+
+        throw_unless(is_string($xml), SitemapGeneratorException::class, 'Failed to read sitemap XML file: ' . $filePath);
 
         return $xml;
     }
@@ -166,7 +171,11 @@ class XmlSitemapGenerator
             $start($domain);
         }
 
-        $this->forgetSitemapPageCaches($site->id, $domain->language->id);
+        $language = $domain->language;
+
+        throw_unless($language instanceof Language, SitemapGeneratorException::class, 'Sitemap domain requires a language.');
+
+        $this->forgetSitemapPageCaches($site->id, (int) $language->id);
         $items = $this->buildUrlItems($site, $domain);
         $total = count($items);
 
@@ -224,7 +233,11 @@ class XmlSitemapGenerator
             $start($domain);
         }
 
-        $this->forgetSitemapPageCaches($site->id, $domain->language->id);
+        $language = $domain->language;
+
+        throw_unless($language instanceof Language, SitemapGeneratorException::class, 'Sitemap domain requires a language.');
+
+        $this->forgetSitemapPageCaches($site->id, (int) $language->id);
         $items = $this->buildUrlItems($site, $domain);
         $total = count($items);
 
@@ -374,10 +387,26 @@ class XmlSitemapGenerator
      */
     private function buildUrlItems(Site $site, SiteDomain $domain): array
     {
-        $builder = new SitemapBuilder($site, $domain, $domain->language);
+        $language = $domain->language;
+
+        throw_unless($language instanceof Language, SitemapGeneratorException::class, 'Sitemap domain requires a language.');
+
+        $builder = new SitemapBuilder($site, $domain, $language);
         $items = $this->flattenPages($builder->build()->all());
 
-        $contributedItems = DiscoverPublicUrlsAction::run($site, $domain->language, includePages: false, domain: $domain)
+        $registryEntries = $this->registryEntriesForDomain($site, $language, $domain);
+        $qualityReport = ValidateSitemapQualityAction::run($registryEntries);
+
+        $registryItems = $registryEntries
+            ->reject(fn (PublicUrlRegistryEntryData $entry): bool => $qualityReport->hasErrorsForUrl($entry->canonicalUrl))
+            ->map(fn (PublicUrlRegistryEntryData $entry): SitemapUrlItemData => new SitemapUrlItemData(
+                loc: $entry->canonicalUrl,
+                lastmod: $entry->lastModified instanceof CarbonImmutable ? $entry->lastModified : null,
+                changefreq: $entry->changeFrequency,
+                priority: $entry->priority,
+            ));
+
+        $legacyContributedItems = DiscoverPublicUrlsAction::run($site, $language, includePages: false, domain: $domain)
             ->map(fn (DiscoverableUrlData $url): SitemapUrlItemData => new SitemapUrlItemData(
                 loc: $url->loc,
                 lastmod: $url->lastModified instanceof CarbonImmutable
@@ -388,10 +417,54 @@ class XmlSitemapGenerator
             ));
 
         return collect($items)
-            ->merge($contributedItems)
+            ->merge($legacyContributedItems)
+            ->merge($registryItems)
             ->unique(fn (SitemapUrlItemData $item): string => $item->loc)
             ->values()
             ->all();
+    }
+
+    /**
+     * @return Collection<int, PublicUrlRegistryEntryData>
+     */
+    private function registryEntriesForDomain(Site $site, Language $language, SiteDomain $domain): Collection
+    {
+        return BuildPublicUrlRegistryAction::run()
+            ->filter(fn (PublicUrlRegistryEntryData $entry): bool => $this->matchesSite($entry, $site))
+            ->filter(fn (PublicUrlRegistryEntryData $entry): bool => $this->matchesLanguage($entry, $language))
+            ->filter(fn (PublicUrlRegistryEntryData $entry): bool => $this->belongsToDomain($entry->canonicalUrl, $domain))
+            ->values();
+    }
+
+    private function matchesSite(PublicUrlRegistryEntryData $entry, Site $site): bool
+    {
+        $siteKey = $site->getKey();
+
+        if ($entry->siteId !== null && is_numeric($siteKey)) {
+            return $entry->siteId === (int) $siteKey;
+        }
+
+        return (string) $entry->siteKey === (string) $siteKey;
+    }
+
+    private function matchesLanguage(PublicUrlRegistryEntryData $entry, Language $language): bool
+    {
+        $languageKey = $language->getKey();
+
+        if ($entry->languageId !== null && is_numeric($languageKey)) {
+            return $entry->languageId === (int) $languageKey;
+        }
+
+        return (string) $entry->languageKey === (string) $languageKey;
+    }
+
+    private function belongsToDomain(string $url, SiteDomain $domain): bool
+    {
+        $baseUrl = rtrim($domain->full_url, '/');
+
+        return $url === $baseUrl
+            || str_starts_with($url, $baseUrl . '/')
+            || str_starts_with($url, $baseUrl . '?');
     }
 
     private function forgetSitemapPageCaches(int $siteId, int $languageId): void

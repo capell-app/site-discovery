@@ -6,7 +6,7 @@
     "kind": "package",
     "capellApiVersion": "^4.0",
     "version": "4.x-dev",
-    "description": "Site Discovery resolves public discoverable pages and URLs, then exposes HTML and XML sitemap outputs.",
+    "description": "Site Discovery resolves public discoverable pages and URLs, exposes HTML and XML sitemap outputs, and provides the canonical registry for generated-output coverage.",
     "product": {
         "group": "Capell Search & SEO",
         "tier": "premium",
@@ -32,7 +32,19 @@
         "admin": [],
         "frontend": []
     },
-    "contributes": [],
+    "contributes": [
+        {
+            "type": "admin-page",
+            "class": "Capell\\SiteDiscovery\\Manifest\\PublicUrlRegistryPageContribution",
+            "pageClass": "Capell\\SiteDiscovery\\Filament\\Pages\\PublicUrlRegistryPage",
+            "labelKey": "capell-site-discovery::generic.public_url_registry",
+            "permission": "View:PublicUrlRegistryPage"
+        },
+        {
+            "type": "route",
+            "class": "Capell\\SiteDiscovery\\Manifest\\SiteDiscoveryFrontendRoutesContribution"
+        }
+    ],
     "database": {
         "migrations": false,
         "settings": false,
@@ -45,12 +57,22 @@
         "doctor": null
     },
     "settings": [],
+    "actions": {
+        "buildGeneratedOutputParityReport": "Capell\\SiteDiscovery\\Actions\\BuildGeneratedOutputParityReportAction",
+        "buildPublicUrlRegistry": "Capell\\SiteDiscovery\\Actions\\BuildPublicUrlRegistryAction",
+        "generateSitemap": "Capell\\SiteDiscovery\\Actions\\GenerateSitemapAction",
+        "validateSitemapQuality": "Capell\\SiteDiscovery\\Actions\\ValidateSitemapQualityAction"
+    },
     "permissions": [],
     "capabilities": [
         "site-discovery",
         "site-discovery-admin",
         "site-discovery-console",
-        "site-discovery-frontend"
+        "site-discovery-frontend",
+        "site-discovery-public-url-registry",
+        "site-discovery-sitemap-quality-gates",
+        "site-discovery-routed-status-quality-gates",
+        "site-discovery-generated-output-parity"
     ],
     "performance": {
         "frontendRenderBudgetMs": 20,
@@ -101,7 +123,7 @@
         "privateDocsRequested": true
     },
     "marketplace": {
-        "summary": "Site Discovery resolves public discoverable pages and URLs, then exposes HTML and XML sitemap outputs.",
+        "summary": "Site Discovery resolves public discoverable pages and URLs, exposes HTML and XML sitemap outputs, and provides the canonical registry for generated-output coverage.",
         "screenshots": [
             {
                 "path": "docs/assets/marketplace/extension-card.jpg",
@@ -112,6 +134,6 @@
         "categories": ["admin", "console", "frontend", "search-seo"]
     },
     "contributionTraceability": {
-        "deferredContributions": ["route"]
+        "deferredContributions": []
     }
 }

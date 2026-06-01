@@ -94,7 +94,13 @@ it('writes one XML per domain and includes expected URLs', function (): void {
     $files = collect($storage->files('sitemaps_test'))
         ->filter(fn (string $file): bool => str_ends_with($file, '.xml'));
     expect($files)->toHaveCount(2);
-    $xmls = $files->map(fn (string $file): string => $storage->get($file));
+    $xmls = $files->map(function (string $file) use ($storage): string {
+        $xml = $storage->get($file);
+
+        throw_unless(is_string($xml), RuntimeException::class, 'Expected sitemap XML file contents.');
+
+        return $xml;
+    });
     $urls = [$url1->full_url, $url2->full_url];
 
     foreach ($urls as $expectedUrl) {

@@ -6,9 +6,36 @@ use Capell\Core\Models\Page;
 use Capell\SiteDiscovery\Data\SitemapPageData;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapChainBuilder;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 
 uses(SiteDiscoveryTestCase::class);
+
+/**
+ * @return Collection<int, SitemapPageData>
+ */
+function sitemapChainChildren(SitemapPageData $page): Collection
+{
+    throw_unless($page->children instanceof Collection, RuntimeException::class, 'Expected sitemap page data to have children.');
+
+    return $page->children;
+}
+
+function sitemapChainLastModified(SitemapPageData $page): CarbonImmutable
+{
+    throw_unless($page->lastModified instanceof CarbonImmutable, RuntimeException::class, 'Expected sitemap page data to have a last modified timestamp.');
+
+    return $page->lastModified;
+}
+
+function sitemapChainFirstChild(SitemapPageData $page): SitemapPageData
+{
+    $child = sitemapChainChildren($page)->first();
+
+    throw_unless($child instanceof SitemapPageData, RuntimeException::class, 'Expected sitemap page data to have a child.');
+
+    return $child;
+}
 
 it('builds a single node without ancestors', function (): void {
     $page = Page::factory()
@@ -78,7 +105,7 @@ it('builds a chain with a single ancestor', function (): void {
         ->url->toBe($parent->pageUrl->full_url)
         ->children->toHaveCount(1);
 
-    $firstChild = $result->children->first();
+    $firstChild = sitemapChainFirstChild($result);
 
     expect($firstChild)->toBeInstanceOf(SitemapPageData::class)
         ->pageId->toBe($child->id)
@@ -86,7 +113,7 @@ it('builds a chain with a single ancestor', function (): void {
         ->url->toBe($child->pageUrl->full_url)
         ->children->toHaveCount(1);
 
-    $grandchild = $firstChild->children->first();
+    $grandchild = sitemapChainFirstChild($firstChild);
 
     expect($grandchild)->toBeInstanceOf(SitemapPageData::class)
         ->label->toBe('Grandchild 1')
@@ -135,21 +162,21 @@ it('builds a chain with multiple ancestors', function (): void {
         ->label->toBe($grandparent->translation->label)
         ->children->toHaveCount(1);
 
-    $firstChild = $result->children->first();
+    $firstChild = sitemapChainFirstChild($result);
 
     expect($firstChild)->toBeInstanceOf(SitemapPageData::class)
         ->pageId->toBe($parent->id)
         ->label->toBe($parent->translation->label)
         ->children->toHaveCount(1);
 
-    $secondChild = $firstChild->children->first();
+    $secondChild = sitemapChainFirstChild($firstChild);
 
     expect($secondChild)->toBeInstanceOf(SitemapPageData::class)
         ->pageId->toBe($child->id)
         ->label->toBe($child->translation->label)
         ->children->toHaveCount(1);
 
-    $leaf = $secondChild->children->first();
+    $leaf = sitemapChainFirstChild($secondChild);
 
     expect($leaf)->toBeInstanceOf(SitemapPageData::class)
         ->label->toBe('Leaf Item')
@@ -192,7 +219,7 @@ it('uses updated_at for lastModified when available', function (): void {
 
     $result = SitemapChainBuilder::build($page);
 
-    expect($result->lastModified->toAtomString())->toBe($updatedAt->toAtomString());
+    expect(sitemapChainLastModified($result)->toAtomString())->toBe($updatedAt->toAtomString());
 });
 
 it('falls back to timestamps for lastModified when publish dates are null', function (): void {
@@ -212,7 +239,7 @@ it('falls back to timestamps for lastModified when publish dates are null', func
 
     $result = SitemapChainBuilder::build($page);
 
-    expect($result->lastModified->toAtomString())->toBe($page->updated_at->toAtomString());
+    expect(sitemapChainLastModified($result)->toAtomString())->toBe($page->updated_at->toAtomString());
 });
 
 it('preserves meta values through ancestor chain', function (): void {
@@ -249,7 +276,7 @@ it('preserves meta values through ancestor chain', function (): void {
     expect($result)->changeFrequency->toBe('weekly')
         ->priority->toBe(0.9);
 
-    $firstChild = $result->children->first();
+    $firstChild = sitemapChainFirstChild($result);
 
     expect($firstChild)->changeFrequency->toBe('hourly')
         ->priority->toBe(0.7);
