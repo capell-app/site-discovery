@@ -1,13 +1,14 @@
 # Site Discovery — Improvement & Growth Plan
+
 > Package: capell-app/site-discovery · Kind: package · Tier: premium · Product group: Capell Search & SEO · Bundle: search-seo · Status: Draft
 
 ## 1. Snapshot
 
 Site Discovery is the foundational discovery layer for the Capell Search & SEO bundle. It resolves canonical public URLs (`BuildPublicUrlRegistryAction`, `DiscoverPublicUrlsAction`, `DiscoverPublicPagesAction`), generates per-domain XML sitemaps with chunking + a `<sitemapindex>` and incremental state tracking (`Support/Sitemap/XmlSitemapGenerator.php`, `SitemapStateStore.php`), renders an HTML sitemap as a Capell page type (`Support/Sitemap/SitemapPageType.php`, Livewire `Livewire/Page/Sitemap.php`), runs sitemap quality gates (`ValidateSitemapQualityAction`), and reports generated-output parity in an admin page (`BuildGeneratedOutputParityReportAction`, `Filament/Pages/PublicUrlRegistryPage.php`). It owns no database tables (`capell.json` `database.migrations:false`). Surfaces: admin (Page/Site `Sitemap` actions, `SitemapTool`, Public URL Registry page), frontend (`/sitemap` page, `/sitemap-xml` file output), console (`capell:xml-sitemap`).
 
-Downstream, **seo-suite depends on this package** as a `GeneratedOutputCoverageSource` and consumes the public-URL registry contracts (`PublicUrlContributor`, `DiscoverableUrlSource`, `DiscoveryOutputSource`); seo-suite — not this package — owns and serves `/robots.txt`, `/llms.txt`, `/llms-full.txt`, `/index.md`, `/{url}.md` (confirmed in `BuildSeoSuiteDoctorReportAction::OWNED_ROUTES`). The `DiscoveryOutputSource` contract here lets packages *advertise* machine-readable outputs (e.g. `llms.txt`) into the registry, but this package serves none of them over HTTP.
+Downstream, **seo-suite depends on this package** as a `GeneratedOutputCoverageSource` and consumes the public-URL registry contracts (`PublicUrlContributor`, `DiscoverableUrlSource`, `DiscoveryOutputSource`); seo-suite — not this package — owns and serves `/robots.txt`, `/llms.txt`, `/llms-full.txt`, `/index.md`, `/{url}.md` (confirmed in `BuildSeoSuiteDoctorReportAction::OWNED_ROUTES`). The `DiscoveryOutputSource` contract here lets packages _advertise_ machine-readable outputs (e.g. `llms.txt`) into the registry, but this package serves none of them over HTTP.
 
-Current marketplace `summary` (verbatim): *"Site Discovery resolves public discoverable pages and URLs, exposes HTML and XML sitemap outputs, and provides the canonical registry for generated-output coverage."* Screenshot count in `capell.json`: **1** (`docs/assets/marketplace/extension-card.jpg`), but `docs/screenshots.json` defines **5 required captures** (`page-sitemap-action`, `site-sitemap-action`, `sitemap-generation-tool`, `html-sitemap-page`, `xml-sitemap-output`). **Mismatch: 1 marketplace screenshot vs 5 contracted captures.**
+Current marketplace `summary` (verbatim): _"Site Discovery resolves public discoverable pages and URLs, exposes HTML and XML sitemap outputs, and provides the canonical registry for generated-output coverage."_ Screenshot count in `capell.json`: **1** (`docs/assets/marketplace/extension-card.jpg`), but `docs/screenshots.json` defines **5 required captures** (`page-sitemap-action`, `site-sitemap-action`, `sitemap-generation-tool`, `html-sitemap-page`, `xml-sitemap-output`). **Mismatch: 1 marketplace screenshot vs 5 contracted captures.**
 
 ## 2. Improvements (existing functionality)
 
@@ -17,15 +18,15 @@ Current marketplace `summary` (verbatim): *"Site Discovery resolves public disco
 4. **Delete or productionise the legacy `Support/SitemapGenerator`** — `src/Support/SitemapGenerator.php` (127 LOC, scans an arbitrary DB table for slugs) is referenced **only by `tests/Unit/Support/SitemapGeneratorTest.php`**, never by production code. It duplicates the namespace of the real `Support/Sitemap/XmlSitemapGenerator`, inviting confusion. Either remove it (and its test) or wire it behind a documented contributor. — `src/Support/SitemapGenerator.php` — effort S.
 5. **Harden `SitemapLoader` XML parsing** — `simplexml_load_string` is called to count `<url>` entries for the admin display on every sitemap-loader pass (`src/Support/Loader/SitemapLoader.php`, ~line 50). For large sitemaps this loads the whole document into memory per domain just to count URLs; the count is already known at generation time and can be persisted in the state file alongside `generated_at`. — `src/Support/Loader/SitemapLoader.php`, `SitemapStateStore.php` — effort M.
 6. **Make the `/sitemap-xml` URL convention explicit and self-serving** — the package writes XML to a storage disk and only references the string `'/sitemap-xml'` (`SitemapLoader`, `XmlSitemapGenerator` via `config('capell.sitemap.xml_path')`). There is **no route registered** — `SiteDiscoveryFrontendRoutesContribution` implements `RegistersExtensionRoute` but its body is empty (only `compatibleCapellApiVersion`). Serving depends entirely on undocumented host web-server config. Provide a real Laravel route/controller that streams the generated file (cache-safe, no DB), so discovery output works out of the box. — `src/Manifest/SiteDiscoveryFrontendRoutesContribution.php` — effort M.
-7. **Surface sitemap quality results in the admin** — `ValidateSitemapQualityAction` is solid (content-type, lastmod presence/staleness, status resolver) but is only invoked from `XmlSitemapGenerator` and the parity page. Expose its `SitemapQualityReportData` errors directly in `SitemapTool`/Public URL Registry so editors see *why* a URL was dropped. — `src/Livewire/Tools/SitemapTool.php` — effort M.
+7. **Surface sitemap quality results in the admin** — `ValidateSitemapQualityAction` is solid (content-type, lastmod presence/staleness, status resolver) but is only invoked from `XmlSitemapGenerator` and the parity page. Expose its `SitemapQualityReportData` errors directly in `SitemapTool`/Public URL Registry so editors see _why_ a URL was dropped. — `src/Livewire/Tools/SitemapTool.php` — effort M.
 
 ## 3. Missing Features (gaps)
 
 Tie-back to `capabilities[]`: `site-discovery-sitemap-quality-gates`, `site-discovery-generated-output-parity`, `site-discovery-public-url-registry` are present and reachable; the gaps below are unclaimed.
 
-- **Image / video / news sitemaps** — `toXml()` emits a bare `<urlset>` with `loc`/`lastmod`/`changefreq`/`priority` only (`XmlSitemapGenerator`). No `image:`, `video:`, or `news:` extensions. This is the headline differentiator for a *premium* discovery package; competitors (Spatie sitemap, Yoast) ship image sitemaps as table-stakes. The `SitemapUrlItemData` shape would need extending. **(Differentiator)**
+- **Image / video / news sitemaps** — `toXml()` emits a bare `<urlset>` with `loc`/`lastmod`/`changefreq`/`priority` only (`XmlSitemapGenerator`). No `image:`, `video:`, or `news:` extensions. This is the headline differentiator for a _premium_ discovery package; competitors (Spatie sitemap, Yoast) ship image sitemaps as table-stakes. The `SitemapUrlItemData` shape would need extending. **(Differentiator)**
 - **Sitemap ping / search-engine submission** — IndexNow is supported (`IndexNowUrlChangeNotifier`, opt-in), but there is no Google/Bing sitemap ping and no Search Console submission. The `UrlChangeNotifier` contract is the right extension point; ship a second built-in notifier. **(Table-stakes for "discovery".)**
-- **robots.txt management** — not owned here (seo-suite owns it). The registry already carries `robotsDirectives` per entry (`PublicUrlRegistryEntryData`), so a robots.txt *generator* fed by the registry is a natural, in-bundle feature — currently a gap between the two packages. **(Differentiator)**
+- **robots.txt management** — not owned here (seo-suite owns it). The registry already carries `robotsDirectives` per entry (`PublicUrlRegistryEntryData`), so a robots.txt _generator_ fed by the registry is a natural, in-bundle feature — currently a gap between the two packages. **(Differentiator)**
 - **Per-locale / hreflang sitemaps** — generation is per `SiteDomain` (which carries one `language`), but there are no `xhtml:link rel="alternate" hreflang` annotations linking translated URLs. The registry tracks `languageId`/`languageKey`, so the data exists. **(Differentiator for multi-locale Capell sites.)**
 - **lastmod accuracy from real content events** — `lastmod` derives from page `updated_at`/publish dates (`SitemapPageData`, `SitemapChainBuilder`). There's no signal from block/media edits or related-model changes, so `lastmod` can understate freshness. **(Quality.)**
 - **llms.txt generation owned in-bundle** — the `DiscoveryOutputSource` contract advertises `llms.txt` but generation lives in seo-suite. For buyers who only own site-discovery, the advertised "machine-readable outputs such as llms.txt" capability is contract-only. Either clarify the boundary in marketing or offer a minimal built-in generator. **(Table-stakes given the marketing copy.)**
@@ -34,11 +35,11 @@ Tie-back to `capabilities[]`: `site-discovery-sitemap-quality-gates`, `site-disc
 ## 4. Issues / Risks
 
 - **Stub health checks (critical) advertised as functional** — `src/Health/SiteDiscoveryHealthCheck.php` has no logic; manifest marks two as `severity: critical`. Operators get false "healthy" signals on the package's core promise. Cite `capell.json` `healthChecks[]`.
-- **Public-output leakage is asserted but the XML path is under-tested** — Good: `tests/Integration/Discovery/DiscoverPublicPagesActionTest.php` proves *"does not expose editor URLs in the public sitemap tree"* and *"excludes pages that are not public discoverable"* / *"translation noindex"*; `PublicUrlRegistryActionTest` proves *"forces noindex URLs out of sitemap eligibility"*. **Gap:** there is no test asserting the **generated XML file** (`XmlSitemapGenerator::writeItems`/`toXml`) excludes unpublished/noindex/private URLs end-to-end — coverage stops at the registry/data layer. Per capell public-output-safety rules, the rendered artifact must be tested. `src/Support/Sitemap/XmlSitemapGenerator.php`. — add a test.
+- **Public-output leakage is asserted but the XML path is under-tested** — Good: `tests/Integration/Discovery/DiscoverPublicPagesActionTest.php` proves _"does not expose editor URLs in the public sitemap tree"_ and _"excludes pages that are not public discoverable"_ / _"translation noindex"_; `PublicUrlRegistryActionTest` proves _"forces noindex URLs out of sitemap eligibility"_. **Gap:** there is no test asserting the **generated XML file** (`XmlSitemapGenerator::writeItems`/`toXml`) excludes unpublished/noindex/private URLs end-to-end — coverage stops at the registry/data layer. Per capell public-output-safety rules, the rendered artifact must be tested. `src/Support/Sitemap/XmlSitemapGenerator.php`. — add a test.
 - **No route = silent empty discovery** — with `FrontendRoutesContribution` empty, a host that doesn't hand-configure the web server serves no `/sitemap-xml`; nothing in-package detects this. The (stub) `xml-sitemaps` health check is exactly where this should be caught. `src/Manifest/SiteDiscoveryFrontendRoutesContribution.php`.
-- **Cache-safety vs manifest** — `capell.json` `cacheSafety.cacheable:false`, `variesBy:["site","locale"]`, `queueInvalidation:true`. Generation correctly forgets `CacheEnum::sitemapPages` keys (`.public`, `.with-edit-urls`) in `XmlSitemapGenerator::forgetSitemapPageCaches`. But `cacheSafety.invalidationSources` is **empty** in the manifest while listeners *do* react to `PageSaved`/`PageDeleted`/`SiteCreated` — manifest understates real invalidation triggers. Reconcile.
+- **Cache-safety vs manifest** — `capell.json` `cacheSafety.cacheable:false`, `variesBy:["site","locale"]`, `queueInvalidation:true`. Generation correctly forgets `CacheEnum::sitemapPages` keys (`.public`, `.with-edit-urls`) in `XmlSitemapGenerator::forgetSitemapPageCaches`. But `cacheSafety.invalidationSources` is **empty** in the manifest while listeners _do_ react to `PageSaved`/`PageDeleted`/`SiteCreated` — manifest understates real invalidation triggers. Reconcile.
 - **Performance budget** — manifest sets `frontendRenderBudgetMs:20`, `adminQueryBudget:40`. The HTML sitemap (`Livewire/Page/Sitemap.php`, 134 LOC) and `SitemapLoader`'s per-request `simplexml_load_string` over full XML risk breaching the 20ms frontend budget on large sites. No budget assertion test exists. Cite `capell.json` `performance`.
-- **Listeners run heavy work synchronously-per-event on the queue** — `RegenerateSitemapsOnPageSaved` calls `processIncremental($site)` for the **whole site** on *every* page save (`src/Listeners/Sitemap/RegenerateSitemapsOnPageSaved.php`). Bulk edits (N saves) enqueue N full-site incremental passes. They `ShouldQueue` (good) but should debounce/coalesce per site. Risk: queue flooding on imports.
+- **Listeners run heavy work synchronously-per-event on the queue** — `RegenerateSitemapsOnPageSaved` calls `processIncremental($site)` for the **whole site** on _every_ page save (`src/Listeners/Sitemap/RegenerateSitemapsOnPageSaved.php`). Bulk edits (N saves) enqueue N full-site incremental passes. They `ShouldQueue` (good) but should debounce/coalesce per site. Risk: queue flooding on imports.
 - **i18n** — generated XML has no `hreflang` alternates (see §3); user-facing strings use translations correctly (`resources/lang/en`).
 - **CHANGELOG is empty** — only an "Unreleased / Prepared package metadata" line. No release history for a premium package. `CHANGELOG.md`.
 
@@ -46,7 +47,7 @@ Test coverage is otherwise strong (≈140 cases across Unit/Integration/Feature/
 
 ## 5. Marketplace & Selling
 
-**Critique.** The marketplace `summary` and composer `description` ("Public discoverability and sitemap outputs for Capell") are accurate but flat and engineer-facing — they list mechanisms ("resolves... exposes... registry") not buyer outcomes (get found by Google + AI crawlers). The summary buries the lede: this is the *canonical URL truth source* the whole SEO bundle is built on. Screenshot mismatch (1 in manifest vs 5 contracted in `docs/screenshots.json`) must be closed before listing.
+**Critique.** The marketplace `summary` and composer `description` ("Public discoverability and sitemap outputs for Capell") are accurate but flat and engineer-facing — they list mechanisms ("resolves... exposes... registry") not buyer outcomes (get found by Google + AI crawlers). The summary buries the lede: this is the _canonical URL truth source_ the whole SEO bundle is built on. Screenshot mismatch (1 in manifest vs 5 contracted in `docs/screenshots.json`) must be closed before listing.
 
 **Improved 1-sentence summary:** "Make every published Capell page discoverable — automatic XML sitemaps with index sharding, an HTML sitemap, and the canonical public-URL registry that powers the whole Search & SEO bundle."
 
@@ -62,20 +63,20 @@ Test coverage is otherwise strong (≈140 cases across Unit/Integration/Feature/
 
 ## 6. Prioritized Roadmap
 
-| Item | Bucket | Effort | Impact | Section |
-|------|--------|--------|--------|---------|
-| Implement the 4 advertised health checks (currently a stub) | Now | M | High | §2.1, §4 |
-| Add test asserting generated XML excludes unpublished/noindex/private URLs end-to-end | Now | S | High | §4 |
-| Register a real `/sitemap-xml` route/controller (stop relying on web-server config) | Now | M | High | §2.6, §4 |
-| Remove unused `icamys/php-sitemap-generator` dependency | Now | S | Med | §2.3 |
-| Close screenshot mismatch (ship the 5 contracted captures) | Now | S | Med | §1, §5 |
-| Schedule opt-in `capell:xml-sitemap --incremental` | Now | S | Med | §2.2 |
-| Debounce/coalesce per-site regeneration in page-save listener | Next | M | High | §4 |
-| Reconcile manifest `cacheSafety.invalidationSources` with real listeners | Next | S | Med | §4 |
-| Delete or productionise legacy `Support/SitemapGenerator` | Next | S | Med | §2.4 |
-| Persist URL count in state store; drop per-request `simplexml_load_string` | Next | M | Med | §2.5, §4 |
-| Improve marketplace summary/description + parity screenshot | Next | S | High | §5 |
-| Image/video sitemap extensions (`SitemapUrlItemData`) | Later | L | High | §3 |
-| hreflang alternates for per-locale sitemaps | Later | M | Med | §3, §4 |
-| Google/Bing sitemap ping notifier (second `UrlChangeNotifier`) | Later | M | Med | §3 |
-| Streaming writer for very large sitemaps | Later | L | Med | §3, §4 |
+| Item                                                                                  | Bucket | Effort | Impact | Section  |
+| ------------------------------------------------------------------------------------- | ------ | ------ | ------ | -------- |
+| Implement the 4 advertised health checks (currently a stub)                           | Now    | M      | High   | §2.1, §4 |
+| Add test asserting generated XML excludes unpublished/noindex/private URLs end-to-end | Now    | S      | High   | §4       |
+| Register a real `/sitemap-xml` route/controller (stop relying on web-server config)   | Now    | M      | High   | §2.6, §4 |
+| Remove unused `icamys/php-sitemap-generator` dependency                               | Now    | S      | Med    | §2.3     |
+| Close screenshot mismatch (ship the 5 contracted captures)                            | Now    | S      | Med    | §1, §5   |
+| Schedule opt-in `capell:xml-sitemap --incremental`                                    | Now    | S      | Med    | §2.2     |
+| Debounce/coalesce per-site regeneration in page-save listener                         | Next   | M      | High   | §4       |
+| Reconcile manifest `cacheSafety.invalidationSources` with real listeners              | Next   | S      | Med    | §4       |
+| Delete or productionise legacy `Support/SitemapGenerator`                             | Next   | S      | Med    | §2.4     |
+| Persist URL count in state store; drop per-request `simplexml_load_string`            | Next   | M      | Med    | §2.5, §4 |
+| Improve marketplace summary/description + parity screenshot                           | Next   | S      | High   | §5       |
+| Image/video sitemap extensions (`SitemapUrlItemData`)                                 | Later  | L      | High   | §3       |
+| hreflang alternates for per-locale sitemaps                                           | Later  | M      | Med    | §3, §4   |
+| Google/Bing sitemap ping notifier (second `UrlChangeNotifier`)                        | Later  | M      | Med    | §3       |
+| Streaming writer for very large sitemaps                                              | Later  | L      | Med    | §3, §4   |
