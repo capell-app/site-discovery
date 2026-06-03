@@ -6,6 +6,7 @@ use Capell\Core\Models\Site;
 use Capell\SiteDiscovery\Enums\SitemapCacheKey;
 use Capell\SiteDiscovery\Livewire\Tools\SitemapTool;
 use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
+use Capell\SiteDiscovery\Tests\Fixtures\SiteDiscoverySitemapToolFakeXmlSitemapGenerator;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Capell\Tests\Fixtures\Models\User;
 use Filament\Facades\Filament;
@@ -16,18 +17,6 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
 
 uses(SiteDiscoveryTestCase::class);
-
-final class SiteDiscoverySitemapToolFakeXmlSitemapGenerator extends XmlSitemapGenerator
-{
-    /** @var list<int> */
-    public array $deletedSiteIds = [];
-
-    #[Override]
-    public function delete(Site $site): void
-    {
-        $this->deletedSiteIds[] = (int) $site->getKey();
-    }
-}
 
 it('requires a global admin before queueing sitemap generation', function (): void {
     siteDiscoverySitemapToolAuthReturning(User::factory()->create());
