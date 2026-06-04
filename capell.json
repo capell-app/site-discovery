@@ -123,7 +123,8 @@
         "privateDocsRequested": true
     },
     "marketplace": {
-        "summary": "Site Discovery resolves public discoverable pages and URLs, exposes HTML and XML sitemap outputs, and provides the canonical registry for generated-output coverage.",
+        "summary": "Make every published Capell page discoverable — automatic XML sitemaps with index sharding, an HTML sitemap, and the canonical public-URL registry that powers the whole Search & SEO bundle.",
+        "description": "Site Discovery is the discovery backbone of Capell's Search & SEO bundle. It builds per-domain XML sitemaps (with `<sitemapindex>` sharding and incremental regeneration that skips unchanged pages), publishes a public HTML sitemap, and maintains the canonical Public URL Registry that records canonical state, robots directives, last-modified, and sitemap/AI-discovery eligibility for every public URL. Other packages — SEO Suite, Search, Blog, Events — plug in as URL contributors and read a single, consistent view of what your site intends to publish. Built-in quality gates and a generated-output parity report catch missing or stale URLs before search engines do, and optional IndexNow notifications submit changes the moment a page is saved.",
         "screenshots": [
             {
                 "path": "docs/assets/marketplace/extension-card.jpg",

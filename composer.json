@@ -1,6 +1,6 @@
 {
     "name": "capell-app/site-discovery",
-    "description": "Public discoverability and sitemap outputs for Capell",
+    "description": "Make every published Capell page discoverable — automatic XML sitemaps with index sharding, an HTML sitemap, and the canonical public-URL registry that powers the whole Search & SEO bundle.",
     "keywords": [
         "capell",
         "discovery",
