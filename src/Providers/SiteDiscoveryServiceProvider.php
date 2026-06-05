@@ -65,6 +65,7 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
             ->hasConfigFile()
             ->hasViews(self::$name)
             ->hasTranslations()
+            ->hasRoute('web')
             ->hasCommands([
                 XmlSitemapCommand::class,
             ]);

@@ -1,0 +1,49 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Capell\SiteDiscovery\Tests\Fixtures;
+
+use Capell\Core\Models\Language;
+use Capell\Core\Models\Site;
+use Capell\SiteDiscovery\Contracts\PublicUrlContributor;
+use Capell\SiteDiscovery\Data\PublicUrlData;
+use Capell\SiteDiscovery\Enums\PublicUrlIndexability;
+use Illuminate\Support\Collection;
+
+final readonly class NoIndexSitemapFixturePublicUrlContributor implements PublicUrlContributor
+{
+    public function __construct(
+        private Site $site,
+        private Language $language,
+        private string $baseUrl,
+    ) {}
+
+    /**
+     * @return Collection<int, PublicUrlData>
+     */
+    public function publicUrls(): Collection
+    {
+        return collect([
+            new PublicUrlData(
+                canonicalUrl: $this->baseUrl . '/registry-visible',
+                sourcePackage: 'capell-app/site-discovery-test',
+                site: $this->site,
+                language: $this->language,
+            ),
+            new PublicUrlData(
+                canonicalUrl: $this->baseUrl . '/registry-noindex',
+                sourcePackage: 'capell-app/site-discovery-test',
+                site: $this->site,
+                language: $this->language,
+                indexability: PublicUrlIndexability::NoIndex,
+            ),
+            new PublicUrlData(
+                canonicalUrl: $this->baseUrl . '/admin/registry-private?signature=test',
+                sourcePackage: 'capell-app/site-discovery-test',
+                site: $this->site,
+                language: $this->language,
+            ),
+        ]);
+    }
+}
