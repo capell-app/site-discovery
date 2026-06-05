@@ -9,7 +9,7 @@ Site Discovery owns public sitemap, discoverable URL, and generated-output regis
 - Surfaces: admin actions/tools, frontend sitemap pages, console
 - Service providers: `packages/site-discovery/src/Providers/SiteDiscoveryServiceProvider.php`
 - Capell dependencies: `capell-app/admin`, `capell-app/core`, `capell-app/frontend`
-- Third-party dependencies: `icamys/php-sitemap-generator`
+- Third-party dependencies: none
 
 ## Why It Helps Your Capell Workflow
 
@@ -37,10 +37,6 @@ Site Discovery owns public sitemap, discoverable URL, and generated-output regis
 - XML sitemap generation with chunking and incremental state.
 - Sitemap admin page, admin actions, and generation tool.
 - Lifecycle listeners that regenerate sitemap output when pages or sites change.
-
-## Built With
-
-- [PHP Sitemap Generator](https://github.com/icamys/php-sitemap-generator) - XML sitemap generation.
 
 ## Code Map
 
