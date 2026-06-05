@@ -82,7 +82,16 @@
             "cacheable": false,
             "variesBy": ["site", "locale"],
             "sensitiveOutput": false,
-            "invalidationSources": [],
+            "invalidationSources": [
+                {
+                    "model": "Capell\\Core\\Models\\Page",
+                    "events": ["saved", "deleted"]
+                },
+                {
+                    "model": "Capell\\Core\\Models\\Site",
+                    "events": ["created"]
+                }
+            ],
             "queueInvalidation": true
         }
     },

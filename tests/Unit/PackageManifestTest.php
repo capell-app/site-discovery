@@ -25,7 +25,17 @@ it('keeps package composer requirements aligned with shipped code boundaries', f
     sort($packageRequirements);
 
     expect($composer['require'] ?? [])->not->toHaveKey('icamys/php-sitemap-generator')
-        ->and($packageRequirements)->toBe($manifest['dependencies']['requires']);
+        ->and($packageRequirements)->toBe($manifest['dependencies']['requires'])
+        ->and($manifest['performance']['cacheSafety']['invalidationSources'] ?? null)->toBe([
+            [
+                'model' => 'Capell\\Core\\Models\\Page',
+                'events' => ['saved', 'deleted'],
+            ],
+            [
+                'model' => 'Capell\\Core\\Models\\Site',
+                'events' => ['created'],
+            ],
+        ]);
 });
 
 it('declares committed marketplace assets for every required screenshot capture target', function (): void {
