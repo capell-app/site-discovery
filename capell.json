@@ -130,6 +130,41 @@
                 "path": "docs/assets/marketplace/extension-card.jpg",
                 "alt": "Site Discovery extension preview image",
                 "caption": "Site Discovery extension preview"
+            },
+            {
+                "path": "docs/assets/marketplace/page-sitemap-action.svg",
+                "alt": "Page resource sitemap action in the Capell admin",
+                "caption": "Page-level sitemap action for regenerating discovery output."
+            },
+            {
+                "path": "docs/assets/marketplace/site-sitemap-action.svg",
+                "alt": "Site resource sitemap action in the Capell admin",
+                "caption": "Site-level sitemap action for refreshing public discovery output."
+            },
+            {
+                "path": "docs/assets/marketplace/sitemap-generation-tool.svg",
+                "alt": "Sitemap generation tool showing generated sitemap status",
+                "caption": "Admin sitemap generation tool with domain output status."
+            },
+            {
+                "path": "docs/assets/marketplace/html-sitemap-page.svg",
+                "alt": "Public HTML sitemap page with discoverable page links",
+                "caption": "Visitor-safe HTML sitemap showing discoverable public pages."
+            },
+            {
+                "path": "docs/assets/marketplace/xml-sitemap-output.svg",
+                "alt": "Generated XML sitemap output for crawlers",
+                "caption": "Generated XML sitemap output served through the package route."
+            },
+            {
+                "path": "docs/assets/marketplace/public-url-registry-page.svg",
+                "alt": "Public URL Registry admin page with generated output parity rows",
+                "caption": "Public URL Registry parity page for sitemap and downstream output coverage."
+            },
+            {
+                "path": "docs/assets/marketplace/public-url-quality-report.svg",
+                "alt": "Public URL Registry quality report with missing output warnings",
+                "caption": "Quality report highlighting missing generated outputs and sitemap issues."
             }
         ],
         "categories": ["admin", "console", "frontend", "search-seo"]

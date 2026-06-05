@@ -133,7 +133,7 @@ These items are approved product direction for Site Discovery and should be plan
 
 ## Screenshot Coverage
 
-The package screenshot contract covers the package-added Page and Site sitemap actions, the sitemap generation tool, `/sitemap`, and `/sitemap-xml`. Keep each capture focused on the added surface; avoid broad admin screenshots that hide which control belongs to this package.
+The package screenshot contract covers the package-added Page and Site sitemap actions, the sitemap generation tool, `/sitemap`, `/sitemap-xml`, the Public URL Registry parity page, and its quality report state. Keep each capture focused on the added surface; avoid broad admin screenshots that hide which control belongs to this package.
 
 Public sitemap screenshots should be checked for authoring or package identifiers. The public output must not expose `capell-site-discovery`, `capell-sitemap`, admin URLs, editor metadata, signed editor links, or unpublished pages.
 

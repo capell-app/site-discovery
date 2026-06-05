@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+    <title id="title">Public URL Registry quality report</title>
+    <desc id="desc">A quality report highlighting missing generated outputs and sitemap issues for public URLs.</desc>
+    <rect width="1200" height="760" fill="#f8fafc"/>
+    <rect x="72" y="72" width="1056" height="616" rx="24" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+    <text x="112" y="148" fill="#0f172a" font-family="Arial, sans-serif" font-size="44" font-weight="700">Quality report</text>
+    <rect x="112" y="210" width="300" height="130" rx="18" fill="#fee2e2"/>
+    <text x="144" y="262" fill="#991b1b" font-family="Arial, sans-serif" font-size="44" font-weight="700">3</text>
+    <text x="144" y="308" fill="#991b1b" font-family="Arial, sans-serif" font-size="22" font-weight="700">Missing outputs</text>
+    <rect x="452" y="210" width="300" height="130" rx="18" fill="#fef9c3"/>
+    <text x="484" y="262" fill="#854d0e" font-family="Arial, sans-serif" font-size="44" font-weight="700">2</text>
+    <text x="484" y="308" fill="#854d0e" font-family="Arial, sans-serif" font-size="22" font-weight="700">Quality warnings</text>
+    <rect x="792" y="210" width="300" height="130" rx="18" fill="#dcfce7"/>
+    <text x="824" y="262" fill="#166534" font-family="Arial, sans-serif" font-size="44" font-weight="700">148</text>
+    <text x="824" y="308" fill="#166534" font-family="Arial, sans-serif" font-size="22" font-weight="700">Covered URLs</text>
+    <rect x="112" y="404" width="976" height="76" rx="14" fill="#fff7ed" stroke="#fed7aa" stroke-width="2"/>
+    <text x="144" y="450" fill="#9a3412" font-family="Arial, sans-serif" font-size="23" font-weight="700">https://example.com/campaign</text>
+    <text x="760" y="450" fill="#9a3412" font-family="Arial, sans-serif" font-size="22">Missing sitemap output</text>
+    <rect x="112" y="520" width="976" height="76" rx="14" fill="#fef2f2" stroke="#fecaca" stroke-width="2"/>
+    <text x="144" y="566" fill="#991b1b" font-family="Arial, sans-serif" font-size="23" font-weight="700">https://example.com/private</text>
+    <text x="760" y="566" fill="#991b1b" font-family="Arial, sans-serif" font-size="22">Noindex conflict</text>
+</svg>

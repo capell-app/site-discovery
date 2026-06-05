@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+    <title id="title">Public HTML sitemap page</title>
+    <desc id="desc">A visitor-safe HTML sitemap page listing discoverable public pages.</desc>
+    <rect width="1200" height="760" fill="#ffffff"/>
+    <rect x="88" y="72" width="1024" height="616" rx="22" fill="#f8fafc" stroke="#dbe3ea" stroke-width="2"/>
+    <text x="136" y="154" fill="#0f172a" font-family="Arial, sans-serif" font-size="56" font-weight="700">Sitemap</text>
+    <text x="136" y="204" fill="#475569" font-family="Arial, sans-serif" font-size="25">Public pages available on this site.</text>
+    <g font-family="Arial, sans-serif">
+        <text x="158" y="300" fill="#0f766e" font-size="30" font-weight="700">Homepage</text>
+        <text x="206" y="372" fill="#0f172a" font-size="27">Services</text>
+        <text x="254" y="432" fill="#475569" font-size="24">Consulting</text>
+        <text x="254" y="492" fill="#475569" font-size="24">Implementation</text>
+        <text x="206" y="562" fill="#0f172a" font-size="27">About</text>
+        <text x="206" y="622" fill="#0f172a" font-size="27">Contact</text>
+    </g>
+    <g stroke="#cbd5e1" stroke-width="3" fill="none">
+        <path d="M144 289h-24v72h62"/>
+        <path d="M182 361v72h38"/>
+        <path d="M182 361v132h38"/>
+        <path d="M144 289v273h62"/>
+        <path d="M144 289v333h62"/>
+    </g>
+    <rect x="780" y="292" width="250" height="168" rx="18" fill="#ecfdf5"/>
+    <text x="820" y="354" fill="#166534" font-family="Arial, sans-serif" font-size="28" font-weight="700">Public only</text>
+    <text x="820" y="404" fill="#166534" font-family="Arial, sans-serif" font-size="22">No admin markers</text>
+</svg>

@@ -92,8 +92,10 @@ Apache should keep Laravel's standard `!-f` / `!-d` front-controller rewrite. Do
 - `sitemap-generation-tool.png`: dashboard tools dropdown with `Update sitemaps`.
 - `html-sitemap-page.png`: public `/sitemap` output.
 - `xml-sitemap-output.png`: `/sitemap-xml` output after `capell:xml-sitemap`.
+- `public-url-registry-page.png`: Public URL Registry parity page with generated-output coverage rows.
+- `public-url-quality-report.png`: Public URL Registry quality report with missing output or sitemap quality issues visible.
 
-Captured files live in the host app under `packages/site-discovery/docs/screenshots`.
+Captured files live in the host app under `packages/site-discovery/docs/screenshots`. Marketplace-ready lightweight previews for each contracted capture live in `docs/assets/marketplace`.
 
 ## Public Safety Notes
 
