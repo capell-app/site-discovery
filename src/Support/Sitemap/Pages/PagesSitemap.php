@@ -57,6 +57,7 @@ class PagesSitemap extends AbstractSitemapPages
             ->filter(fn (?Page $page): bool => $page instanceof Page)
             ->pipe(fn (Collection $pages): NestedsetCollection => new NestedsetCollection($pages->all()))
             ->pipe(fn (NestedsetCollection $pages): Collection => collect($pages->toTree()))
+            ->filter(fn (Page $page): bool => SitemapPageData::hasPersistedPageUrl($page))
             ->map(fn (Page $page): SitemapPageData => $this->format($page));
     }
 
