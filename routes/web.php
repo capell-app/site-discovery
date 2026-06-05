@@ -5,7 +5,8 @@ declare(strict_types=1);
 use Capell\SiteDiscovery\Http\Controllers\SitemapXmlController;
 use Illuminate\Support\Facades\Route;
 
-$xmlPath = trim((string) config('capell.sitemap.xml_path', '/sitemap-xml'), '/');
+$configuredXmlPath = config('capell.sitemap.xml_path', '/sitemap-xml');
+$xmlPath = trim(is_string($configuredXmlPath) || is_numeric($configuredXmlPath) ? (string) $configuredXmlPath : '/sitemap-xml', '/');
 $xmlPath = $xmlPath !== '' ? $xmlPath : 'sitemap-xml';
 
 Route::name('capell-frontend.')

@@ -101,7 +101,7 @@ class SitemapPageData extends Data
     {
         $pageUrl = $page->pageUrl;
 
-        throw_unless(self::isPersistedPageUrl($pageUrl), RuntimeException::class, 'Sitemap page requires a persisted page URL.');
+        throw_if(! $pageUrl instanceof PageUrl || ! $pageUrl->exists, RuntimeException::class, 'Sitemap page requires a persisted page URL.');
 
         return $pageUrl->full_url;
     }

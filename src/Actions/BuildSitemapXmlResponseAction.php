@@ -35,7 +35,7 @@ final class BuildSitemapXmlResponseAction
             'D, d M Y H:i:s \G\M\T',
             is_numeric($lastModifiedTimestamp) ? $lastModifiedTimestamp : now()->getTimestamp(),
         );
-        $etagDigest = hash('sha256', $contents);
+        $etagDigest = hash('sha256', (string) $contents);
         $weakEtag = 'W/"' . $etagDigest . '"';
 
         if ($this->requestMatchesEtag($request, $weakEtag, $etagDigest)) {
@@ -48,7 +48,7 @@ final class BuildSitemapXmlResponseAction
             'Content-Disposition' => 'attachment; filename="' . $this->downloadFilename($request, $sitemapPrefix) . '"',
         ];
 
-        if (strlen($contents) > 1024 * 1024) {
+        if (strlen((string) $contents) > 1024 * 1024) {
             return response()->stream(static function () use ($contents): void {
                 echo $contents;
             }, 200, $headers);
@@ -98,7 +98,7 @@ final class BuildSitemapXmlResponseAction
         $strongEtag = '"' . $etagDigest . '"';
         $clientEtags = array_values(array_filter(
             array_map(
-                static fn (string $value): string => trim($value),
+                trim(...),
                 explode(',', $ifNoneMatch),
             ),
             static fn (string $value): bool => $value !== '',

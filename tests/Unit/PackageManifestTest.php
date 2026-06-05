@@ -2,21 +2,20 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Models\Page;
+use Capell\Core\Models\Site;
+
 it('keeps package composer requirements aligned with shipped code boundaries', function (): void {
     $packagePath = dirname(__DIR__, 2);
 
-    $composer = json_decode(
-        (string) file_get_contents($packagePath . '/composer.json'),
-        associative: true,
-        flags: JSON_THROW_ON_ERROR,
-    );
-    $manifest = json_decode(
-        (string) file_get_contents($packagePath . '/capell.json'),
-        associative: true,
-        flags: JSON_THROW_ON_ERROR,
-    );
+    $composer = capell_json_file_array($packagePath . '/composer.json');
+    $manifest = capell_json_file_array($packagePath . '/capell.json');
 
-    $runtimeRequirements = array_keys($composer['require'] ?? []);
+    $composerRequirements = data_get($composer, 'require', []);
+
+    throw_unless(is_array($composerRequirements), RuntimeException::class, 'Site Discovery composer requirements must be an array.');
+
+    $runtimeRequirements = array_keys($composerRequirements);
     $packageRequirements = array_values(array_filter(
         $runtimeRequirements,
         fn (string $requirement): bool => str_starts_with($requirement, 'capell-app/'),
@@ -24,15 +23,15 @@ it('keeps package composer requirements aligned with shipped code boundaries', f
 
     sort($packageRequirements);
 
-    expect($composer['require'] ?? [])->not->toHaveKey('icamys/php-sitemap-generator')
-        ->and($packageRequirements)->toBe($manifest['dependencies']['requires'])
-        ->and($manifest['performance']['cacheSafety']['invalidationSources'] ?? null)->toBe([
+    expect($composerRequirements)->not->toHaveKey('icamys/php-sitemap-generator')
+        ->and($packageRequirements)->toBe(data_get($manifest, 'dependencies.requires'))
+        ->and(data_get($manifest, 'performance.cacheSafety.invalidationSources'))->toBe([
             [
-                'model' => 'Capell\\Core\\Models\\Page',
+                'model' => Page::class,
                 'events' => ['saved', 'deleted'],
             ],
             [
-                'model' => 'Capell\\Core\\Models\\Site',
+                'model' => Site::class,
                 'events' => ['created'],
             ],
         ]);
@@ -40,21 +39,10 @@ it('keeps package composer requirements aligned with shipped code boundaries', f
 
 it('declares committed marketplace assets for every required screenshot capture target', function (): void {
     $packagePath = dirname(__DIR__, 2);
-    $manifest = json_decode(
-        (string) file_get_contents($packagePath . '/capell.json'),
-        associative: true,
-        flags: JSON_THROW_ON_ERROR,
-    );
-    $screenshotContract = json_decode(
-        (string) file_get_contents($packagePath . '/docs/screenshots.json'),
-        associative: true,
-        flags: JSON_THROW_ON_ERROR,
-    );
+    $manifest = capell_json_file_array($packagePath . '/capell.json');
+    $screenshotContract = capell_json_file_array($packagePath . '/docs/screenshots.json');
 
-    throw_unless(is_array($manifest), RuntimeException::class, 'Expected Site Discovery manifest array.');
-    throw_unless(is_array($screenshotContract), RuntimeException::class, 'Expected Site Discovery screenshot contract array.');
-
-    $marketplaceScreenshots = $manifest['marketplace']['screenshots'] ?? [];
+    $marketplaceScreenshots = data_get($manifest, 'marketplace.screenshots', []);
     $contractEntries = $screenshotContract['entries'] ?? [];
 
     throw_unless(is_array($marketplaceScreenshots), RuntimeException::class, 'Site Discovery marketplace screenshots must be an array.');

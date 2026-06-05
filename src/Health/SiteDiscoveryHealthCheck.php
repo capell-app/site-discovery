@@ -11,7 +11,6 @@ use Capell\SiteDiscovery\Contracts\PublicUrlContributor;
 use Capell\SiteDiscovery\Data\SitemapUrlItemData;
 use Capell\SiteDiscovery\Http\Controllers\SitemapXmlController;
 use Capell\SiteDiscovery\Support\PublicUrls\CmsPagePublicUrlContributor;
-use Capell\SiteDiscovery\Support\Sitemap\AbstractSitemapPages;
 use Capell\SiteDiscovery\Support\Sitemap\Pages\PagesSitemap;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageRegistry;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageType;
@@ -26,6 +25,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 final class SiteDiscoveryHealthCheck implements ChecksExtensionHealth
@@ -204,7 +204,7 @@ final class SiteDiscoveryHealthCheck implements ChecksExtensionHealth
                     ->values();
                 $invalidContributors = $contributors
                     ->reject(static fn (mixed $contributor): bool => $contributor instanceof PublicUrlContributor)
-                    ->map(static fn (mixed $contributor): string => is_object($contributor) ? $contributor::class : get_debug_type($contributor))
+                    ->map(static fn (mixed $contributor): string => get_debug_type($contributor))
                     ->values()
                     ->all();
 
@@ -292,7 +292,7 @@ final class SiteDiscoveryHealthCheck implements ChecksExtensionHealth
 
             $response = BuildSitemapXmlResponseAction::run(Request::create('http://example.test/' . $this->xmlSitemapPath()));
 
-            return $response->getStatusCode() === 200
+            return $response->getStatusCode() === Response::HTTP_OK
                 && str_contains((string) $response->headers->get('Content-Type'), 'application/xml');
         } catch (Throwable) {
             return false;
@@ -391,8 +391,7 @@ final class SiteDiscoveryHealthCheck implements ChecksExtensionHealth
 
     public function htmlSitemapTypeIsReady(): bool
     {
-        return $this->htmlSitemapIsRegistered()
-            && is_subclass_of(PagesSitemap::class, AbstractSitemapPages::class);
+        return $this->htmlSitemapIsRegistered();
     }
 
     public function htmlSitemapIsRegistered(): bool
@@ -433,7 +432,8 @@ final class SiteDiscoveryHealthCheck implements ChecksExtensionHealth
 
     private function xmlSitemapPath(): string
     {
-        $xmlPath = trim((string) config('capell.sitemap.xml_path', '/sitemap-xml'), '/');
+        $configuredXmlPath = config('capell.sitemap.xml_path', '/sitemap-xml');
+        $xmlPath = trim(is_string($configuredXmlPath) || is_numeric($configuredXmlPath) ? (string) $configuredXmlPath : '/sitemap-xml', '/');
 
         return $xmlPath !== '' ? $xmlPath : 'sitemap-xml';
     }

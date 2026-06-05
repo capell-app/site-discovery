@@ -217,7 +217,8 @@ describe('SitemapBuilder', function (): void {
              */
             public function fetch(): Collection
             {
-                return collect([
+                /** @var Collection<array-key, mixed> $pages */
+                $pages = collect([
                     new SitemapPageData(
                         label: 'Services',
                         url: 'https://example.com/services',
@@ -235,6 +236,8 @@ describe('SitemapBuilder', function (): void {
                         pageId: 10,
                     ),
                 ]);
+
+                return $pages;
             }
         });
 
@@ -245,7 +248,8 @@ describe('SitemapBuilder', function (): void {
              */
             public function fetch(): Collection
             {
-                return collect([
+                /** @var Collection<array-key, mixed> $pages */
+                $pages = collect([
                     new SitemapPageData(
                         label: 'Services Updated',
                         url: 'https://example.com/services',
@@ -270,6 +274,8 @@ describe('SitemapBuilder', function (): void {
                         pageId: 10,
                     ),
                 ]);
+
+                return $pages;
             }
         });
 
