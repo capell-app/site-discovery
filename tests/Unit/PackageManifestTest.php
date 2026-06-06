@@ -77,15 +77,13 @@ it('declares committed marketplace assets for every required screenshot capture 
             continue;
         }
 
-        $id = $contractEntry['id'] ?? null;
         $screenshotPath = $contractEntry['screenshotPath'] ?? null;
 
-        throw_unless(is_string($id), RuntimeException::class, 'Required Site Discovery screenshot contract entries must have string ids.');
         throw_unless(is_string($screenshotPath), RuntimeException::class, 'Required Site Discovery screenshot contract entries must declare screenshot paths.');
 
         expect($screenshotPath)->toStartWith('packages/site-discovery/docs/screenshots/');
 
-        $requiredMarketplaceAssetPaths[] = 'docs/assets/marketplace/' . $id . '.svg';
+        $requiredMarketplaceAssetPaths[] = str_replace('packages/site-discovery/', '', $screenshotPath);
     }
 
     expect($marketplaceScreenshotPaths)->toBe([

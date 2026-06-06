@@ -141,37 +141,37 @@
                 "caption": "Site Discovery extension preview"
             },
             {
-                "path": "docs/assets/marketplace/page-sitemap-action.svg",
+                "path": "docs/screenshots/page-sitemap-action.png",
                 "alt": "Page resource sitemap action in the Capell admin",
                 "caption": "Page-level sitemap action for regenerating discovery output."
             },
             {
-                "path": "docs/assets/marketplace/site-sitemap-action.svg",
+                "path": "docs/screenshots/site-sitemap-action.png",
                 "alt": "Site resource sitemap action in the Capell admin",
                 "caption": "Site-level sitemap action for refreshing public discovery output."
             },
             {
-                "path": "docs/assets/marketplace/sitemap-generation-tool.svg",
+                "path": "docs/screenshots/sitemap-generation-tool.png",
                 "alt": "Sitemap generation tool showing generated sitemap status",
                 "caption": "Admin sitemap generation tool with domain output status."
             },
             {
-                "path": "docs/assets/marketplace/html-sitemap-page.svg",
+                "path": "docs/screenshots/html-sitemap-page.png",
                 "alt": "Public HTML sitemap page with discoverable page links",
                 "caption": "Visitor-safe HTML sitemap showing discoverable public pages."
             },
             {
-                "path": "docs/assets/marketplace/xml-sitemap-output.svg",
+                "path": "docs/screenshots/xml-sitemap-output.png",
                 "alt": "Generated XML sitemap output for crawlers",
                 "caption": "Generated XML sitemap output served through the package route."
             },
             {
-                "path": "docs/assets/marketplace/public-url-registry-page.svg",
+                "path": "docs/screenshots/public-url-registry-page.png",
                 "alt": "Public URL Registry admin page with generated output parity rows",
                 "caption": "Public URL Registry parity page for sitemap and downstream output coverage."
             },
             {
-                "path": "docs/assets/marketplace/public-url-quality-report.svg",
+                "path": "docs/screenshots/public-url-quality-report.png",
                 "alt": "Public URL Registry quality report with missing output warnings",
                 "caption": "Quality report highlighting missing generated outputs and sitemap issues."
             }
