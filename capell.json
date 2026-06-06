@@ -161,11 +161,6 @@
                 "caption": "Visitor-safe HTML sitemap showing discoverable public pages."
             },
             {
-                "path": "docs/screenshots/xml-sitemap-output.png",
-                "alt": "Generated XML sitemap output for crawlers",
-                "caption": "Generated XML sitemap output served through the package route."
-            },
-            {
                 "path": "docs/screenshots/public-url-registry-page.png",
                 "alt": "Public URL Registry admin page with generated output parity rows",
                 "caption": "Public URL Registry parity page for sitemap and downstream output coverage."
