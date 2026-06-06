@@ -13,8 +13,11 @@ use Capell\SiteDiscovery\Actions\DiscoverPublicUrlsAction;
 use Capell\SiteDiscovery\Actions\ValidateSitemapQualityAction;
 use Capell\SiteDiscovery\Data\DiscoverableUrlData;
 use Capell\SiteDiscovery\Data\PublicUrlRegistryEntryData;
+use Capell\SiteDiscovery\Data\SitemapImageData;
+use Capell\SiteDiscovery\Data\SitemapNewsData;
 use Capell\SiteDiscovery\Data\SitemapPageData;
 use Capell\SiteDiscovery\Data\SitemapUrlItemData;
+use Capell\SiteDiscovery\Data\SitemapVideoData;
 use Capell\SiteDiscovery\Exceptions\SitemapGeneratorException;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -529,7 +532,9 @@ class XmlSitemapGenerator
     private function toXml(array $items): string
     {
         $xml = '<?xml version="1.0" encoding="UTF-8"?>';
-        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"';
+        $xml .= $this->urlsetExtensionNamespaces($items);
+        $xml .= '>';
 
         foreach ($items as $item) {
             $xml .= '<url>';
@@ -551,10 +556,109 @@ class XmlSitemapGenerator
                 $xml .= '<priority>' . htmlspecialchars((string) $item->priority, ENT_XML1 | ENT_COMPAT, 'UTF-8') . '</priority>';
             }
 
+            $xml .= $this->imageXml($item->images);
+            $xml .= $this->videoXml($item->videos);
+            $xml .= $this->newsXml($item->news);
+
             $xml .= '</url>';
         }
 
         return $xml . '</urlset>';
+    }
+
+    /**
+     * @param  array<int, SitemapUrlItemData>  $items
+     */
+    private function urlsetExtensionNamespaces(array $items): string
+    {
+        $namespaces = '';
+
+        if (collect($items)->contains(fn (SitemapUrlItemData $item): bool => $item->images !== [])) {
+            $namespaces .= ' xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"';
+        }
+
+        if (collect($items)->contains(fn (SitemapUrlItemData $item): bool => $item->videos !== [])) {
+            $namespaces .= ' xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"';
+        }
+
+        if (collect($items)->contains(fn (SitemapUrlItemData $item): bool => $item->news instanceof SitemapNewsData)) {
+            $namespaces .= ' xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"';
+        }
+
+        return $namespaces;
+    }
+
+    /**
+     * @param  list<SitemapImageData>  $images
+     */
+    private function imageXml(array $images): string
+    {
+        $xml = '';
+
+        foreach ($images as $image) {
+            $xml .= '<image:image>';
+            $xml .= $this->xmlElement('image:loc', $image->loc);
+            $xml .= $this->xmlElement('image:caption', $image->caption);
+            $xml .= $this->xmlElement('image:title', $image->title);
+            $xml .= $this->xmlElement('image:license', $image->license);
+            $xml .= '</image:image>';
+        }
+
+        return $xml;
+    }
+
+    /**
+     * @param  list<SitemapVideoData>  $videos
+     */
+    private function videoXml(array $videos): string
+    {
+        $xml = '';
+
+        foreach ($videos as $video) {
+            $xml .= '<video:video>';
+            $xml .= $this->xmlElement('video:thumbnail_loc', $video->thumbnailLoc);
+            $xml .= $this->xmlElement('video:title', $video->title);
+            $xml .= $this->xmlElement('video:description', $video->description);
+            $xml .= $this->xmlElement('video:content_loc', $video->contentLoc);
+            $xml .= $this->xmlElement('video:player_loc', $video->playerLoc);
+            $xml .= $this->xmlElement('video:duration', $video->duration);
+            $xml .= $this->xmlElement('video:publication_date', $video->publicationDate?->format(DATE_ATOM));
+            $xml .= '</video:video>';
+        }
+
+        return $xml;
+    }
+
+    private function newsXml(?SitemapNewsData $news): string
+    {
+        if (! $news instanceof SitemapNewsData) {
+            return '';
+        }
+
+        $xml = '<news:news>';
+        $xml .= '<news:publication>';
+        $xml .= $this->xmlElement('news:name', $news->publicationName);
+        $xml .= $this->xmlElement('news:language', $news->publicationLanguage);
+        $xml .= '</news:publication>';
+        $xml .= $this->xmlElement('news:publication_date', $news->publicationDate->format(DATE_ATOM));
+        $xml .= $this->xmlElement('news:title', $news->title);
+        $xml .= '</news:news>';
+
+        return $xml;
+    }
+
+    private function xmlElement(string $name, int|string|null $value): string
+    {
+        if ($value === null || $value === '') {
+            return '';
+        }
+
+        return sprintf(
+            '<%s>%s</%s>',
+            $name,
+            htmlspecialchars((string) $value, ENT_XML1 | ENT_COMPAT, 'UTF-8'),
+            $name,
+        );
     }
 
     /**
