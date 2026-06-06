@@ -11,6 +11,12 @@ return [
         'overlap_expires_after_minutes' => (int) env('CAPELL_SITE_DISCOVERY_INCREMENTAL_SITEMAP_OVERLAP_MINUTES', 65),
     ],
 
+    'event_sitemap_regeneration' => [
+        'debounce_seconds' => (int) env('CAPELL_SITE_DISCOVERY_EVENT_SITEMAP_DEBOUNCE_SECONDS', 60),
+        'pending_grace_seconds' => (int) env('CAPELL_SITE_DISCOVERY_EVENT_SITEMAP_PENDING_GRACE_SECONDS', 30),
+        'unique_for_seconds' => (int) env('CAPELL_SITE_DISCOVERY_EVENT_SITEMAP_UNIQUE_FOR_SECONDS', 900),
+    ],
+
     'indexnow' => [
         'enabled' => false,
         'endpoint' => env('CAPELL_SITE_DISCOVERY_INDEXNOW_ENDPOINT', 'https://api.indexnow.org/indexnow'),
