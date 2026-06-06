@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-    'description' => 'Site Discovery resolves public discoverable pages and URLs, then exposes HTML and XML sitemap outputs.',
+    'description' => 'Make every published Capell page discoverable with automatic XML sitemaps, an HTML sitemap, and the canonical public-URL registry.',
     'health' => [
         'public_urls' => [
             'label' => 'Site Discovery public URL contributors',

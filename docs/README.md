@@ -1,6 +1,6 @@
 # Site Discovery Docs
 
-Site Discovery resolves public discoverable pages and URLs, then exposes HTML and XML sitemap outputs.
+Site Discovery makes every published Capell page discoverable with automatic XML sitemaps, an HTML sitemap, and the canonical public-URL registry that powers the Search & SEO bundle.
 
 Start at the [package README](../README.md) when deciding whether to install this package. Use the docs below for setup, extension, debugging, and verification details.
 

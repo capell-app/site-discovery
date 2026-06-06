@@ -2,7 +2,7 @@
 
 Status: **Available, no schema impact** · Kind: **package** · Tier: **premium** · Bundle: **search-seo** · Contexts: **admin, frontend, console** · Product group: **Capell Search & SEO**
 
-Site Discovery resolves canonical public Capell URLs and exposes them through the Public URL Registry, HTML sitemap rendering, XML sitemap generation, sitemap quality gates, and generated-output registry diagnostics.
+Site Discovery makes every published Capell page discoverable with automatic XML sitemaps, an HTML sitemap, and the canonical Public URL Registry that powers sitemap quality gates and generated-output diagnostics across the Search & SEO bundle.
 
 ## What This Package Adds
 

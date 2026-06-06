@@ -6,7 +6,7 @@
     "kind": "package",
     "capellApiVersion": "^4.0",
     "version": "4.x-dev",
-    "description": "Site Discovery resolves public discoverable pages and URLs, exposes HTML and XML sitemap outputs, and provides the canonical registry for generated-output coverage.",
+    "description": "Make every published Capell page discoverable with automatic XML sitemaps, an HTML sitemap, and the canonical public-URL registry that powers the Search & SEO bundle.",
     "product": {
         "group": "Capell Search & SEO",
         "tier": "premium",

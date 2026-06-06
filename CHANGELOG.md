@@ -4,6 +4,7 @@ All notable changes to `capell-app/site-discovery` will be documented in this fi
 
 ## Unreleased
 
+- Aligned manifest and docs copy with the outcome-led marketplace listing and committed sitemap/registry screenshot gallery.
 - Prepared package metadata and documentation for ongoing Capell 4.x package work.
 
 ## 2026-06-03
