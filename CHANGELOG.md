@@ -4,6 +4,9 @@ All notable changes to `capell-app/site-discovery` will be documented in this fi
 
 ## Unreleased
 
+- Added typed sitemap extension payloads for hreflang alternates, image, video, and news metadata.
+- Changed chunked XML sitemap writing to avoid duplicating the full URL list with `array_chunk`.
+- Retired the obsolete unauthenticated Google/Bing sitemap ping roadmap item in favour of the supported IndexNow notifier path.
 - Aligned manifest and docs copy with the outcome-led marketplace listing and committed sitemap/registry screenshot gallery.
 - Prepared package metadata and documentation for ongoing Capell 4.x package work.
 

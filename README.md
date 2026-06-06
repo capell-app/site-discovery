@@ -35,6 +35,7 @@ Site Discovery owns public sitemap, discoverable URL, and generated-output regis
 - Generated-output parity reporting via `BuildGeneratedOutputParityReportAction` and the Public URL Registry admin page.
 - HTML sitemap page type and frontend component.
 - XML sitemap generation with chunking and incremental state.
+- Typed sitemap extension payloads for hreflang alternates, image metadata, video metadata, and news metadata.
 - Sitemap admin page, admin actions, and generation tool.
 - Lifecycle listeners that regenerate sitemap output when pages or sites change.
 
@@ -123,7 +124,7 @@ These items are approved product direction for Site Discovery and should be plan
 - Add sitemap index and sharding support by source or content type once URL counts require it. Good shard candidates are CMS pages, marketplace extensions, field notes, docs, packages, and media.
 - Extend downstream parity sources as generated-output packages add more persistent URL indexes, keeping package-specific reads inside the owning package.
 - Add install or doctor diagnostics for `/sitemap`, `/sitemap-xml`, and host aliases such as `/sitemap.xml`, including status code, content type, XML validity, and web-server static-handler interception.
-- Keep URL change notifications provider-neutral; IndexNow should remain one notifier behind the shared `UrlChangeNotifier` contract.
+- Keep URL change notifications provider-neutral; IndexNow should remain one notifier behind the shared `UrlChangeNotifier` contract. Do not reintroduce unauthenticated Google/Bing sitemap ping endpoints unless official webmaster APIs make that workflow viable again.
 
 ## Docs
 
