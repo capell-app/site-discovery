@@ -304,26 +304,54 @@ class XmlSitemapGenerator
             return $mainPath;
         }
 
-        // --- paginated: write chunks then an index ---
-        $chunks = array_chunk($items, $maxPerFile);
         $xmlPath = rtrim((string) config('capell.sitemap.xml_path', '/sitemap-xml'), '/');
         $baseUrl = rtrim($domain->full_url, '/') . $xmlPath;
         $now = now()->format(DATE_ATOM);
         $indexEntries = [];
+        $chunk = [];
+        $chunkNumber = 1;
 
-        foreach ($chunks as $n => $chunk) {
-            $chunkNum = $n + 1;
-            $chunkFile = $directory . '/' . $domainKey . '-p' . $chunkNum . '.xml';
-            $storage->put($chunkFile, $this->toXml($chunk));
-            $indexEntries[] = [
-                'loc' => $baseUrl . '?p=' . $chunkNum,
-                'lastmod' => $now,
-            ];
+        foreach ($items as $item) {
+            $chunk[] = $item;
+
+            if (count($chunk) < $maxPerFile) {
+                continue;
+            }
+
+            $indexEntries[] = $this->writeChunk($storage, $directory, $domainKey, $baseUrl, $chunkNumber, $chunk, $now);
+            $chunk = [];
+            $chunkNumber++;
+        }
+
+        if ($chunk !== []) {
+            $indexEntries[] = $this->writeChunk($storage, $directory, $domainKey, $baseUrl, $chunkNumber, $chunk, $now);
         }
 
         $storage->put($mainPath, $this->toIndexXml($indexEntries));
 
         return $mainPath;
+    }
+
+    /**
+     * @param  array<int, SitemapUrlItemData>  $chunk
+     * @return array{loc: string, lastmod: string}
+     */
+    private function writeChunk(
+        Filesystem $storage,
+        string $directory,
+        string $domainKey,
+        string $baseUrl,
+        int $chunkNumber,
+        array $chunk,
+        string $lastModified,
+    ): array {
+        $chunkFile = $directory . '/' . $domainKey . '-p' . $chunkNumber . '.xml';
+        $storage->put($chunkFile, $this->toXml($chunk));
+
+        return [
+            'loc' => $baseUrl . '?p=' . $chunkNumber,
+            'lastmod' => $lastModified,
+        ];
     }
 
     protected function ensureDirectoryExists(Filesystem $storage, string $directory): void
