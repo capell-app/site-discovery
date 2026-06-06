@@ -13,6 +13,7 @@ use Capell\SiteDiscovery\Actions\DiscoverPublicUrlsAction;
 use Capell\SiteDiscovery\Actions\ValidateSitemapQualityAction;
 use Capell\SiteDiscovery\Data\DiscoverableUrlData;
 use Capell\SiteDiscovery\Data\PublicUrlRegistryEntryData;
+use Capell\SiteDiscovery\Data\SitemapAlternateData;
 use Capell\SiteDiscovery\Data\SitemapImageData;
 use Capell\SiteDiscovery\Data\SitemapNewsData;
 use Capell\SiteDiscovery\Data\SitemapPageData;
@@ -556,6 +557,7 @@ class XmlSitemapGenerator
                 $xml .= '<priority>' . htmlspecialchars((string) $item->priority, ENT_XML1 | ENT_COMPAT, 'UTF-8') . '</priority>';
             }
 
+            $xml .= $this->alternateXml($item->alternates);
             $xml .= $this->imageXml($item->images);
             $xml .= $this->videoXml($item->videos);
             $xml .= $this->newsXml($item->news);
@@ -573,6 +575,10 @@ class XmlSitemapGenerator
     {
         $namespaces = '';
 
+        if (collect($items)->contains(fn (SitemapUrlItemData $item): bool => $item->alternates !== [])) {
+            $namespaces .= ' xmlns:xhtml="http://www.w3.org/1999/xhtml"';
+        }
+
         if (collect($items)->contains(fn (SitemapUrlItemData $item): bool => $item->images !== [])) {
             $namespaces .= ' xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"';
         }
@@ -586,6 +592,28 @@ class XmlSitemapGenerator
         }
 
         return $namespaces;
+    }
+
+    /**
+     * @param  list<SitemapAlternateData>  $alternates
+     */
+    private function alternateXml(array $alternates): string
+    {
+        $xml = '';
+
+        foreach ($alternates as $alternate) {
+            if ($alternate->hreflang === '' || $alternate->href === '') {
+                continue;
+            }
+
+            $xml .= sprintf(
+                '<xhtml:link rel="alternate" hreflang="%s" href="%s" />',
+                htmlspecialchars($alternate->hreflang, ENT_XML1 | ENT_COMPAT, 'UTF-8'),
+                htmlspecialchars($alternate->href, ENT_XML1 | ENT_COMPAT, 'UTF-8'),
+            );
+        }
+
+        return $xml;
     }
 
     /**
