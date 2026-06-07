@@ -31,5 +31,6 @@ final class PublicUrlRegistryEntryData extends Data
         public readonly bool $isAiDiscoveryEligible = true,
         public readonly ?string $priority = null,
         public readonly ?string $changeFrequency = null,
+        public readonly ?string $title = null,
     ) {}
 }

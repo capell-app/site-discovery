@@ -88,6 +88,7 @@ it('builds normalized registry entries from public URL contributors', function (
                     isAiDiscoveryEligible: true,
                     priority: '0.7',
                     changeFrequency: 'weekly',
+                    title: ' About Capell ',
                 ),
             ]);
         }
@@ -115,7 +116,8 @@ it('builds normalized registry entries from public URL contributors', function (
         ->and($entry?->isSitemapEligible)->toBeTrue()
         ->and($entry?->isAiDiscoveryEligible)->toBeTrue()
         ->and($entry?->priority)->toBe('0.7')
-        ->and($entry?->changeFrequency)->toBe('weekly');
+        ->and($entry?->changeFrequency)->toBe('weekly')
+        ->and($entry?->title)->toBe('About Capell');
 });
 
 it('deduplicates canonical URLs by site and language scope', function (): void {

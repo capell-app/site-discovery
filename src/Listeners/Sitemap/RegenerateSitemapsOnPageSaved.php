@@ -6,13 +6,11 @@ namespace Capell\SiteDiscovery\Listeners\Sitemap;
 
 use Capell\Core\Events\PageSaved;
 use Capell\SiteDiscovery\Actions\NotifyPageUrlChangesAction;
-use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
+use Capell\SiteDiscovery\Actions\RequestSiteSitemapRegenerationAction;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class RegenerateSitemapsOnPageSaved implements ShouldQueue
 {
-    public function __construct(private readonly XmlSitemapGenerator $generator) {}
-
     public function handle(PageSaved $event): void
     {
         $site = $event->page->site;
@@ -21,7 +19,7 @@ class RegenerateSitemapsOnPageSaved implements ShouldQueue
             return;
         }
 
-        $this->generator->processIncremental($site);
+        RequestSiteSitemapRegenerationAction::run($site);
         NotifyPageUrlChangesAction::run($event->page);
     }
 }

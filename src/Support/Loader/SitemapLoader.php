@@ -8,6 +8,7 @@ use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
 use Capell\SiteDiscovery\Data\SiteMapData;
 use Capell\SiteDiscovery\Enums\SitemapCacheKey;
+use Capell\SiteDiscovery\Support\Sitemap\SitemapStateStore;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
@@ -29,6 +30,10 @@ class SitemapLoader
                 $sitemaps = [];
 
                 $sites = Site::with('siteDomains')->get();
+                $state = new SitemapStateStore(
+                    disk: (string) config('capell.sitemap.disk', 'local'),
+                    directory: (string) $directory,
+                );
 
                 foreach ($sites as $site) {
                     $sitemapPage = $site->getFirstPageByType('sitemap');
@@ -37,30 +42,17 @@ class SitemapLoader
                         continue;
                     }
 
-                    $site->siteDomains->each(function (SiteDomain $domain) use (&$sitemaps, $storage, $directory): void {
+                    $site->siteDomains->each(function (SiteDomain $domain) use (&$sitemaps, $storage, $directory, $state): void {
                         $filename = $domain->getDomainKey() . '.xml';
 
                         if (! $storage->exists($directory . '/' . $filename)) {
                             return;
                         }
 
-                        // Parse xml site map and count urls
-                        $xml = simplexml_load_string(
-                            (string) $storage->get($directory . '/' . $filename),
-                            'SimpleXMLElement',
-                            LIBXML_NONET,
-                        );
-
-                        if ($xml === false) {
-                            return;
-                        }
-
-                        $total = count($xml->url);
-
                         $sitemaps[] = new SiteMapData(
                             name: $domain->name,
                             url: $domain->full_url . '/sitemap-xml',
-                            total: $total,
+                            total: $state->urlCount($domain->getDomainKey()) ?? 0,
                         );
                     });
                 }

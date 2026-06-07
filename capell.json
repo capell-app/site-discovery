@@ -6,7 +6,7 @@
     "kind": "package",
     "capellApiVersion": "^4.0",
     "version": "4.x-dev",
-    "description": "Site Discovery resolves public discoverable pages and URLs, exposes HTML and XML sitemap outputs, and provides the canonical registry for generated-output coverage.",
+    "description": "Make every published Capell page discoverable with automatic XML sitemaps, an HTML sitemap, and the canonical public-URL registry that powers the Search & SEO bundle.",
     "product": {
         "group": "Capell Search & SEO",
         "tier": "premium",
@@ -82,7 +82,16 @@
             "cacheable": false,
             "variesBy": ["site", "locale"],
             "sensitiveOutput": false,
-            "invalidationSources": [],
+            "invalidationSources": [
+                {
+                    "model": "Capell\\Core\\Models\\Page",
+                    "events": ["saved", "deleted"]
+                },
+                {
+                    "model": "Capell\\Core\\Models\\Site",
+                    "events": ["created"]
+                }
+            ],
             "queueInvalidation": true
         }
     },
@@ -123,12 +132,43 @@
         "privateDocsRequested": true
     },
     "marketplace": {
-        "summary": "Site Discovery resolves public discoverable pages and URLs, exposes HTML and XML sitemap outputs, and provides the canonical registry for generated-output coverage.",
+        "summary": "Make every published Capell page discoverable — automatic XML sitemaps with index sharding, an HTML sitemap, and the canonical public-URL registry that powers the whole Search & SEO bundle.",
+        "description": "Site Discovery is the discovery backbone of Capell's Search & SEO bundle. It builds per-domain XML sitemaps (with `<sitemapindex>` sharding and incremental regeneration that skips unchanged pages), publishes a public HTML sitemap, and maintains the canonical Public URL Registry that records canonical state, robots directives, last-modified, and sitemap/AI-discovery eligibility for every public URL. Other packages — SEO Suite, Search, Blog, Events — plug in as URL contributors and read a single, consistent view of what your site intends to publish. Built-in quality gates and a generated-output parity report catch missing or stale URLs before search engines do, and optional IndexNow notifications submit changes the moment a page is saved.",
         "screenshots": [
             {
                 "path": "docs/assets/marketplace/extension-card.jpg",
                 "alt": "Site Discovery extension preview image",
                 "caption": "Site Discovery extension preview"
+            },
+            {
+                "path": "docs/screenshots/page-sitemap-action.png",
+                "alt": "Page resource sitemap action in the Capell admin",
+                "caption": "Page-level sitemap action for regenerating discovery output."
+            },
+            {
+                "path": "docs/screenshots/site-sitemap-action.png",
+                "alt": "Site resource sitemap action in the Capell admin",
+                "caption": "Site-level sitemap action for refreshing public discovery output."
+            },
+            {
+                "path": "docs/screenshots/sitemap-generation-tool.png",
+                "alt": "Sitemap generation tool showing generated sitemap status",
+                "caption": "Admin sitemap generation tool with domain output status."
+            },
+            {
+                "path": "docs/screenshots/html-sitemap-page.png",
+                "alt": "Public HTML sitemap page with discoverable page links",
+                "caption": "Visitor-safe HTML sitemap showing discoverable public pages."
+            },
+            {
+                "path": "docs/screenshots/public-url-registry-page.png",
+                "alt": "Public URL Registry admin page with generated output parity rows",
+                "caption": "Public URL Registry parity page for sitemap and downstream output coverage."
+            },
+            {
+                "path": "docs/screenshots/public-url-quality-report.png",
+                "alt": "Public URL Registry quality report with missing output warnings",
+                "caption": "Quality report highlighting missing generated outputs and sitemap issues."
             }
         ],
         "categories": ["admin", "console", "frontend", "search-seo"]

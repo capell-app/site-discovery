@@ -7,7 +7,9 @@ use Capell\Core\Models\Language;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
+use Capell\SiteDiscovery\Contracts\PublicUrlContributor;
 use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
+use Capell\SiteDiscovery\Tests\Fixtures\NoIndexSitemapFixturePublicUrlContributor;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Illuminate\Support\Facades\Storage;
 
@@ -216,6 +218,52 @@ it('sitemap omits unpublished pages', function (): void {
     expect($xmlFile)->toContain('<urlset')
         ->and($xmlFile)->toContain('published')
         ->and($xmlFile)->not()->toContain('draft');
+});
+
+it('generated sitemap XML excludes noindex and private registry URLs end to end', function (): void {
+    $language = Language::factory()->create();
+    $siteDomain = SiteDomain::factory()->state([
+        'domain' => 'example.com',
+        'language_id' => $language->id,
+        'scheme' => 'https',
+        'path' => null,
+    ])->create();
+    $site = $siteDomain->site;
+    $pageType = Blueprint::factory()->page()->create([
+        'meta' => ['listable' => true, 'sitemap' => true],
+    ]);
+    $publishedPage = Page::factory()
+        ->site($site)
+        ->type($pageType)
+        ->withTranslations(collect([$language]))
+        ->create();
+    $draftAttributes = Page::factory()->pending()->make([
+        'site_id' => $site->id,
+        'name' => 'Draft',
+        'blueprint_id' => $pageType->id,
+    ])->getAttributes();
+    $draftPage = Page::create(array_intersect_key($draftAttributes, array_flip((new Page)->getFillable())));
+    $draftPage->translations()->create([
+        'language_id' => $language->id,
+        'title' => 'Draft',
+    ]);
+
+    app()->instance(
+        NoIndexSitemapFixturePublicUrlContributor::class,
+        new NoIndexSitemapFixturePublicUrlContributor($site, $language, 'https://example.com'),
+    );
+    app()->tag([NoIndexSitemapFixturePublicUrlContributor::class], PublicUrlContributor::TAG);
+
+    (new XmlSitemapGenerator)->process($site);
+
+    $xml = Storage::disk('local')->get('sitemaps_test/' . $siteDomain->getDomainKey() . '.xml');
+
+    expect($xml)->toContain($publishedPage->pageUrl->full_url)
+        ->and($xml)->toContain('https://example.com/registry-visible')
+        ->and($xml)->not()->toContain('registry-noindex')
+        ->and($xml)->not()->toContain('/admin/registry-private')
+        ->and($xml)->not()->toContain('signature=')
+        ->and($xml)->not()->toContain('draft');
 });
 
 it('sitemap includes multiple pages', function (): void {

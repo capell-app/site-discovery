@@ -40,6 +40,22 @@ function siteDiscoveryPageUrl(Page $page): string
     return $pageUrl->full_url;
 }
 
+function siteDiscoverySitemapXmlFilename(Page $page): string
+{
+    $url = siteDiscoveryPageUrl($page);
+    $scheme = (string) parse_url($url, PHP_URL_SCHEME);
+    $host = (string) parse_url($url, PHP_URL_HOST);
+    $path = trim((string) parse_url($url, PHP_URL_PATH), '/');
+    $pathSegments = array_values(array_filter(explode('/', $path), static fn (string $segment): bool => $segment !== ''));
+    array_pop($pathSegments);
+
+    return implode('-', array_filter([
+        $scheme,
+        str_replace('.', '-', $host),
+        $pathSegments === [] ? null : str_replace('/', '.', implode('/', $pathSegments)),
+    ])) . '.xml';
+}
+
 function siteDiscoveryPageTitle(Page $page): string
 {
     $translation = $page->translation;
@@ -114,7 +130,7 @@ test('sitemap xml page', function (): void {
     $pages = Page::factory()->count(5)->site($site)->withTranslations($languages)->create();
     Page::factory()->site($site)->withTranslations($languages)->meta('hidden', true)->create();
 
-    $filename = siteDiscoveryPageUrl($sitemapPage) . '.xml';
+    $filename = siteDiscoverySitemapXmlFilename($sitemapPage);
 
     resolve(XmlSitemapGenerator::class)->generate($site);
 

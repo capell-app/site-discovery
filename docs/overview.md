@@ -2,7 +2,7 @@
 
 Status: **Available, no schema impact** · Kind: **package** · Tier: **premium** · Bundle: **search-seo** · Contexts: **admin, frontend, console** · Product group: **Capell Search & SEO**
 
-Site Discovery resolves canonical public Capell URLs and exposes them through the Public URL Registry, HTML sitemap rendering, XML sitemap generation, sitemap quality gates, and generated-output registry diagnostics.
+Site Discovery makes every published Capell page discoverable with automatic XML sitemaps, an HTML sitemap, and the canonical Public URL Registry that powers sitemap quality gates and generated-output diagnostics across the Search & SEO bundle.
 
 ## What This Package Adds
 
@@ -92,8 +92,10 @@ Apache should keep Laravel's standard `!-f` / `!-d` front-controller rewrite. Do
 - `sitemap-generation-tool.png`: dashboard tools dropdown with `Update sitemaps`.
 - `html-sitemap-page.png`: public `/sitemap` output.
 - `xml-sitemap-output.png`: `/sitemap-xml` output after `capell:xml-sitemap`.
+- `public-url-registry-page.png`: Public URL Registry parity page with generated-output coverage rows.
+- `public-url-quality-report.png`: Public URL Registry quality report with missing output or sitemap quality issues visible.
 
-Captured files live in the host app under `packages/site-discovery/docs/screenshots`.
+Captured files live in the host app under `packages/site-discovery/docs/screenshots`. Styled admin and HTML sitemap captures are promoted into the marketplace gallery; raw XML output remains runner evidence only.
 
 ## Public Safety Notes
 

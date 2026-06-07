@@ -44,6 +44,8 @@ use Capell\SiteDiscovery\Support\PublicUrls\CmsPagePublicUrlContributor;
 use Capell\SiteDiscovery\Support\Sitemap\Pages\PagesSitemap;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageRegistry;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageType;
+use Illuminate\Console\Scheduling\Event as ScheduledEvent;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Collection;
 use Livewire\Livewire;
@@ -65,6 +67,7 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
             ->hasConfigFile()
             ->hasViews(self::$name)
             ->hasTranslations()
+            ->hasRoute('web')
             ->hasCommands([
                 XmlSitemapCommand::class,
             ]);
@@ -102,6 +105,7 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
             ->registerDiscoveryOutputRegistry()
             ->registerUrlChangeNotifiers()
             ->registerSitemapEventListeners()
+            ->registerIncrementalSitemapSchedule()
             ->registerFrontendViews();
     }
 
@@ -247,6 +251,52 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
         $events->listen(SiteCreated::class, RegenerateSitemapsOnSiteCreated::class);
 
         return $this;
+    }
+
+    private function registerIncrementalSitemapSchedule(): self
+    {
+        $this->callAfterResolving(Schedule::class, function (Schedule $schedule): void {
+            if (config('capell-site-discovery.incremental_sitemap_schedule.enabled', false) !== true) {
+                return;
+            }
+
+            $frequency = config('capell-site-discovery.incremental_sitemap_schedule.frequency', 'dailyAt');
+            $dailyAt = config('capell-site-discovery.incremental_sitemap_schedule.daily_at', '02:30');
+            $cron = config('capell-site-discovery.incremental_sitemap_schedule.cron');
+            $overlapExpiresAfterMinutes = config('capell-site-discovery.incremental_sitemap_schedule.overlap_expires_after_minutes', 65);
+
+            $event = $schedule
+                ->command('capell:xml-sitemap', ['--incremental' => true])
+                ->name('capell-site-discovery:incremental-sitemap')
+                ->withoutOverlapping(is_int($overlapExpiresAfterMinutes) ? max(10, $overlapExpiresAfterMinutes) : 65)
+                ->onOneServer();
+
+            $this->applyIncrementalSitemapScheduleFrequency(
+                event: $event,
+                frequency: is_string($frequency) ? $frequency : 'dailyAt',
+                dailyAt: is_string($dailyAt) && $dailyAt !== '' ? $dailyAt : '02:30',
+                cron: is_string($cron) && $cron !== '' ? $cron : null,
+            );
+        });
+
+        return $this;
+    }
+
+    private function applyIncrementalSitemapScheduleFrequency(
+        ScheduledEvent $event,
+        string $frequency,
+        string $dailyAt,
+        ?string $cron,
+    ): void {
+        match ($frequency) {
+            'everyFiveMinutes' => $event->everyFiveMinutes(),
+            'everyTenMinutes' => $event->everyTenMinutes(),
+            'everyFifteenMinutes' => $event->everyFifteenMinutes(),
+            'everyThirtyMinutes' => $event->everyThirtyMinutes(),
+            'hourly' => $event->hourly(),
+            'cron' => $event->cron($cron ?? '30 2 * * *'),
+            default => $event->dailyAt($dailyAt),
+        };
     }
 
     private function registerFrontendViews(): self

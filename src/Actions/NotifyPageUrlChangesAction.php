@@ -31,7 +31,7 @@ final class NotifyPageUrlChangesAction
             return collect();
         }
 
-        $page->loadMissing('pageUrls.language', 'pageUrls.siteDomain', 'site');
+        $page->loadMissing('pageUrls.language', 'site');
 
         $site = $page->getRelationValue('site');
 
@@ -41,8 +41,23 @@ final class NotifyPageUrlChangesAction
 
         /** @var iterable<int, PageUrl> $pageUrls */
         $pageUrls = $page->getRelation('pageUrls');
+        $pageUrls = collect($pageUrls);
 
-        return collect($pageUrls)
+        $domainsByLanguage = SiteDomain::query()
+            ->where('site_id', $site->id)
+            ->whereIn('language_id', $pageUrls->pluck('language_id')->filter()->unique()->values())
+            ->get()
+            ->keyBy(fn (SiteDomain $siteDomain): int => (int) $siteDomain->language_id);
+
+        $pageUrls->each(function (PageUrl $pageUrl) use ($domainsByLanguage): void {
+            $siteDomain = $domainsByLanguage->get((int) $pageUrl->language_id);
+
+            if ($siteDomain instanceof SiteDomain) {
+                $pageUrl->setRelation('siteDomain', $siteDomain);
+            }
+        });
+
+        return $pageUrls
             ->filter(fn (PageUrl $pageUrl): bool => $this->isPublicPageUrl($pageUrl))
             ->groupBy(fn (PageUrl $pageUrl): int => (int) $pageUrl->language_id)
             ->flatMap(function (Collection $languageUrls) use ($site): Collection {

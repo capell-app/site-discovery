@@ -6,7 +6,9 @@ use Capell\Core\Enums\CacheEnum;
 use Capell\Core\Models\Blueprint;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Page;
+use Capell\Core\Models\PageUrl;
 use Capell\Core\Models\SiteDomain;
+use Capell\Core\Models\Translation;
 use Capell\SiteDiscovery\Contracts\Sitemapable;
 use Capell\SiteDiscovery\Data\SitemapPageData;
 use Capell\SiteDiscovery\Support\Sitemap\Pages\PagesSitemap;
@@ -152,6 +154,53 @@ describe('SitemapBuilder', function (): void {
             ->and($publicResult->first()->editUrl)->toBeNull();
     });
 
+    it('skips child pages that do not have persisted page URLs yet', function (): void {
+        $siteDomain = new SiteDomain([
+            'scheme' => 'https',
+            'domain' => 'example.com',
+            'path' => null,
+        ]);
+
+        $parentPageUrl = new PageUrl([
+            'url' => '/parent',
+            'site_id' => 1,
+            'language_id' => 1,
+        ]);
+        $parentPageUrl->exists = true;
+        $parentPageUrl->setRelation('siteDomain', $siteDomain);
+
+        $childPageUrl = new PageUrl([
+            'site_id' => 1,
+            'language_id' => 1,
+        ]);
+        $childPageUrl->setRelation('siteDomain', null);
+
+        $childPage = new Page;
+        $childPage->forceFill([
+            'id' => 2,
+            'name' => 'Child without URL',
+        ]);
+        $childPage->exists = true;
+        $childPage->setRelation('translation', new Translation(['title' => 'Child without URL']));
+        $childPage->setRelation('type', new Blueprint);
+        $childPage->setRelation('pageUrl', $childPageUrl);
+
+        $parentPage = new Page;
+        $parentPage->forceFill([
+            'id' => 1,
+            'name' => 'Parent',
+        ]);
+        $parentPage->exists = true;
+        $parentPage->setRelation('translation', new Translation(['title' => 'Parent']));
+        $parentPage->setRelation('type', new Blueprint);
+        $parentPage->setRelation('pageUrl', $parentPageUrl);
+        $parentPage->setRelation('children', new Illuminate\Database\Eloquent\Collection([$childPage]));
+
+        $data = SitemapPageData::fromPage($parentPage);
+
+        expect($data->children)->toHaveCount(0);
+    });
+
     it('merges duplicate sitemap nodes contributed by multiple page sources', function (): void {
         $language = Language::factory()->state(['locale' => 'en'])->create();
         $siteDomain = SiteDomain::factory()
@@ -168,7 +217,8 @@ describe('SitemapBuilder', function (): void {
              */
             public function fetch(): Collection
             {
-                return collect([
+                /** @var Collection<array-key, mixed> $pages */
+                $pages = collect([
                     new SitemapPageData(
                         label: 'Services',
                         url: 'https://example.com/services',
@@ -186,6 +236,8 @@ describe('SitemapBuilder', function (): void {
                         pageId: 10,
                     ),
                 ]);
+
+                return $pages;
             }
         });
 
@@ -196,7 +248,8 @@ describe('SitemapBuilder', function (): void {
              */
             public function fetch(): Collection
             {
-                return collect([
+                /** @var Collection<array-key, mixed> $pages */
+                $pages = collect([
                     new SitemapPageData(
                         label: 'Services Updated',
                         url: 'https://example.com/services',
@@ -221,6 +274,8 @@ describe('SitemapBuilder', function (): void {
                         pageId: 10,
                     ),
                 ]);
+
+                return $pages;
             }
         });
 

@@ -6,13 +6,11 @@ namespace Capell\SiteDiscovery\Listeners\Sitemap;
 
 use Capell\Core\Events\PageDeleted;
 use Capell\SiteDiscovery\Actions\NotifyPageUrlChangesAction;
-use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
+use Capell\SiteDiscovery\Actions\RequestSiteSitemapRegenerationAction;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class RegenerateSitemapsOnPageDeleted implements ShouldQueue
 {
-    public function __construct(private readonly XmlSitemapGenerator $generator) {}
-
     public function handle(PageDeleted $event): void
     {
         $site = $event->page->site;
@@ -21,7 +19,7 @@ class RegenerateSitemapsOnPageDeleted implements ShouldQueue
             return;
         }
 
-        $this->generator->processIncremental($site);
+        RequestSiteSitemapRegenerationAction::run($site);
         NotifyPageUrlChangesAction::run($event->page);
     }
 }

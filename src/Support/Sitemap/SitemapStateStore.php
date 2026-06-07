@@ -29,6 +29,32 @@ class SitemapStateStore
      */
     public function load(string $domainKey): array
     {
+        $data = $this->loadState($domainKey);
+
+        return is_array($data['urls'] ?? null) ? $data['urls'] : [];
+    }
+
+    public function urlCount(string $domainKey): ?int
+    {
+        $data = $this->loadState($domainKey);
+        $urlCount = $data['url_count'] ?? null;
+
+        if (is_numeric($urlCount)) {
+            return max(0, (int) $urlCount);
+        }
+
+        if (is_array($data['urls'] ?? null)) {
+            return count($data['urls']);
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function loadState(string $domainKey): array
+    {
         $storage = Storage::disk($this->disk);
         $path = $this->statePath($domainKey);
 
@@ -43,7 +69,7 @@ class SitemapStateStore
 
         $data = json_decode($raw, true);
 
-        return is_array($data['urls'] ?? null) ? $data['urls'] : [];
+        return is_array($data) ? $data : [];
     }
 
     /**
@@ -62,6 +88,7 @@ class SitemapStateStore
 
         $contents = json_encode([
             'generated_at' => now()->toAtomString(),
+            'url_count' => count($urlLastModMap),
             'urls' => $urlLastModMap,
         ], JSON_PRETTY_PRINT);
 

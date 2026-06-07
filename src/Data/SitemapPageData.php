@@ -60,7 +60,8 @@ class SitemapPageData extends Data
             url: self::pageUrl($page),
             children: $page->hasPageHierarchy()
                 ? $page->children
-                    ?->map(fn (Page $child): SitemapPageData => self::fromPage($child, withEditUrl: $withEditUrl))
+                    ?->filter(fn (Page $child): bool => self::hasPersistedPageUrl($child))
+                    ->map(fn (Page $child): SitemapPageData => self::fromPage($child, withEditUrl: $withEditUrl))
                     ->values()
                 : null,
             lastModified: self::resolveLastModified($page),
@@ -89,12 +90,24 @@ class SitemapPageData extends Data
         return $lastModified instanceof CarbonImmutable ? $lastModified : CarbonImmutable::now();
     }
 
+    public static function hasPersistedPageUrl(Pageable $page): bool
+    {
+        $page->loadMissing('pageUrl');
+
+        return self::isPersistedPageUrl($page->pageUrl);
+    }
+
     private static function pageUrl(Pageable $page): string
     {
         $pageUrl = $page->pageUrl;
 
-        throw_unless($pageUrl instanceof PageUrl, RuntimeException::class, 'Sitemap page requires a page URL.');
+        throw_if(! $pageUrl instanceof PageUrl || ! $pageUrl->exists, RuntimeException::class, 'Sitemap page requires a persisted page URL.');
 
         return $pageUrl->full_url;
+    }
+
+    private static function isPersistedPageUrl(mixed $pageUrl): bool
+    {
+        return $pageUrl instanceof PageUrl && $pageUrl->exists;
     }
 }

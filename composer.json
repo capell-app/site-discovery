@@ -1,6 +1,6 @@
 {
     "name": "capell-app/site-discovery",
-    "description": "Public discoverability and sitemap outputs for Capell",
+    "description": "Make every published Capell page discoverable — automatic XML sitemaps with index sharding, an HTML sitemap, and the canonical public-URL registry that powers the whole Search & SEO bundle.",
     "keywords": [
         "capell",
         "discovery",
@@ -15,8 +15,7 @@
         "php": "^8.3",
         "capell-app/admin": "^4.0 || 4.x-dev",
         "capell-app/core": "^4.0 || 4.x-dev",
-        "capell-app/frontend": "^4.0 || 4.x-dev",
-        "icamys/php-sitemap-generator": "^4.4"
+        "capell-app/frontend": "^4.0 || 4.x-dev"
     },
     "require-dev": {
         "orchestra/testbench": "^9.0"
