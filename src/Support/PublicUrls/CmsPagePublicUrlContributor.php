@@ -55,6 +55,7 @@ final class CmsPagePublicUrlContributor implements PublicUrlContributor
                 isAiDiscoveryEligible: true,
                 priority: $page->priority !== null ? number_format($page->priority, 1, '.', '') : null,
                 changeFrequency: $page->changeFrequency,
+                title: $page->title,
             ));
     }
 }

@@ -73,6 +73,7 @@ final class BuildPublicUrlRegistryAction
             isAiDiscoveryEligible: $publicUrl->isAiDiscoveryEligible && $isIndexable,
             priority: $this->normalizeOptionalString($publicUrl->priority),
             changeFrequency: $this->normalizeOptionalString($publicUrl->changeFrequency),
+            title: $this->normalizeOptionalString($publicUrl->title),
         );
     }
 
@@ -142,6 +143,7 @@ final class BuildPublicUrlRegistryAction
             isAiDiscoveryEligible: $existingEntry->isAiDiscoveryEligible && $duplicateEntry->isAiDiscoveryEligible,
             priority: $existingEntry->priority,
             changeFrequency: $existingEntry->changeFrequency,
+            title: $existingEntry->title ?? $duplicateEntry->title,
         );
     }
 
