@@ -54,7 +54,8 @@
         "install": null,
         "setup": null,
         "demo": null,
-        "doctor": null
+        "doctor": null,
+        "sitemap": "capell:xml-sitemap"
     },
     "settings": [],
     "actions": {

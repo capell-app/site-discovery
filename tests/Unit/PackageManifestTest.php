@@ -37,7 +37,7 @@ it('keeps package composer requirements aligned with shipped code boundaries', f
         ]);
 });
 
-it('declares committed marketplace assets for every required screenshot capture target', function (): void {
+it('declares committed marketplace assets for buyer-facing screenshot capture targets', function (): void {
     $packagePath = dirname(__DIR__, 2);
     $manifest = capell_json_file_array($packagePath . '/capell.json');
     $screenshotContract = capell_json_file_array($packagePath . '/docs/screenshots.json');
@@ -81,9 +81,16 @@ it('declares committed marketplace assets for every required screenshot capture 
 
         throw_unless(is_string($screenshotPath), RuntimeException::class, 'Required Site Discovery screenshot contract entries must declare screenshot paths.');
 
-        expect($screenshotPath)->toStartWith('packages/site-discovery/docs/screenshots/');
+        $packageRelativePath = str_replace('packages/site-discovery/', '', $screenshotPath);
 
-        $requiredMarketplaceAssetPaths[] = str_replace('packages/site-discovery/', '', $screenshotPath);
+        expect($screenshotPath)->toStartWith('packages/site-discovery/docs/screenshots/');
+        expect(file_exists($packagePath . '/' . $packageRelativePath))->toBeTrue();
+
+        if (($contractEntry['id'] ?? null) === 'xml-sitemap-output') {
+            continue;
+        }
+
+        $requiredMarketplaceAssetPaths[] = $packageRelativePath;
     }
 
     expect($marketplaceScreenshotPaths)->toBe([
