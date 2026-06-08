@@ -30,7 +30,7 @@ final class RequestSiteSitemapRegenerationAction
             return false;
         }
 
-        RegenerateSiteSitemapIncrementallyJob::dispatch($siteId)
+        dispatch(new RegenerateSiteSitemapIncrementallyJob($siteId))
             ->delay(now()->addSeconds($delaySeconds));
 
         return true;
