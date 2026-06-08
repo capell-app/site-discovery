@@ -19,20 +19,21 @@ class SitemapLoader
      */
     public function all(): array
     {
-        $directory = config('capell.sitemap.directory');
+        $directory = $this->stringValue(config('capell.sitemap.directory'));
+        $disk = $this->stringValue(config('capell.sitemap.disk'), 'local');
 
-        $storage = Storage::disk(config('capell.sitemap.disk'));
+        $storage = Storage::disk($disk);
 
         $sitemaps = Cache::remember(
             SitemapCacheKey::Sitemaps->value,
             30,
-            function () use ($directory, $storage): array {
+            function () use ($directory, $disk, $storage): array {
                 $sitemaps = [];
 
                 $sites = Site::with('siteDomains')->get();
                 $state = new SitemapStateStore(
-                    disk: (string) config('capell.sitemap.disk', 'local'),
-                    directory: (string) $directory,
+                    disk: $disk,
+                    directory: $directory,
                 );
 
                 foreach ($sites as $site) {
@@ -62,5 +63,10 @@ class SitemapLoader
         );
 
         return $sitemaps;
+    }
+
+    private function stringValue(mixed $value, string $fallback = ''): string
+    {
+        return is_scalar($value) ? (string) $value : $fallback;
     }
 }

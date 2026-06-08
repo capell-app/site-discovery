@@ -79,7 +79,7 @@ it('regenerates the new site sitemap after site creation workflow runs', functio
 
 it('ignores saved page events when the page has no owning site', function (): void {
     $generator = seoSuiteLifecycleFakeXmlSitemapGenerator();
-    $listener = new RegenerateSitemapsOnPageSaved($generator);
+    $listener = new RegenerateSitemapsOnPageSaved;
 
     $listener->handle(new PageSaved(new Page));
 
@@ -88,7 +88,7 @@ it('ignores saved page events when the page has no owning site', function (): vo
 
 it('ignores deleted page events when the page has no owning site', function (): void {
     $generator = seoSuiteLifecycleFakeXmlSitemapGenerator();
-    $listener = new RegenerateSitemapsOnPageDeleted($generator);
+    $listener = new RegenerateSitemapsOnPageDeleted;
 
     $listener->handle(new PageDeleted(new Page));
 
