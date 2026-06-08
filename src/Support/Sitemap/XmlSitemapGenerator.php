@@ -605,9 +605,11 @@ class XmlSitemapGenerator
             if ($alternate->hreflang === '') {
                 continue;
             }
+
             if ($alternate->href === '') {
                 continue;
             }
+
             $xml .= sprintf(
                 '<xhtml:link rel="alternate" hreflang="%s" href="%s" />',
                 htmlspecialchars($alternate->hreflang, ENT_XML1 | ENT_COMPAT, 'UTF-8'),
