@@ -18,7 +18,7 @@ final class RequestSiteSitemapRegenerationAction
 
     public function handle(Site $site): bool
     {
-        $siteId = (int) $site->getKey();
+        $siteId = $this->siteId($site);
 
         if ($siteId <= 0) {
             return false;
@@ -30,7 +30,7 @@ final class RequestSiteSitemapRegenerationAction
             return false;
         }
 
-        RegenerateSiteSitemapIncrementallyJob::dispatch($siteId)
+        dispatch(new RegenerateSiteSitemapIncrementallyJob($siteId))
             ->delay(now()->addSeconds($delaySeconds));
 
         return true;
@@ -53,5 +53,12 @@ final class RequestSiteSitemapRegenerationAction
         $seconds = config('capell-site-discovery.event_sitemap_regeneration.pending_grace_seconds', 30);
 
         return is_numeric($seconds) ? max(1, (int) $seconds) : 30;
+    }
+
+    private function siteId(Site $site): int
+    {
+        $key = $site->getKey();
+
+        return is_numeric($key) ? (int) $key : 0;
     }
 }

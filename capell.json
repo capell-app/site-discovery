@@ -20,7 +20,12 @@
             "capell-app/core",
             "capell-app/frontend"
         ],
-        "supports": [],
+        "supports": [
+            "capell-app/agent-delivery",
+            "capell-app/search",
+            "capell-app/seo-suite",
+            "capell-app/url-manager"
+        ],
         "conflicts": []
     },
     "providers": {
@@ -54,7 +59,8 @@
         "install": null,
         "setup": null,
         "demo": null,
-        "doctor": null
+        "doctor": null,
+        "sitemap": "capell:xml-sitemap"
     },
     "settings": [],
     "actions": {

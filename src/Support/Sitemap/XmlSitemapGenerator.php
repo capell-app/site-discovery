@@ -336,6 +336,13 @@ class XmlSitemapGenerator
         return $mainPath;
     }
 
+    protected function ensureDirectoryExists(Filesystem $storage, string $directory): void
+    {
+        if (! $storage->exists($directory)) {
+            $storage->makeDirectory($directory);
+        }
+    }
+
     /**
      * @param  array<int, SitemapUrlItemData>  $chunk
      * @return array{loc: string, lastmod: string}
@@ -356,13 +363,6 @@ class XmlSitemapGenerator
             'loc' => $baseUrl . '?p=' . $chunkNumber,
             'lastmod' => $lastModified,
         ];
-    }
-
-    protected function ensureDirectoryExists(Filesystem $storage, string $directory): void
-    {
-        if (! $storage->exists($directory)) {
-            $storage->makeDirectory($directory);
-        }
     }
 
     /**
@@ -602,7 +602,11 @@ class XmlSitemapGenerator
         $xml = '';
 
         foreach ($alternates as $alternate) {
-            if ($alternate->hreflang === '' || $alternate->href === '') {
+            if ($alternate->hreflang === '') {
+                continue;
+            }
+
+            if ($alternate->href === '') {
                 continue;
             }
 
@@ -670,9 +674,8 @@ class XmlSitemapGenerator
         $xml .= '</news:publication>';
         $xml .= $this->xmlElement('news:publication_date', $news->publicationDate->format(DATE_ATOM));
         $xml .= $this->xmlElement('news:title', $news->title);
-        $xml .= '</news:news>';
 
-        return $xml;
+        return $xml . '</news:news>';
     }
 
     private function xmlElement(string $name, int|string|null $value): string

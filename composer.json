@@ -30,6 +30,9 @@
             "providers": [
                 "Capell\\SiteDiscovery\\Providers\\SiteDiscoveryServiceProvider"
             ]
+        },
+        "branch-alias": {
+            "dev-main": "4.x-dev"
         }
     },
     "config": {
