@@ -97,7 +97,10 @@
         "sensitiveData": {
             "encryptedFields": [],
             "hashedTokenFields": [],
-            "redactedOutputClasses": [],
+            "redactedOutputClasses": [
+                "Capell\\SiteDiscovery\\Actions\\RedactIndexNowNotificationErrorMessageAction",
+                "Capell\\SiteDiscovery\\Support\\IndexNow\\IndexNowUrlChangeNotifier"
+            ],
             "plaintextJustifications": []
         },
         "publicOutput": {
