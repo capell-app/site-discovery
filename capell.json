@@ -69,7 +69,7 @@
         "generateSitemap": "Capell\\SiteDiscovery\\Actions\\GenerateSitemapAction",
         "validateSitemapQuality": "Capell\\SiteDiscovery\\Actions\\ValidateSitemapQualityAction"
     },
-    "permissions": [],
+    "permissions": ["View:PublicUrlRegistryPage"],
     "capabilities": [
         "site-discovery",
         "site-discovery-admin",
@@ -80,6 +80,24 @@
         "site-discovery-routed-status-quality-gates",
         "site-discovery-generated-output-parity"
     ],
+    "security": {
+        "riskTier": "standard",
+        "publicSurface": {
+            "routeNames": ["sitemap-xml", "sitemap-xml.prefixed"],
+            "auth": "public",
+            "csrfExemptRoutes": [],
+            "signedRoutes": [],
+            "tokenizedRoutes": [],
+            "webhookRoutes": [],
+            "throttledRoutes": []
+        },
+        "publicOutput": {
+            "cacheSafe": true,
+            "forbidAuthoringSurface": true,
+            "forbidSecrets": true,
+            "forbidPublicBladeQueries": true
+        }
+    },
     "performance": {
         "frontendRenderBudgetMs": 20,
         "adminQueryBudget": 40,
@@ -180,6 +198,6 @@
         "categories": ["admin", "console", "frontend", "search-seo"]
     },
     "contributionTraceability": {
-        "deferredContributions": []
+        "deferredContributions": ["scheduled-job"]
     }
 }
