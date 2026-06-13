@@ -13,11 +13,7 @@
         "bundle": "search-seo"
     },
     "namespace": "Capell\\SiteDiscovery",
-    "surfaces": [
-        "admin",
-        "frontend",
-        "console"
-    ],
+    "surfaces": ["admin", "frontend", "console"],
     "dependencies": {
         "requires": [
             "capell-app/admin",
@@ -73,9 +69,7 @@
         "generateSitemap": "Capell\\SiteDiscovery\\Actions\\GenerateSitemapAction",
         "validateSitemapQuality": "Capell\\SiteDiscovery\\Actions\\ValidateSitemapQualityAction"
     },
-    "permissions": [
-        "View:PublicUrlRegistryPage"
-    ],
+    "permissions": ["View:PublicUrlRegistryPage"],
     "capabilities": [
         "site-discovery",
         "site-discovery-admin",
@@ -132,29 +126,19 @@
     "performance": {
         "frontendRenderBudgetMs": 20,
         "adminQueryBudget": 40,
-        "cacheTags": [
-            "site-discovery"
-        ],
+        "cacheTags": ["site-discovery"],
         "cacheSafety": {
             "cacheable": false,
-            "variesBy": [
-                "site",
-                "locale"
-            ],
+            "variesBy": ["site", "locale"],
             "sensitiveOutput": false,
             "invalidationSources": [
                 {
                     "model": "Capell\\Core\\Models\\Page",
-                    "events": [
-                        "saved",
-                        "deleted"
-                    ]
+                    "events": ["saved", "deleted"]
                 },
                 {
                     "model": "Capell\\Core\\Models\\Site",
-                    "events": [
-                        "created"
-                    ]
+                    "events": ["created"]
                 }
             ],
             "queueInvalidation": true
@@ -236,16 +220,9 @@
                 "caption": "Quality report highlighting missing generated outputs and sitemap issues."
             }
         ],
-        "categories": [
-            "admin",
-            "console",
-            "frontend",
-            "search-seo"
-        ]
+        "categories": ["admin", "console", "frontend", "search-seo"]
     },
     "contributionTraceability": {
-        "deferredContributions": [
-            "scheduled-job"
-        ]
+        "deferredContributions": ["scheduled-job"]
     }
 }
