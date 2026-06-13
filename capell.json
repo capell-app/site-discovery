@@ -85,9 +85,7 @@
         "publicSurface": {
             "routeNames": [
                 "capell-frontend.sitemap-xml",
-                "capell-frontend.sitemap-xml.prefixed",
-                "sitemap-xml",
-                "sitemap-xml.prefixed"
+                "capell-frontend.sitemap-xml.prefixed"
             ],
             "auth": "public",
             "csrfExemptRoutes": [],
@@ -119,8 +117,8 @@
             ]
         },
         "adminSurface": {
-            "authorization": "panel-auth",
-            "permissions": []
+            "authorization": "permissions",
+            "permissions": ["View:PublicUrlRegistryPage"]
         }
     },
     "performance": {
