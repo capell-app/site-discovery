@@ -11,6 +11,7 @@ use Capell\SiteDiscovery\Data\SitemapPageData;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapBuilder;
 use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
+use UnexpectedValueException;
 
 /**
  * @method static Collection<int, SitemapPageData> run(Site $site, SiteDomain $domain, Language $language)
@@ -31,8 +32,17 @@ final class BuildPublicSitemapTreeAction
             withEditUrl: false,
         ))
             ->build()
-            ->map(fn (SitemapPageData $page): SitemapPageData => $this->publicNode($page))
+            ->map(fn (mixed $page): SitemapPageData => $this->publicNodeFromMixed($page))
             ->values();
+    }
+
+    private function publicNodeFromMixed(mixed $page): SitemapPageData
+    {
+        if (! $page instanceof SitemapPageData) {
+            throw new UnexpectedValueException('Sitemap builder returned an invalid page node.');
+        }
+
+        return $this->publicNode($page);
     }
 
     private function publicNode(SitemapPageData $page): SitemapPageData
@@ -41,7 +51,7 @@ final class BuildPublicSitemapTreeAction
             label: $page->label,
             url: $page->url,
             children: $page->children
-                ?->map(fn (SitemapPageData $child): SitemapPageData => $this->publicNode($child))
+                ?->map(fn (mixed $child): SitemapPageData => $this->publicNodeFromMixed($child))
                 ->values(),
             lastModified: null,
             changeFrequency: null,
