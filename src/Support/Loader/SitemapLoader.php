@@ -24,7 +24,8 @@ class SitemapLoader
 
         $storage = Storage::disk($disk);
 
-        $sitemaps = Cache::remember(
+        /** @var list<array{name: string, url: string, total: int|null}> $payload */
+        $payload = Cache::remember(
             SitemapCacheKey::Sitemaps->value,
             30,
             function () use ($directory, $disk, $storage): array {
@@ -50,11 +51,11 @@ class SitemapLoader
                             return;
                         }
 
-                        $sitemaps[] = new SiteMapData(
-                            name: $domain->name,
-                            url: $domain->full_url . '/sitemap-xml',
-                            total: $state->urlCount($domain->getDomainKey()) ?? 0,
-                        );
+                        $sitemaps[] = [
+                            'name' => $domain->name,
+                            'url' => $domain->full_url . '/sitemap-xml',
+                            'total' => $state->urlCount($domain->getDomainKey()) ?? 0,
+                        ];
                     });
                 }
 
@@ -62,7 +63,11 @@ class SitemapLoader
             },
         );
 
-        return $sitemaps;
+        return collect($payload)
+            ->filter(fn (mixed $sitemap): bool => is_array($sitemap))
+            ->map(fn (array $sitemap): SiteMapData => SiteMapData::from($sitemap))
+            ->values()
+            ->all();
     }
 
     private function stringValue(mixed $value, string $fallback = ''): string

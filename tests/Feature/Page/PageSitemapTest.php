@@ -232,6 +232,36 @@ test('sitemap loader reports generated xml files for sites with sitemap pages', 
         ->and($sitemaps[0]->total)->toBeGreaterThanOrEqual(2);
 });
 
+test('sitemap loader hydrates cached scalar payloads when cache object unserialization is disabled', function (): void {
+    config()->set('cache.default', 'array');
+    config()->set('cache.stores.array.serialize', true);
+    config()->set('cache.serializable_classes', false);
+    Cache::purge('array');
+    config(['capell.sitemap.disk' => 'array', 'capell.sitemap.directory' => 'sitemaps']);
+    Storage::fake('array');
+
+    $language = Language::factory()->create();
+    $site = Site::factory()
+        ->recycle($language)
+        ->hasSiteDomain(['domain' => 'with-sitemap.test', 'scheme' => 'https', 'path' => null])
+        ->withTranslations(collect([$language]))
+        ->create();
+
+    resolve(SitemapPageCreator::class)->createSitemapPage($site, collect([$language]));
+    Page::factory()->site($site)->withTranslations(collect([$language]))->create();
+    resolve(XmlSitemapGenerator::class)->generate($site);
+
+    resolve(SitemapLoader::class)->all();
+
+    Storage::disk('array')->deleteDirectory('sitemaps');
+
+    $sitemaps = resolve(SitemapLoader::class)->all();
+
+    expect($sitemaps)->toHaveCount(1)
+        ->and($sitemaps[0]->name)->toBe('with-sitemap.test/')
+        ->and($sitemaps[0]->url)->toBe('https://with-sitemap.test/sitemap-xml');
+});
+
 // ---------------------------------------------------------------------------
 // Chunk serving: ?p=N query parameter
 // ---------------------------------------------------------------------------
