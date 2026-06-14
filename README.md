@@ -1,153 +1,109 @@
 # Site Discovery
 
-Site Discovery owns public sitemap, discoverable URL, and generated-output registry foundations for Capell sites.
+<!-- prettier-ignore-start -->
 
-## At A Glance
+## What This Plugin Adds
 
-- Package: `capell-app/site-discovery`
-- Namespace: `Capell\SiteDiscovery\`
-- Surfaces: admin actions/tools, frontend sitemap pages, console
-- Service providers: `packages/site-discovery/src/Providers/SiteDiscoveryServiceProvider.php`
-- Capell dependencies: `capell-app/admin`, `capell-app/core`, `capell-app/frontend`
-- Third-party dependencies: none
+Site Discovery is an **Available**, **No schema impact** Capell package in the **Capell Search & SEO** product group. It ships as `capell-app/site-discovery` and extends these surfaces: admin, frontend, console.
 
-## Why It Helps Your Capell Workflow
+Make every published Capell page discoverable with automatic XML sitemaps, an HTML sitemap, and the canonical public-URL registry that powers the Search & SEO bundle.
 
-- Resolves public discoverable pages and URLs, then exposes HTML and XML sitemap outputs.
-- Provides a discovery-output contract so packages can advertise public machine-readable outputs such as `llms.txt` without coupling Site Discovery to consumer packages.
-- Provides a URL change notification contract so packages can submit public URL changes to IndexNow-style services without hard-coding providers into sitemap generation.
-- Includes an optional IndexNow notifier, disabled by default until `capell-site-discovery.indexnow.enabled` and a key are configured.
-- Helps owners and search tools find the pages Capell intends to publish without each package building its own crawler view.
-- Gives developers a shared discovery surface that SEO Suite, Blog, Search, and audits can use consistently.
-- Site Discovery is now the canonical source for public URL scope, canonical state, robots eligibility, last modified state, source package, sitemap eligibility, AI Discovery eligibility, and generated-output coverage diagnostics.
+After install, admins get package-owned management surfaces and public users may see package-owned frontend output or routes.
 
-## Best Used With
+Status details:
 
-- [SEO Suite](../seo-suite/README.md)
-- [Search](../search/README.md)
-- [Blog](../blog/README.md)
+- Status: Available
+- Tier: premium
+- Bundle: search-seo
+- Composer package: `capell-app/site-discovery`
+- Namespace: `Capell\SiteDiscovery`
+- Theme key: not applicable
 
-## What It Adds
+## Why It Matters
 
-- Public discoverable page and URL APIs.
-- Canonical public URL registry via `PublicUrlContributor` and `BuildPublicUrlRegistryAction`.
-- Sitemap quality validation via `ValidateSitemapQualityAction`.
-- Generated-output parity reporting via `BuildGeneratedOutputParityReportAction` and the Public URL Registry admin page.
-- HTML sitemap page type and frontend component.
-- XML sitemap generation with chunking and incremental state.
-- Typed sitemap extension payloads for hreflang alternates, image metadata, video metadata, and news metadata.
-- Sitemap admin page, admin actions, and generation tool.
-- Lifecycle listeners that regenerate sitemap output when pages or sites change.
+**For developers:** The package gives developers package-owned service providers, Actions, Data objects, Laravel routes, Filament classes, and Blade views instead of pushing this behaviour into core or application code.
 
-## Code Map
+**For teams:** Make every published Capell page discoverable - automatic XML sitemaps with index sharding, an HTML sitemap, and the canonical public-URL registry that powers the whole Search & SEO bundle.
 
-| Area      | Path                                    | Purpose                                                             |
-| --------- | --------------------------------------- | ------------------------------------------------------------------- |
-| Actions   | `packages/site-discovery/src/Actions`   | Domain operations. Test these directly where possible.              |
-| Data      | `packages/site-discovery/src/Data`      | Structured payloads, form state, view models, and integration data. |
-| Enums     | `packages/site-discovery/src/Enums`     | Persisted states and Filament option values.                        |
-| Filament  | `packages/site-discovery/src/Filament`  | Admin resources, pages, widgets, and settings UI.                   |
-| Livewire  | `packages/site-discovery/src/Livewire`  | Interactive frontend or admin components.                           |
-| Providers | `packages/site-discovery/src/Providers` | Registration, extension hooks, routes, migrations, and resources.   |
-| Resources | `packages/site-discovery/resources`     | Views, translations, assets, and package resources.                 |
-| Tests     | `packages/site-discovery/tests`         | Package-level Pest coverage.                                        |
+## Screens And Workflow
 
-## Runtime Surface
+Screenshot contract: `docs/screenshots.json`.
 
-- Admin: Page and Site `Sitemap` actions, the sitemap generation tool, and the Public URL Registry parity page.
-- Frontend: `/sitemap` HTML sitemap and `/sitemap-xml` XML response.
-- Livewire: `Sitemap`, `SitemapTool`.
+- Page resource sitemap action (admin, required).
+- Site resource sitemap action (admin, required).
+- Sitemap generation tool (admin, required).
+- Public HTML sitemap page (frontend, required).
+- Generated XML sitemap output (frontend, required).
+- Public URL Registry parity page (admin, required).
+- Public URL Registry quality report (admin, required).
 
-## Commands
+## Technical Shape
 
-- `capell:xml-sitemap {--site= : Only regenerate sitemaps for this site ID} {--incremental : Skip domains whose pages have not changed since the last run}` (packages/site-discovery/src/Console/Commands/XmlSitemapCommand.php)
-
-## Data And Persistence
-
-- Data objects live in `src/Data/`; use them for payloads, form state, and view models.
-- `PagesSitemap` caches serialized page arrays and rebuilds `SitemapPageData` objects when reading from cache. Do not cache the DTO objects directly; stale serialized objects can come back as `__PHP_Incomplete_Class` in host apps.
-
-## Extension Points
-
-- Contracts: `PublicUrlContributor`, `GeneratedOutputCoverageSource`, `DiscoverableUrlSource`, `DiscoveryOutputSource`, `UrlChangeNotifier`, `Sitemapable`.
-- Public URL Registry: packages contribute canonical URLs through `PublicUrlContributor`; entries include source package, site/language, route name, last modified date, indexability, robots directives, content type, sitemap eligibility, AI Discovery eligibility, priority, and change frequency.
-- Built-in contributor: Site Discovery registers existing CMS page URLs through `CmsPagePublicUrlContributor`.
-- Package contributors: Blog, Events, and Campaign Studio register package-local public URL contributors when Site Discovery is available.
-- Generated-output parity: the Public URL Registry page compares registry URLs against generated sitemap XML and tagged `GeneratedOutputCoverageSource` implementations. SEO Suite reports AI Discovery coverage, Search reports search-indexable registry coverage, HTML Cache reports cached URL records, and Agent Delivery reports page manifest-resolvable URLs. Outputs without an installed source are marked as unknown.
-- IndexNow: enable `capell-site-discovery.indexnow.enabled` and set `capell-site-discovery.indexnow.key` to submit URL changes through the built-in notifier.
+- Service providers: `Capell\SiteDiscovery\Providers\SiteDiscoveryServiceProvider`.
+- Config files: `packages/site-discovery/config/capell-site-discovery.php`.
+- Filament classes: `SitemapResourceHeaderActionExtender`, `SitemapSiteHeaderActionExtender`, `SitemapSiteRecordActionExtender`, `PublicUrlRegistryPage`.
+- Livewire components: `Sitemap`, `SitemapTool`.
+- Route files: `packages/site-discovery/routes/web.php`.
 - Listeners: `RegenerateSitemapsOnPageDeleted`, `RegenerateSitemapsOnPageSaved`, `RegenerateSitemapsOnSiteCreated`.
-- Register Capell extension points, routes, migrations, settings, render hooks, and resources from service providers.
+- Actions: `BuildGeneratedOutputParityReportAction`, `BuildPublicSitemapTreeAction`, `BuildPublicUrlRegistryAction`, `BuildSitemapXmlResponseAction`, `DiscoverPublicDiscoveryOutputsAction`, `DiscoverPublicPagesAction`, `DiscoverPublicUrlsAction`, `GenerateSitemapAction`, `NotifyPageUrlChangesAction`, `NotifyPublicUrlChangesAction`, `RedactIndexNowNotificationErrorMessageAction`, `RequestSiteSitemapRegenerationAction`, `and 1 more`.
+- Data objects: `DiscoverablePageData`, `DiscoverableUrlData`, `DiscoveryOutputData`, `GeneratedOutputParityReportData`, `GeneratedOutputParityRowData`, `PublicUrlData`, `PublicUrlRegistryEntryData`, `SiteMapData`, `SitemapAlternateData`, `SitemapImageData`, `SitemapNewsData`, `SitemapPageData`, `and 5 more`.
+- Jobs: `RegenerateSiteSitemapIncrementallyJob`.
+- Command signatures: `capell:xml-sitemap`.
+- Console command classes: `XmlSitemapCommand`.
+- Manifest contributions: `admin-page: Capell\SiteDiscovery\Manifest\PublicUrlRegistryPageContribution`, `route: Capell\SiteDiscovery\Manifest\SiteDiscoveryFrontendRoutesContribution`.
+- Health checks: `Capell\SiteDiscovery\Health\SiteDiscoveryHealthCheck`.
+- Blade views: `packages/site-discovery/resources/views/components/pages/sitemap.blade.php`, `packages/site-discovery/resources/views/components/pages/sitemap/page.blade.php`, `packages/site-discovery/resources/views/filament/pages/public-url-registry.blade.php`, `packages/site-discovery/resources/views/livewire/page/sitemap.blade.php`, `packages/site-discovery/resources/views/livewire/tools/sitemap-tool.blade.php`, `packages/site-discovery/resources/views/sitemap/sitemap-page.blade.php`.
+- Cache tags: `site-discovery`.
 
-## Install And Setup
+## Data Model
 
-- Install with `composer require capell-app/site-discovery` in the host Capell application.
-- The core install flow can create the default Sitemap page when this package is installed before `capell:install`.
-- When adding the package to an existing core-only app, create the Sitemap page for each existing site before testing `/sitemap`; the current extension install flow does not backfill existing sites automatically.
-- Make sure custom web-server static-file rules do not intercept generated sitemap endpoints before Laravel runs. The default XML endpoint is `/sitemap-xml`, which usually avoids extension-based static handlers. If a host app aliases this to `/sitemap.xml`, add an nginx/Apache exception for that path before generic `*.xml` static handling.
-- In this repository, verify package changes with `vendor/bin/pest`; do not use `php artisan`.
+This package has no schema impact. It does not declare package-owned migrations or required tables.
 
-### Web Server Routing
+Docs gap: document extension points here if the package delegates persistence to a host package.
 
-Site Discovery serves HTML and XML sitemap output through Laravel. Laravel's default Apache rewrite is enough because missing files are sent to `public/index.php`.
+## Install Impact
 
-For nginx, the normal Laravel front-controller rule is enough for `/sitemap` and `/sitemap-xml`:
+- Admin navigation: adds package-owned Filament classes when registered.
+- Permissions: `View:PublicUrlRegistryPage`.
+- Public routes: route files exist and must be reviewed before public enablement.
+- Database changes: no package migrations declared.
+- Settings: no package settings declared.
+- Queues or schedules: review package jobs or schedules before install.
+- Cache tags: `site-discovery`.
+- Commands: `capell:xml-sitemap`.
 
-```nginx
-location / {
-    try_files $uri $uri/ /index.php$is_args$args;
-}
-```
+## Common Pitfalls
 
-If the host app exposes XML at `/sitemap.xml` and the vhost has a static `*.xml` location, add an exact route before the static block:
+- Review route middleware, throttling, signed URLs, and public-output safety before exposing routes.
+- Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
+- Run package commands from the host app; in this repository use `vendor/bin/pest` for package tests.
+- Keep `composer.json`, `composer.local.json`, `capell.json`, docs, screenshots, and tests aligned when the package surface changes.
 
-```nginx
-location = /sitemap.xml {
-    try_files /__missing__ /index.php$is_args$args;
-}
-```
+## Troubleshooting
 
-For Apache, keep the standard Laravel rewrite and avoid rewrite exclusions for generated sitemap paths:
+| Symptom | Likely cause | Check | Fix |
+| --- | --- | --- | --- |
+| Package surface is missing after install | Provider or manifest is not loaded | Confirm `capell.json`, package `composer.json`, and provider registration | Reinstall the package, refresh Composer autoload, and clear host caches |
+| Route returns unexpected output | Route cache, middleware, or signed URL setup does not match the package route file | Check the route files listed in `Technical Shape` | Clear route cache and verify middleware before exposing public routes |
+| Background work does not run | Queue worker or scheduled command is not active | Check package jobs, commands, and host scheduler configuration | Start the queue or scheduler, then run the focused command or package test |
+| Public output leaks unexpected state | Render data, cache variation, or authoring boundary has regressed | Check public Blade, cache tags, and public-output safety tests | Move data loading out of Blade and rerun the package public-output tests |
 
-```apache
-RewriteEngine On
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^ index.php [L]
-```
+## Quick Start
 
-## Approved Improvement Roadmap
+1. Install the package: `composer require capell-app/site-discovery`.
+2. Run the required setup: no package migrations are declared; clear cached config and routes if the host app uses caches.
+3. Open the related Capell admin surface and verify Site Discovery appears.
 
-These items are approved product direction for Site Discovery and should be planned as package work rather than host-app-only behavior.
+## Next Steps
 
-- Continue migrating any remaining package-owned dynamic URLs into `PublicUrlContributor` implementations owned by those packages.
-- Extend sitemap quality gates with live HTTP status checks when a host app wants to verify generated XML against routed responses.
-- Add sitemap index and sharding support by source or content type once URL counts require it. Good shard candidates are CMS pages, marketplace extensions, field notes, docs, packages, and media.
-- Extend downstream parity sources as generated-output packages add more persistent URL indexes, keeping package-specific reads inside the owning package.
-- Add install or doctor diagnostics for `/sitemap`, `/sitemap-xml`, and host aliases such as `/sitemap.xml`, including status code, content type, XML validity, and web-server static-handler interception.
-- Keep URL change notifications provider-neutral; IndexNow should remain one notifier behind the shared `UrlChangeNotifier` contract. Do not reintroduce unauthenticated Google/Bing sitemap ping endpoints unless official webmaster APIs make that workflow viable again.
+- [Package docs](docs/README.md)
+- [Overview](docs/overview.md)
+- [Screenshot contract](docs/screenshots.json)
+- [Marketplace assets](docs/assets/marketplace/)
+- [Capell content language plan](../../docs/CONTENT_LANGUAGE_PLAN.md)
+- [Capell documentation design system](../../docs/DESIGN_SYSTEM.md)
+- [Capell and package ERD notes](../../docs/erd/capell-and-package-erds.md)
+- Related packages: [Agent Delivery](../agent-delivery/README.md), [Search](../search/README.md), [Seo Suite](../seo-suite/README.md), [Url Manager](../url-manager/README.md).
+- Focused tests: `vendor/bin/pest packages/site-discovery/tests --configuration=phpunit.xml`.
 
-## Docs
-
-- [docs index](docs/README.md)
-- [overview.md](docs/overview.md)
-- [screenshots.json](docs/screenshots.json)
-
-## Screenshot Coverage
-
-The package screenshot contract covers the package-added Page and Site sitemap actions, the sitemap generation tool, `/sitemap`, `/sitemap-xml`, the Public URL Registry parity page, and its quality report state. Keep each capture focused on the added surface; avoid broad admin screenshots that hide which control belongs to this package.
-
-Public sitemap screenshots should be checked for authoring or package identifiers. The public output must not expose `capell-site-discovery`, `capell-sitemap`, admin URLs, editor metadata, signed editor links, or unpublished pages.
-
-## Testing
-
-Run package tests from the repository root:
-
-```bash
-vendor/bin/pest packages/site-discovery/tests --configuration=phpunit.xml
-```
-
-## Maintenance Notes
-
-- Put behaviour changes in `src/Actions/`; UI classes, commands, and controllers should call actions instead of owning domain logic.
-- Use package `Data` classes at boundaries instead of passing anonymous arrays between layers.
-- Use backed enums for persisted values and enum labels for Filament options.
+<!-- prettier-ignore-end -->

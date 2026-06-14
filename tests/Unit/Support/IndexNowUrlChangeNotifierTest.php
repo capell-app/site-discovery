@@ -63,11 +63,13 @@ it('reports skipped indexnow notifications when no key is configured', function 
 });
 
 it('reports failed indexnow notifications when the request cannot be sent', function (): void {
-    config()->set('capell-site-discovery.indexnow.key', 'site-key');
-    config()->set('capell-site-discovery.indexnow.endpoint', 'https://indexnow.test/indexnow');
+    config()->set('capell-site-discovery.indexnow.key', 'indexnow-key-secret');
+    config()->set('capell-site-discovery.indexnow.endpoint', 'https://indexnow.test/indexnow?token=endpoint-token-secret');
 
     Http::fake([
-        'https://indexnow.test/indexnow' => fn (): never => throw new ConnectionException('Connection failed.'),
+        'https://indexnow.test/indexnow*' => fn (): never => throw new ConnectionException(
+            'Connection failed for key=indexnow-key-secret token=endpoint-token-secret https://indexnow.test/indexnow?token=endpoint-token-secret.',
+        ),
     ]);
 
     $result = (new IndexNowUrlChangeNotifier)->notify(
@@ -78,7 +80,10 @@ it('reports failed indexnow notifications when the request cannot be sent', func
 
     expect($result->notifier)->toBe('indexnow')
         ->and($result->accepted)->toBeFalse()
-        ->and($result->message)->toBe('Connection failed.');
+        ->and($result->message)->toContain('key=[redacted]')
+        ->and($result->message)->toContain('token=[redacted]')
+        ->and($result->message)->not->toContain('indexnow-key-secret')
+        ->and($result->message)->not->toContain('endpoint-token-secret');
 });
 
 /**

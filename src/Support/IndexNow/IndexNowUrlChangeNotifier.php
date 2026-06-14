@@ -7,6 +7,7 @@ namespace Capell\SiteDiscovery\Support\IndexNow;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
+use Capell\SiteDiscovery\Actions\RedactIndexNowNotificationErrorMessageAction;
 use Capell\SiteDiscovery\Contracts\UrlChangeNotifier;
 use Capell\SiteDiscovery\Data\UrlChangeNotificationResultData;
 use Illuminate\Http\Client\ConnectionException;
@@ -46,7 +47,7 @@ final class IndexNowUrlChangeNotifier implements UrlChangeNotifier
                 notifier: self::NotifierName,
                 urls: $payload['urlList'],
                 accepted: false,
-                message: $connectionException->getMessage(),
+                message: (new RedactIndexNowNotificationErrorMessageAction)->handle($connectionException),
             );
         }
 
