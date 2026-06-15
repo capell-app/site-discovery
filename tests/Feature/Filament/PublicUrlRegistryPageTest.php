@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Capell\Admin\Support\Extensions\ExtensionPageRegistry;
 use Capell\Core\Contracts\Extensions\ExtensionContribution;
 use Capell\Core\Contracts\Extensions\RegistersExtensionRoute;
+use Capell\Core\Contracts\Extensions\RunsScheduledExtensionJob;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
@@ -21,6 +22,7 @@ use Capell\SiteDiscovery\Enums\PublicUrlIndexability;
 use Capell\SiteDiscovery\Filament\Pages\PublicUrlRegistryPage;
 use Capell\SiteDiscovery\Manifest\PublicUrlRegistryPageContribution;
 use Capell\SiteDiscovery\Manifest\SiteDiscoveryFrontendRoutesContribution;
+use Capell\SiteDiscovery\Manifest\SiteDiscoveryIncrementalSitemapScheduleContribution;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Capell\Tests\Support\Concerns\CreatesAdminUser;
 use Illuminate\Support\Collection;
@@ -174,16 +176,30 @@ it('declares the public url registry page in the package manifest', function ():
         flags: JSON_THROW_ON_ERROR,
     );
 
-    expect($manifest['contributes'])->toContain([
+    throw_unless(is_array($manifest), RuntimeException::class, 'Expected Site Discovery manifest array.');
+    throw_unless(is_array($manifest['contributes'] ?? null), RuntimeException::class, 'Expected Site Discovery contributions array.');
+
+    $contributes = $manifest['contributes'];
+
+    expect($contributes)->toContain([
         'type' => 'admin-page',
         'class' => PublicUrlRegistryPageContribution::class,
         'pageClass' => PublicUrlRegistryPage::class,
         'labelKey' => 'capell-site-discovery::generic.public_url_registry',
         'permission' => 'View:PublicUrlRegistryPage',
     ])
-        ->and($manifest['contributes'])->toContain([
+        ->and($contributes)->toContain([
             'type' => 'route',
             'class' => SiteDiscoveryFrontendRoutesContribution::class,
+        ])
+        ->and($contributes)->toContain([
+            'type' => 'scheduled-job',
+            'class' => SiteDiscoveryIncrementalSitemapScheduleContribution::class,
+            'command' => 'capell:xml-sitemap --incremental',
+            'name' => 'capell-site-discovery:incremental-sitemap',
+            'frequencyConfig' => 'capell-site-discovery.incremental_sitemap_schedule',
+            'defaultFrequency' => 'dailyAt:02:30',
+            'enabledWhen' => 'capell-site-discovery.incremental_sitemap_schedule.enabled=true',
         ])
         ->and($manifest['actions'])->toMatchArray([
             'buildGeneratedOutputParityReport' => BuildGeneratedOutputParityReportAction::class,
@@ -199,6 +215,7 @@ it('declares the public url registry page in the package manifest', function ():
         )
         ->and(class_implements(PublicUrlRegistryPageContribution::class))->toContain(ExtensionContribution::class)
         ->and(class_implements(SiteDiscoveryFrontendRoutesContribution::class))->toContain(RegistersExtensionRoute::class)
+        ->and(class_implements(SiteDiscoveryIncrementalSitemapScheduleContribution::class))->toContain(RunsScheduledExtensionJob::class)
         ->and($manifest['contributionTraceability']['deferredContributions'])->toBe([]);
 });
 
