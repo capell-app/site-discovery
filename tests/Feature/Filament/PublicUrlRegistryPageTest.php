@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Capell\Admin\Support\Extensions\ExtensionPageRegistry;
 use Capell\Core\Contracts\Extensions\ExtensionContribution;
 use Capell\Core\Contracts\Extensions\RegistersExtensionRoute;
+use Capell\Core\Contracts\Extensions\RunsScheduledExtensionJob;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
@@ -21,6 +22,7 @@ use Capell\SiteDiscovery\Enums\PublicUrlIndexability;
 use Capell\SiteDiscovery\Filament\Pages\PublicUrlRegistryPage;
 use Capell\SiteDiscovery\Manifest\PublicUrlRegistryPageContribution;
 use Capell\SiteDiscovery\Manifest\SiteDiscoveryFrontendRoutesContribution;
+use Capell\SiteDiscovery\Manifest\SiteDiscoveryIncrementalSitemapScheduleContribution;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Capell\Tests\Support\Concerns\CreatesAdminUser;
 use Illuminate\Support\Collection;
@@ -185,6 +187,15 @@ it('declares the public url registry page in the package manifest', function ():
             'type' => 'route',
             'class' => SiteDiscoveryFrontendRoutesContribution::class,
         ])
+        ->and($manifest['contributes'])->toContain([
+            'type' => 'scheduled-job',
+            'class' => SiteDiscoveryIncrementalSitemapScheduleContribution::class,
+            'command' => 'capell:xml-sitemap --incremental',
+            'name' => 'capell-site-discovery:incremental-sitemap',
+            'frequencyConfig' => 'capell-site-discovery.incremental_sitemap_schedule',
+            'defaultFrequency' => 'dailyAt:02:30',
+            'enabledWhen' => 'capell-site-discovery.incremental_sitemap_schedule.enabled=true',
+        ])
         ->and($manifest['actions'])->toMatchArray([
             'buildGeneratedOutputParityReport' => BuildGeneratedOutputParityReportAction::class,
             'buildPublicUrlRegistry' => BuildPublicUrlRegistryAction::class,
@@ -199,7 +210,8 @@ it('declares the public url registry page in the package manifest', function ():
         )
         ->and(class_implements(PublicUrlRegistryPageContribution::class))->toContain(ExtensionContribution::class)
         ->and(class_implements(SiteDiscoveryFrontendRoutesContribution::class))->toContain(RegistersExtensionRoute::class)
-        ->and($manifest['contributionTraceability']['deferredContributions'])->toBe(['scheduled-job']);
+        ->and(class_implements(SiteDiscoveryIncrementalSitemapScheduleContribution::class))->toContain(RunsScheduledExtensionJob::class)
+        ->and($manifest['contributionTraceability']['deferredContributions'])->toBe([]);
 });
 
 it('renders registry parity rows and filters missing output in the admin page', function (): void {

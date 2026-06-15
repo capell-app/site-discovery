@@ -50,7 +50,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Jobs: `RegenerateSiteSitemapIncrementallyJob`.
 - Command signatures: `capell:xml-sitemap`.
 - Console command classes: `XmlSitemapCommand`.
-- Manifest contributions: `admin-page: Capell\SiteDiscovery\Manifest\PublicUrlRegistryPageContribution`, `route: Capell\SiteDiscovery\Manifest\SiteDiscoveryFrontendRoutesContribution`.
+- Manifest contributions: `admin-page: Capell\SiteDiscovery\Manifest\PublicUrlRegistryPageContribution`, `route: Capell\SiteDiscovery\Manifest\SiteDiscoveryFrontendRoutesContribution`, `scheduled-job: Capell\SiteDiscovery\Manifest\SiteDiscoveryIncrementalSitemapScheduleContribution`.
 - Health checks: `Capell\SiteDiscovery\Health\SiteDiscoveryHealthCheck`.
 - Blade views: `packages/site-discovery/resources/views/components/pages/sitemap.blade.php`, `packages/site-discovery/resources/views/components/pages/sitemap/page.blade.php`, `packages/site-discovery/resources/views/filament/pages/public-url-registry.blade.php`, `packages/site-discovery/resources/views/livewire/page/sitemap.blade.php`, `packages/site-discovery/resources/views/livewire/tools/sitemap-tool.blade.php`, `packages/site-discovery/resources/views/sitemap/sitemap-page.blade.php`.
 - Cache tags: `site-discovery`.
@@ -68,7 +68,7 @@ Docs gap: document extension points here if the package delegates persistence to
 - Public routes: route files exist and must be reviewed before public enablement.
 - Database changes: no package migrations declared.
 - Settings: no package settings declared.
-- Queues or schedules: review package jobs or schedules before install.
+- Queues or schedules: optional `capell:xml-sitemap --incremental` scheduler is disabled by default and controlled by `capell-site-discovery.incremental_sitemap_schedule`.
 - Cache tags: `site-discovery`.
 - Commands: `capell:xml-sitemap`.
 

@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Contracts\Extensions\RunsScheduledExtensionJob;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
+use Capell\SiteDiscovery\Manifest\SiteDiscoveryIncrementalSitemapScheduleContribution;
 
 it('keeps package composer requirements aligned with shipped code boundaries', function (): void {
     $packagePath = dirname(__DIR__, 2);
@@ -35,6 +37,24 @@ it('keeps package composer requirements aligned with shipped code boundaries', f
                 'events' => ['created'],
             ],
         ]);
+});
+
+it('declares shipped scheduling metadata without package settings drift', function (): void {
+    $manifest = capell_json_file_array(dirname(__DIR__, 2) . '/capell.json');
+
+    expect($manifest['contributes'])->toContain([
+        'type' => 'scheduled-job',
+        'class' => SiteDiscoveryIncrementalSitemapScheduleContribution::class,
+        'command' => 'capell:xml-sitemap --incremental',
+        'name' => 'capell-site-discovery:incremental-sitemap',
+        'frequencyConfig' => 'capell-site-discovery.incremental_sitemap_schedule',
+        'defaultFrequency' => 'dailyAt:02:30',
+        'enabledWhen' => 'capell-site-discovery.incremental_sitemap_schedule.enabled=true',
+    ])
+        ->and(class_implements(SiteDiscoveryIncrementalSitemapScheduleContribution::class))->toContain(RunsScheduledExtensionJob::class)
+        ->and($manifest['database']['settings'])->toBeFalse()
+        ->and($manifest['settings'])->toBe([])
+        ->and($manifest['contributionTraceability']['deferredContributions'])->toBe([]);
 });
 
 it('declares committed marketplace assets for buyer-facing screenshot capture targets', function (): void {
