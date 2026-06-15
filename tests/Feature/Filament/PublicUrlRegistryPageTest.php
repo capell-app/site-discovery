@@ -176,18 +176,23 @@ it('declares the public url registry page in the package manifest', function ():
         flags: JSON_THROW_ON_ERROR,
     );
 
-    expect($manifest['contributes'])->toContain([
+    throw_unless(is_array($manifest), RuntimeException::class, 'Expected Site Discovery manifest array.');
+    throw_unless(is_array($manifest['contributes'] ?? null), RuntimeException::class, 'Expected Site Discovery contributions array.');
+
+    $contributes = $manifest['contributes'];
+
+    expect($contributes)->toContain([
         'type' => 'admin-page',
         'class' => PublicUrlRegistryPageContribution::class,
         'pageClass' => PublicUrlRegistryPage::class,
         'labelKey' => 'capell-site-discovery::generic.public_url_registry',
         'permission' => 'View:PublicUrlRegistryPage',
     ])
-        ->and($manifest['contributes'])->toContain([
+        ->and($contributes)->toContain([
             'type' => 'route',
             'class' => SiteDiscoveryFrontendRoutesContribution::class,
         ])
-        ->and($manifest['contributes'])->toContain([
+        ->and($contributes)->toContain([
             'type' => 'scheduled-job',
             'class' => SiteDiscoveryIncrementalSitemapScheduleContribution::class,
             'command' => 'capell:xml-sitemap --incremental',

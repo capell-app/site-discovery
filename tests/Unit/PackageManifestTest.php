@@ -41,6 +41,11 @@ it('keeps package composer requirements aligned with shipped code boundaries', f
 
 it('declares shipped scheduling metadata without package settings drift', function (): void {
     $manifest = capell_json_file_array(dirname(__DIR__, 2) . '/capell.json');
+    $database = $manifest['database'] ?? null;
+    $contributionTraceability = $manifest['contributionTraceability'] ?? null;
+
+    throw_unless(is_array($database), RuntimeException::class, 'Expected Site Discovery database metadata array.');
+    throw_unless(is_array($contributionTraceability), RuntimeException::class, 'Expected Site Discovery contribution traceability array.');
 
     expect($manifest['contributes'])->toContain([
         'type' => 'scheduled-job',
@@ -52,9 +57,9 @@ it('declares shipped scheduling metadata without package settings drift', functi
         'enabledWhen' => 'capell-site-discovery.incremental_sitemap_schedule.enabled=true',
     ])
         ->and(class_implements(SiteDiscoveryIncrementalSitemapScheduleContribution::class))->toContain(RunsScheduledExtensionJob::class)
-        ->and($manifest['database']['settings'])->toBeFalse()
+        ->and($database['settings'])->toBeFalse()
         ->and($manifest['settings'])->toBe([])
-        ->and($manifest['contributionTraceability']['deferredContributions'])->toBe([]);
+        ->and($contributionTraceability['deferredContributions'])->toBe([]);
 });
 
 it('declares committed marketplace assets for buyer-facing screenshot capture targets', function (): void {
