@@ -199,7 +199,7 @@ it('declares the public url registry page in the package manifest', function ():
         )
         ->and(class_implements(PublicUrlRegistryPageContribution::class))->toContain(ExtensionContribution::class)
         ->and(class_implements(SiteDiscoveryFrontendRoutesContribution::class))->toContain(RegistersExtensionRoute::class)
-        ->and($manifest['contributionTraceability']['deferredContributions'])->toBe(['scheduled-job']);
+        ->and($manifest['contributionTraceability']['deferredContributions'])->toBe([]);
 });
 
 it('renders registry parity rows and filters missing output in the admin page', function (): void {

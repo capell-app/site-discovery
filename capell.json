@@ -48,6 +48,15 @@
         {
             "type": "route",
             "class": "Capell\\SiteDiscovery\\Manifest\\SiteDiscoveryFrontendRoutesContribution"
+        },
+        {
+            "type": "scheduled-job",
+            "class": "Capell\\SiteDiscovery\\Manifest\\SiteDiscoveryIncrementalSitemapScheduleContribution",
+            "command": "capell:xml-sitemap --incremental",
+            "name": "capell-site-discovery:incremental-sitemap",
+            "frequencyConfig": "capell-site-discovery.incremental_sitemap_schedule",
+            "defaultFrequency": "dailyAt:02:30",
+            "enabledWhen": "capell-site-discovery.incremental_sitemap_schedule.enabled=true"
         }
     ],
     "database": {
@@ -221,6 +230,6 @@
         "categories": ["admin", "console", "frontend", "search-seo"]
     },
     "contributionTraceability": {
-        "deferredContributions": ["scheduled-job"]
+        "deferredContributions": []
     }
 }
