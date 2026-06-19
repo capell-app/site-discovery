@@ -68,7 +68,7 @@ Docs gap: document extension points here if the package delegates persistence to
 - Public routes: route files exist and must be reviewed before public enablement.
 - Database changes: no package migrations declared.
 - Settings: no package settings declared.
-- Queues or schedules: optional `capell:xml-sitemap --incremental` scheduler is disabled by default and controlled by `capell-site-discovery.incremental_sitemap_schedule`.
+- Queues or schedules: review package jobs or schedules before install.
 - Cache tags: `site-discovery`.
 - Commands: `capell:xml-sitemap`.
 

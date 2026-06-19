@@ -127,9 +127,7 @@
         },
         "adminSurface": {
             "authorization": "permissions",
-            "permissions": [
-                "View:PublicUrlRegistryPage"
-            ]
+            "permissions": ["View:PublicUrlRegistryPage"]
         }
     },
     "performance": {
