@@ -19,7 +19,12 @@
             "required": true,
             "notes": "Capture the package-added Sitemap header action on the core Pages resource.",
             "useCase": "An editor uses the package-added sitemap action on the core Pages resource.",
-            "screenshotPath": "packages/site-discovery/docs/screenshots/page-sitemap-action.png"
+            "screenshotPath": "packages/site-discovery/docs/screenshots/page-sitemap-action.png",
+            "covers": [
+                "packages/site-discovery/src/Filament/Extenders/Page/SitemapResourceHeaderActionExtender.php",
+                "packages/site-discovery/src/Filament/Extenders/Site/SitemapSiteHeaderActionExtender.php",
+                "packages/site-discovery/src/Filament/Extenders/Site/SitemapSiteRecordActionExtender.php"
+            ]
         },
         {
             "id": "site-sitemap-action",
