@@ -1,7 +1,3 @@
-# Site Discovery
-
-<!-- prettier-ignore-start -->
-
 ## What it does for you
 
 Site Discovery helps search engines (and AI crawlers) find your pages. It builds your sitemap, lets you control which pages are listed, and shows you which pages are set to be found or hidden.
@@ -27,10 +23,3 @@ Go to **Site Discovery** in the admin to manage your sitemap and page indexabili
 - Help search engines find your pages by keeping your **Sitemap** up to date.
 - Set a page to **Noindex** to keep it out of search results.
 - A page marked **Missing from sitemap** won't be offered to search engines until you include it.
-
----
-
-For how to use Site Discovery, see the [admin guide](admin-guide.md).
-For developers: see the [README](../README.md).
-
-<!-- prettier-ignore-end -->
