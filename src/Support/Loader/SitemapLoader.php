@@ -31,7 +31,7 @@ class SitemapLoader
             function () use ($directory, $disk, $storage): array {
                 $sitemaps = [];
 
-                $sites = Site::with('siteDomains')->get();
+                $sites = Site::excludingPreview()->with('siteDomains')->get();
                 $state = new SitemapStateStore(
                     disk: $disk,
                     directory: $directory,
