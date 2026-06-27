@@ -83,11 +83,7 @@
         "site-discovery",
         "site-discovery-admin",
         "site-discovery-console",
-        "site-discovery-frontend",
-        "site-discovery-public-url-registry",
-        "site-discovery-sitemap-quality-gates",
-        "site-discovery-routed-status-quality-gates",
-        "site-discovery-generated-output-parity"
+        "site-discovery-frontend"
     ],
     "security": {
         "riskTier": "standard",
