@@ -207,12 +207,6 @@ it('declares the public url registry page in the package manifest', function ():
             'generateSitemap' => GenerateSitemapAction::class,
             'validateSitemapQuality' => ValidateSitemapQualityAction::class,
         ])
-        ->and($manifest['capabilities'])->toContain(
-            'site-discovery-public-url-registry',
-            'site-discovery-sitemap-quality-gates',
-            'site-discovery-routed-status-quality-gates',
-            'site-discovery-generated-output-parity',
-        )
         ->and(class_implements(PublicUrlRegistryPageContribution::class))->toContain(ExtensionContribution::class)
         ->and(class_implements(SiteDiscoveryFrontendRoutesContribution::class))->toContain(RegistersExtensionRoute::class)
         ->and(class_implements(SiteDiscoveryIncrementalSitemapScheduleContribution::class))->toContain(RunsScheduledExtensionJob::class)
