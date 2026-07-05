@@ -9,11 +9,14 @@ use Capell\SiteDiscovery\Actions\DiscoverPublicDiscoveryOutputsAction;
 use Capell\SiteDiscovery\Contracts\DiscoveryOutputSource;
 use Capell\SiteDiscovery\Data\DiscoveryOutputData;
 use Capell\SiteDiscovery\Support\DiscoveryOutputRegistry;
+use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Illuminate\Support\Collection;
 
+uses(SiteDiscoveryTestCase::class);
+
 it('discovers registered public outputs and filters unsafe entries', function (): void {
-    $site = new Site(['id' => 1]);
-    $language = new Language(['id' => 1, 'code' => 'en', 'locale' => 'en']);
+    $site = (new Site)->forceFill(['id' => 1]);
+    $language = (new Language)->forceFill(['id' => 1, 'code' => 'en', 'locale' => 'en']);
     $domain = new SiteDomain([
         'domain' => 'example.com',
         'scheme' => 'https',
