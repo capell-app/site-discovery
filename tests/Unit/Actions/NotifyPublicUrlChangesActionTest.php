@@ -9,11 +9,14 @@ use Capell\SiteDiscovery\Actions\NotifyPublicUrlChangesAction;
 use Capell\SiteDiscovery\Contracts\UrlChangeNotifier;
 use Capell\SiteDiscovery\Data\DiscoverableUrlData;
 use Capell\SiteDiscovery\Data\UrlChangeNotificationResultData;
+use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Illuminate\Support\Collection;
 
+uses(SiteDiscoveryTestCase::class);
+
 it('notifies tagged URL change notifiers with unique public URLs', function (): void {
-    $site = new Site(['id' => 1]);
-    $language = new Language(['id' => 1, 'code' => 'en', 'locale' => 'en']);
+    $site = (new Site)->forceFill(['id' => 1]);
+    $language = (new Language)->forceFill(['id' => 1, 'code' => 'en', 'locale' => 'en']);
     $domain = new SiteDomain(['domain' => 'example.com', 'scheme' => 'https']);
 
     $notifier = new class implements UrlChangeNotifier
@@ -64,8 +67,8 @@ it('notifies tagged URL change notifiers with unique public URLs', function (): 
 });
 
 it('does not call notifiers when no public URLs are provided', function (): void {
-    $site = new Site(['id' => 1]);
-    $language = new Language(['id' => 1, 'code' => 'en', 'locale' => 'en']);
+    $site = (new Site)->forceFill(['id' => 1]);
+    $language = (new Language)->forceFill(['id' => 1, 'code' => 'en', 'locale' => 'en']);
 
     $results = NotifyPublicUrlChangesAction::run($site, $language, [
         '/relative-url',
