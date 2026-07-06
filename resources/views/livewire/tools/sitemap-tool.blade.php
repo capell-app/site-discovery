@@ -15,17 +15,17 @@
         {{ $generatingSitemaps ? 'disabled' : '' }}
     >
         @if ($generatingSitemaps)
-            @svg(Heroicon::OutlinedArrowPath->getIconForSize(IconSize::Small), [
+            @svg (Heroicon::OutlinedArrowPath->getIconForSize(IconSize::Small), [
                 'class' => 'fi-dropdown-list-item-icon h-5 w-5 animate-spin text-gray-400 dark:text-gray-500',
             ])
         @else
-            @svg(Heroicon::OutlinedGlobeAlt->getIconForSize(IconSize::Small), [
+            @svg (Heroicon::OutlinedGlobeAlt->getIconForSize(IconSize::Small), [
                 'class' => 'fi-dropdown-list-item-icon h-5 w-5 text-gray-400 dark:text-gray-500',
                 'wire:loading.remove.delay' => 1,
                 'wire:target' => 'generate',
             ])
 
-            @svg(Heroicon::OutlinedArrowPath->getIconForSize(IconSize::Small), [
+            @svg (Heroicon::OutlinedArrowPath->getIconForSize(IconSize::Small), [
                 'class' => 'fi-dropdown-list-item-icon h-5 w-5 animate-spin text-gray-400 dark:text-gray-500',
                 'wire:loading.delay' => 1,
                 'wire:target' => 'generate',
