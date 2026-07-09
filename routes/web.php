@@ -16,6 +16,6 @@ Route::name('capell-frontend.')
             ->name('sitemap-xml');
 
         Route::get('{sitemapPrefix}/' . $xmlPath, SitemapXmlController::class)
-            ->where('sitemapPrefix', '.*')
+            ->where('sitemapPrefix', '[^/]+')
             ->name('sitemap-xml.prefixed');
     });

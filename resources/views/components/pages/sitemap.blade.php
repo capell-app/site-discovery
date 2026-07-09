@@ -13,8 +13,7 @@
             >
                 @foreach ($sites as $site)
                     <option value="{{ $site->id }}">
-                        {{ $site->name }}
-                        ({{ $site->translations->pluck('language.code')->implode(', ') }})
+                        {{ $site->name }} ({{ $site->translations->pluck('language.code')->implode(', ') }})
                     </option>
                 @endforeach
             </x-filament::input.select>
@@ -46,7 +45,7 @@
         <div class="vsitemap mb-20 overflow-x-auto">
             <ul>
                 @foreach ($sitemap as $sitemapPage)
-                    @include('capell::components.pages.sitemap.page', compact('sitemapPage'))
+                    @include ('capell::components.pages.sitemap.page', compact('sitemapPage'))
                 @endforeach
             </ul>
         </div>

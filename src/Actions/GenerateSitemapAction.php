@@ -12,6 +12,7 @@ use Exception;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Lorisleiva\Actions\Concerns\AsJob;
 use Lorisleiva\Actions\Concerns\AsObject;
 use Throwable;
@@ -33,8 +34,13 @@ class GenerateSitemapAction
                 ->block($this->lockWaitSeconds(), fn (): string => $this->generate($site));
         } catch (LockTimeoutException $lockTimeoutException) {
             throw new Exception('Sitemap generation is already running for this site.', $lockTimeoutException->getCode(), previous: $lockTimeoutException);
-        } catch (Throwable) {
-            throw new Exception('Failed to generate sitemap');
+        } catch (Throwable $throwable) {
+            Log::warning('Site Discovery sitemap generation failed.', [
+                'exception' => $throwable,
+                'site_id' => $site->getKey(),
+            ]);
+
+            throw new Exception('Failed to generate sitemap', $throwable->getCode(), previous: $throwable);
         } finally {
             $this->updateCache();
         }
