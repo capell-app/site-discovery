@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Capell\Core\Models\SiteDomain;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
 use function Pest\Laravel\get;
@@ -55,6 +57,14 @@ it('serves generated sitemap XML for path-prefixed site domains', function (): v
         ->assertOk()
         ->assertHeader('Content-Disposition', 'attachment; filename="' . $domain->getDomainKey() . '.xml"')
         ->assertSee('https://example.com/uk/about', escape: false);
+});
+
+it('keeps prefixed sitemap routing constrained to one path segment', function (): void {
+    $singleSegmentRoute = Route::getRoutes()->match(Request::create('/uk/sitemap-xml', 'GET'));
+    $multiSegmentRoute = Route::getRoutes()->match(Request::create('/uk/public/sitemap-xml', 'GET'));
+
+    expect($singleSegmentRoute->getName())->toBe('capell-frontend.sitemap-xml.prefixed')
+        ->and($multiSegmentRoute->getName())->not->toBe('capell-frontend.sitemap-xml.prefixed');
 });
 
 it('serves chunked sitemap XML files by query page', function (): void {
