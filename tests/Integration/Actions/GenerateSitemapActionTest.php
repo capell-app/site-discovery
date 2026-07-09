@@ -8,9 +8,11 @@ use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
 use Capell\SiteDiscovery\Actions\GenerateSitemapAction;
 use Capell\SiteDiscovery\Enums\SitemapCacheKey;
+use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 uses(SiteDiscoveryTestCase::class);
@@ -74,4 +76,39 @@ it('cleans the generating counter when a site sitemap generation lock is already
     } finally {
         $lock->release();
     }
+});
+
+it('preserves the previous exception when sitemap generation fails', function (): void {
+    $site = Site::factory()->create();
+    $previous = new RuntimeException('Storage write failed.');
+
+    Log::spy();
+
+    app()->instance(XmlSitemapGenerator::class, new class($previous) extends XmlSitemapGenerator
+    {
+        public function __construct(private readonly RuntimeException $exception) {}
+
+        public function generate(Site $site): string
+        {
+            throw $this->exception;
+        }
+    });
+
+    try {
+        GenerateSitemapAction::run($site);
+    } catch (Exception $exception) {
+        expect($exception->getMessage())->toBe('Failed to generate sitemap')
+            ->and($exception->getPrevious())->toBe($previous);
+
+        Log::shouldHaveReceived('warning')
+            ->once()
+            ->with('Site Discovery sitemap generation failed.', Mockery::on(
+                static fn (array $context): bool => ($context['exception'] ?? null) === $previous
+                    && ($context['site_id'] ?? null) === $site->getKey(),
+            ));
+
+        return;
+    }
+
+    throw new RuntimeException('Expected sitemap generation to fail.');
 });
