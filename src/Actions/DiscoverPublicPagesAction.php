@@ -33,7 +33,10 @@ final class DiscoverPublicPagesAction
             'pages.*',
             DB::raw("json_extract(pages.meta, '$.priority') AS meta_priority"),
         ])
-            ->with(['translation' => fn (BuilderContract $query): BuilderContract => $query->where('language_id', $language->id)])
+            ->with([
+                'translation' => fn (BuilderContract $query): BuilderContract => $query->where('language_id', $language->id),
+                'pageUrl.siteDomain',
+            ])
             ->withWhereHas(
                 'pageUrl',
                 fn (BuilderContract $query): BuilderContract => $query
