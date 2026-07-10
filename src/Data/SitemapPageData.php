@@ -8,7 +8,9 @@ use Capell\Core\Actions\GetEditPageResourceUrlAction;
 use Capell\Core\Contracts\Pageable;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\PageUrl;
+use Capell\Core\Models\Translation;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use RuntimeException;
 use Spatie\LaravelData\Attributes\MapInputName;
@@ -39,27 +41,14 @@ class SitemapPageData extends Data
 
     public static function fromPage(Pageable $page, bool $withEditUrl = false): self
     {
-        $page->loadMissing([
-            'translation',
-            'type',
-            'pageUrl.siteDomain',
-        ]);
-
-        if ($page->hasPageHierarchy()) {
-            $page->loadMissing([
-                'children' => [
-                    'translation',
-                    'type',
-                    'pageUrl.siteDomain',
-                ],
-            ]);
-        }
+        $translation = self::loadedRelation($page, 'translation');
+        $children = self::loadedChildren($page);
 
         return new self(
-            label: $page->translation->label ?? $page->name,
+            label: $translation instanceof Translation ? ($translation->label ?? $page->name) : $page->name,
             url: self::pageUrl($page),
-            children: $page->hasPageHierarchy()
-                ? $page->children
+            children: $page->hasPageHierarchy() && $children !== null
+                ? $children
                     ?->filter(fn (Page $child): bool => self::hasPersistedPageUrl($child))
                     ->map(fn (Page $child): SitemapPageData => self::fromPage($child, withEditUrl: $withEditUrl))
                     ->values()
@@ -92,14 +81,12 @@ class SitemapPageData extends Data
 
     public static function hasPersistedPageUrl(Pageable $page): bool
     {
-        $page->loadMissing('pageUrl');
-
-        return self::isPersistedPageUrl($page->pageUrl);
+        return self::isPersistedPageUrl(self::loadedRelation($page, 'pageUrl'));
     }
 
     private static function pageUrl(Pageable $page): string
     {
-        $pageUrl = $page->pageUrl;
+        $pageUrl = self::loadedRelation($page, 'pageUrl');
 
         throw_if(! $pageUrl instanceof PageUrl || ! $pageUrl->exists, RuntimeException::class, 'Sitemap page requires a persisted page URL.');
 
@@ -109,5 +96,26 @@ class SitemapPageData extends Data
     private static function isPersistedPageUrl(mixed $pageUrl): bool
     {
         return $pageUrl instanceof PageUrl && $pageUrl->exists;
+    }
+
+    private static function loadedRelation(Pageable $page, string $relation): mixed
+    {
+        return $page instanceof Model && $page->relationLoaded($relation)
+            ? $page->getRelation($relation)
+            : null;
+    }
+
+    /**
+     * @return Collection<int, Page>|null
+     */
+    private static function loadedChildren(Pageable $page): ?Collection
+    {
+        if (! $page instanceof Model || ! $page->relationLoaded('children')) {
+            return null;
+        }
+
+        $children = $page->getRelation('children');
+
+        return $children instanceof Collection ? $children : null;
     }
 }
