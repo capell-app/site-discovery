@@ -25,6 +25,11 @@
             "Capell\\SiteDiscovery\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Capell\\SiteDiscovery\\Tests\\": "tests/"
+        }
+    },
     "extra": {
         "laravel": {
             "providers": [
