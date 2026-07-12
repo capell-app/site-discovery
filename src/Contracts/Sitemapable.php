@@ -1,0 +1,15 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Capell\SiteDiscovery\Contracts;
+
+use Illuminate\Support\Collection;
+
+interface Sitemapable
+{
+    /**
+     * @return Collection<array-key, mixed>
+     */
+    public function fetch(): Collection;
+}

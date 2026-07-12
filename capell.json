@@ -1,0 +1,231 @@
+{
+    "manifest-version": 3,
+    "name": "capell-app/site-discovery",
+    "slug": "site-discovery",
+    "displayName": "Site Discovery",
+    "kind": "package",
+    "capellApiVersion": "^0.0.1",
+    "version": "0.0.x-dev",
+    "description": "Make every published Capell page discoverable with automatic XML sitemaps, an HTML sitemap, and the canonical public-URL registry that powers the Search & SEO bundle.",
+    "product": {
+        "group": "Capell Search & SEO",
+        "tier": "premium",
+        "bundle": "search-seo"
+    },
+    "namespace": "Capell\\SiteDiscovery",
+    "surfaces": ["admin", "frontend", "console"],
+    "dependencies": {
+        "requires": [
+            "capell-app/admin",
+            "capell-app/core",
+            "capell-app/frontend"
+        ],
+        "supports": [
+            "capell-app/agent-delivery",
+            "capell-app/search",
+            "capell-app/seo-suite",
+            "capell-app/url-manager"
+        ],
+        "conflicts": []
+    },
+    "providers": {
+        "metadata": [],
+        "install": [],
+        "runtime": [
+            "Capell\\SiteDiscovery\\Providers\\SiteDiscoveryServiceProvider"
+        ],
+        "admin": [],
+        "frontend": []
+    },
+    "contributes": [
+        {
+            "type": "admin-page",
+            "class": "Capell\\SiteDiscovery\\Manifest\\PublicUrlRegistryPageContribution",
+            "pageClass": "Capell\\SiteDiscovery\\Filament\\Pages\\PublicUrlRegistryPage",
+            "labelKey": "capell-site-discovery::generic.public_url_registry",
+            "permission": "View:PublicUrlRegistryPage"
+        },
+        {
+            "type": "route",
+            "class": "Capell\\SiteDiscovery\\Manifest\\SiteDiscoveryFrontendRoutesContribution"
+        },
+        {
+            "type": "scheduled-job",
+            "class": "Capell\\SiteDiscovery\\Manifest\\SiteDiscoveryIncrementalSitemapScheduleContribution",
+            "command": "capell:xml-sitemap --incremental",
+            "name": "capell-site-discovery:incremental-sitemap",
+            "frequencyConfig": "capell-site-discovery.incremental_sitemap_schedule",
+            "defaultFrequency": "dailyAt:02:30",
+            "enabledWhen": "capell-site-discovery.incremental_sitemap_schedule.enabled=true"
+        }
+    ],
+    "database": {
+        "migrations": false,
+        "settings": false,
+        "requiredTables": []
+    },
+    "commands": {
+        "install": null,
+        "setup": null,
+        "demo": null,
+        "doctor": null,
+        "sitemap": "capell:xml-sitemap"
+    },
+    "settings": [],
+    "actions": {
+        "buildGeneratedOutputParityReport": "Capell\\SiteDiscovery\\Actions\\BuildGeneratedOutputParityReportAction",
+        "buildPublicUrlRegistry": "Capell\\SiteDiscovery\\Actions\\BuildPublicUrlRegistryAction",
+        "generateSitemap": "Capell\\SiteDiscovery\\Actions\\GenerateSitemapAction",
+        "validateSitemapQuality": "Capell\\SiteDiscovery\\Actions\\ValidateSitemapQualityAction"
+    },
+    "permissions": ["View:PublicUrlRegistryPage"],
+    "capabilities": [
+        "site-discovery",
+        "site-discovery-admin",
+        "site-discovery-console",
+        "site-discovery-frontend"
+    ],
+    "security": {
+        "riskTier": "standard",
+        "publicSurface": {
+            "routeNames": [
+                "capell-frontend.sitemap-xml",
+                "capell-frontend.sitemap-xml.prefixed"
+            ],
+            "auth": "public",
+            "csrfExemptRoutes": [],
+            "signedRoutes": [],
+            "tokenizedRoutes": [],
+            "webhookRoutes": [],
+            "throttledRoutes": []
+        },
+        "sensitiveData": {
+            "encryptedFields": [],
+            "hashedTokenFields": [],
+            "redactedOutputClasses": [
+                "Capell\\SiteDiscovery\\Actions\\RedactIndexNowNotificationErrorMessageAction",
+                "Capell\\SiteDiscovery\\Support\\IndexNow\\IndexNowUrlChangeNotifier"
+            ],
+            "plaintextJustifications": []
+        },
+        "publicOutput": {
+            "cacheSafe": true,
+            "forbidAuthoringSurface": true,
+            "forbidSecrets": true,
+            "forbidPublicBladeQueries": true
+        },
+        "externalHttpClients": {
+            "requiresTimeouts": true,
+            "requiresSecretRedaction": true,
+            "clients": [
+                "Capell\\SiteDiscovery\\Support\\IndexNow\\IndexNowUrlChangeNotifier"
+            ]
+        },
+        "adminSurface": {
+            "authorization": "permissions",
+            "permissions": ["View:PublicUrlRegistryPage"]
+        }
+    },
+    "performance": {
+        "frontendRenderBudgetMs": 20,
+        "adminQueryBudget": 40,
+        "cacheTags": ["site-discovery"],
+        "cacheSafety": {
+            "cacheable": false,
+            "variesBy": ["site", "locale"],
+            "sensitiveOutput": false,
+            "invalidationSources": [
+                {
+                    "model": "Capell\\Core\\Models\\Page",
+                    "events": ["saved", "deleted"]
+                },
+                {
+                    "model": "Capell\\Core\\Models\\Site",
+                    "events": ["created"]
+                }
+            ],
+            "queueInvalidation": true
+        }
+    },
+    "healthChecks": [
+        {
+            "key": "site-discovery.public-urls",
+            "label": "Discoverable public URLs are resolved with site and language scope.",
+            "class": "Capell\\SiteDiscovery\\Health\\SiteDiscoveryHealthCheck",
+            "severity": "critical",
+            "surface": "frontend"
+        },
+        {
+            "key": "site-discovery.xml-sitemaps",
+            "label": "XML sitemap generation writes domain-scoped sitemap files.",
+            "class": "Capell\\SiteDiscovery\\Health\\SiteDiscoveryHealthCheck",
+            "severity": "critical",
+            "surface": "console"
+        },
+        {
+            "key": "site-discovery.incremental",
+            "label": "Incremental sitemap generation skips unchanged URL maps.",
+            "class": "Capell\\SiteDiscovery\\Health\\SiteDiscoveryHealthCheck",
+            "severity": "warning",
+            "surface": "console"
+        },
+        {
+            "key": "site-discovery.html-sitemap",
+            "label": "HTML sitemap page renders discoverable page hierarchy.",
+            "class": "Capell\\SiteDiscovery\\Health\\SiteDiscoveryHealthCheck",
+            "severity": "warning",
+            "surface": "frontend"
+        }
+    ],
+    "commercial": {
+        "proposedLicense": "paid",
+        "requestedCertification": "first-party",
+        "supportPolicy": "priority",
+        "privateDocsRequested": true
+    },
+    "marketplace": {
+        "summary": "Make every published Capell page discoverable — automatic XML sitemaps with index sharding, an HTML sitemap, and the canonical public-URL registry that powers the whole Search & SEO bundle.",
+        "description": "Site Discovery is the discovery backbone of Capell's Search & SEO bundle. It builds per-domain XML sitemaps (with `<sitemapindex>` sharding and incremental regeneration that skips unchanged pages), publishes a public HTML sitemap, and maintains the canonical Public URL Registry that records canonical state, robots directives, last-modified, and sitemap/AI-discovery eligibility for every public URL. Other packages — SEO Suite, Search, Blog, Events — plug in as URL contributors and read a single, consistent view of what your site intends to publish. Built-in quality gates and a generated-output parity report catch missing or stale URLs before search engines do, and optional IndexNow notifications submit changes the moment a page is saved.",
+        "screenshots": [
+            {
+                "path": "docs/assets/marketplace/extension-card.jpg",
+                "alt": "Site Discovery extension preview image",
+                "caption": "Site Discovery extension preview"
+            },
+            {
+                "path": "docs/screenshots/page-sitemap-action.png",
+                "alt": "Page resource sitemap action in the Capell admin",
+                "caption": "Page-level sitemap action for regenerating discovery output."
+            },
+            {
+                "path": "docs/screenshots/site-sitemap-action.png",
+                "alt": "Site resource sitemap action in the Capell admin",
+                "caption": "Site-level sitemap action for refreshing public discovery output."
+            },
+            {
+                "path": "docs/screenshots/sitemap-generation-tool.png",
+                "alt": "Sitemap generation tool showing generated sitemap status",
+                "caption": "Admin sitemap generation tool with domain output status."
+            },
+            {
+                "path": "docs/screenshots/html-sitemap-page.png",
+                "alt": "Public HTML sitemap page with discoverable page links",
+                "caption": "Visitor-safe HTML sitemap showing discoverable public pages."
+            },
+            {
+                "path": "docs/screenshots/public-url-registry-page.png",
+                "alt": "Public URL Registry admin page with generated output parity rows",
+                "caption": "Public URL Registry parity page for sitemap and downstream output coverage."
+            },
+            {
+                "path": "docs/screenshots/public-url-quality-report.png",
+                "alt": "Public URL Registry quality report with missing output warnings",
+                "caption": "Quality report highlighting missing generated outputs and sitemap issues."
+            }
+        ],
+        "categories": ["admin", "console", "frontend", "search-seo"]
+    },
+    "contributionTraceability": {
+        "deferredContributions": []
+    }
+}
