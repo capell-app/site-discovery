@@ -13,9 +13,9 @@
     "license": "proprietary",
     "require": {
         "php": "^8.4",
-        "capell-app/admin": "^0.0 || 0.0.x-dev",
-        "capell-app/core": "^0.0 || 0.0.x-dev",
-        "capell-app/frontend": "^0.0 || 0.0.x-dev"
+        "capell-app/admin": "^1.0",
+        "capell-app/core": "^1.0",
+        "capell-app/frontend": "^1.0"
     },
     "require-dev": {
         "orchestra/testbench": "^9.0"
@@ -37,7 +37,7 @@
             ]
         },
         "branch-alias": {
-            "dev-main": "0.0.x-dev"
+            "dev-main": "1.x-dev"
         }
     },
     "config": {
