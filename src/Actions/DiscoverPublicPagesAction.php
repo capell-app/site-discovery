@@ -45,7 +45,7 @@ final class DiscoverPublicPagesAction
                     ->whereNull('type'),
             )
             ->withWhereHas(
-                'type',
+                'blueprint',
                 fn (BuilderContract $query): BuilderContract => $query
                     ->where(
                         fn (Builder $query): Builder => $query->whereNull('group')
