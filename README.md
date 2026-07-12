@@ -2,7 +2,7 @@
 
 <!-- prettier-ignore-start -->
 
-## What This Extension Adds
+## What This Plugin Adds
 
 Site Discovery is an **Available**, **No schema impact** Capell package in the **Capell Search & SEO** product group. It ships as `capell-app/site-discovery` and extends these surfaces: admin, frontend, console.
 
@@ -28,6 +28,10 @@ Status details:
 ## Screens And Workflow
 
 Screenshot contract: `docs/screenshots.json`.
+
+![Page resource sitemap action](docs/screenshots/page-sitemap-action.png)
+
+![Site resource sitemap action](docs/screenshots/site-sitemap-action.png)
 
 - Page resource sitemap action (admin, required).
 - Site resource sitemap action (admin, required).
