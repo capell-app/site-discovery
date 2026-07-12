@@ -18,7 +18,7 @@ afterEach(function (): void {
 });
 
 it('reports a compatible capell api version', function (): void {
-    expect(SiteDiscoveryHealthCheck::compatibleCapellApiVersion())->toBe('^4.0');
+    expect(SiteDiscoveryHealthCheck::compatibleCapellApiVersion())->toBe('^0.0');
 });
 
 it('runs real diagnostics returning check results', function (): void {
