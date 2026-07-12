@@ -49,7 +49,7 @@ it('builds sitemap DTOs from prehydrated relations without queries', function ()
     ]);
     $page->exists = true;
     $page->setRelation('translation', new Translation(['title' => 'Example page']));
-    $page->setRelation('type', new Blueprint);
+    $page->setRelation('blueprint', new Blueprint);
     $page->setRelation('pageUrl', $pageUrl);
 
     DB::flushQueryLog();

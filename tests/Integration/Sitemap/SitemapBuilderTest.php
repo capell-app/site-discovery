@@ -182,7 +182,7 @@ describe('SitemapBuilder', function (): void {
         ]);
         $childPage->exists = true;
         $childPage->setRelation('translation', new Translation(['title' => 'Child without URL']));
-        $childPage->setRelation('type', new Blueprint);
+        $childPage->setRelation('blueprint', new Blueprint);
         $childPage->setRelation('pageUrl', $childPageUrl);
 
         $parentPage = new Page;
@@ -192,7 +192,7 @@ describe('SitemapBuilder', function (): void {
         ]);
         $parentPage->exists = true;
         $parentPage->setRelation('translation', new Translation(['title' => 'Parent']));
-        $parentPage->setRelation('type', new Blueprint);
+        $parentPage->setRelation('blueprint', new Blueprint);
         $parentPage->setRelation('pageUrl', $parentPageUrl);
         $parentPage->setRelation('children', new Illuminate\Database\Eloquent\Collection([$childPage]));
 
