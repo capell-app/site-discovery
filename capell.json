@@ -4,7 +4,7 @@
     "slug": "site-discovery",
     "displayName": "Site Discovery",
     "kind": "package",
-    "capellApiVersion": "^4.0",
+    "capellApiVersion": "^1.0",
     "version": "1.x-dev",
     "description": "Make every published Capell page discoverable with automatic XML sitemaps, an HTML sitemap, and the canonical public-URL registry that powers the Search & SEO bundle.",
     "product": {
