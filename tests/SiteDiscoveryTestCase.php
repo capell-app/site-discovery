@@ -15,12 +15,23 @@ use Capell\Navigation\Providers\NavigationServiceProvider;
 use Capell\SiteDiscovery\Providers\SiteDiscoveryServiceProvider;
 use Capell\Tests\AbstractTestCase;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Facades\ParallelTesting;
 use Livewire\LivewireServiceProvider;
 use MichalOravec\PaginateRoute\PaginateRouteServiceProvider;
 use Override;
 
 class SiteDiscoveryTestCase extends AbstractTestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $testToken = getenv('TEST_TOKEN') ?: 'sequential';
+        $storageToken = substr(hash('sha256', $testToken . '|' . getmypid()), 0, 16);
+
+        ParallelTesting::resolveTokenUsing(static fn (): string => $storageToken);
+    }
+
     protected function getPackageServiceName(): string
     {
         return 'capell-site-discovery';
