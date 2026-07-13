@@ -49,7 +49,7 @@ class SitemapPageData extends Data
             url: self::pageUrl($page),
             children: $page->hasPageHierarchy() && $children !== null
                 ? $children
-                    ?->filter(fn (Page $child): bool => self::hasPersistedPageUrl($child))
+                    ->filter(fn (Page $child): bool => self::hasPersistedPageUrl($child))
                     ->map(fn (Page $child): SitemapPageData => self::fromPage($child, withEditUrl: $withEditUrl))
                     ->values()
                 : null,

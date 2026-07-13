@@ -82,7 +82,7 @@ it('preserves the previous exception when sitemap generation fails', function ()
     $site = Site::factory()->create();
     $previous = new RuntimeException('Storage write failed.');
 
-    Log::spy();
+    $log = Log::spy();
 
     app()->instance(XmlSitemapGenerator::class, new class($previous) extends XmlSitemapGenerator
     {
@@ -100,7 +100,7 @@ it('preserves the previous exception when sitemap generation fails', function ()
         expect($exception->getMessage())->toBe('Failed to generate sitemap')
             ->and($exception->getPrevious())->toBe($previous);
 
-        Log::shouldHaveReceived('warning')
+        $log->shouldHaveReceived('warning')
             ->once()
             ->with('Site Discovery sitemap generation failed.', Mockery::on(
                 static fn (array $context): bool => ($context['exception'] ?? null) === $previous

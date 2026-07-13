@@ -192,11 +192,15 @@ test('sitemap xml page returns 304 with ETag', function (): void {
         Storage::disk('array')->put($filePath, '<?xml version="1.0" encoding="UTF-8"?><urlset></urlset>');
     }
 
-    $fileContents = Storage::disk('array')->get($filePath);
-    expect($fileContents)->not()->toBeNull('Sitemap file missing for ETag test');
-    $etag = 'W/"' . hash('sha256', (string) $fileContents) . '"';
+    $initialResponse = $this->get(siteDiscoveryPageUrl($sitemapPage) . '-xml');
+    $etag = $initialResponse->baseResponse->headers->get('ETag');
 
-    get(siteDiscoveryPageUrl($sitemapPage) . '-xml', ['If-None-Match' => $etag])
+    expect($etag)->toBeString()->not->toBe('');
+    throw_unless(is_string($etag), RuntimeException::class, 'Expected sitemap ETag header.');
+
+    $this->withHeader('If-None-Match', $etag)
+        ->get(siteDiscoveryPageUrl($sitemapPage) . '-xml')
+        ->assertHeader('ETag', $etag)
         ->assertStatus(304);
 });
 

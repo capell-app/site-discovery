@@ -35,7 +35,6 @@ final class DiscoverPublicPagesAction
         ])
             ->with([
                 'translation' => fn (BuilderContract $query): BuilderContract => $query->where('language_id', $language->id),
-                'pageUrl.siteDomain',
             ])
             ->withWhereHas(
                 'pageUrl',
