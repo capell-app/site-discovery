@@ -18,6 +18,7 @@ use Capell\Frontend\Enums\RenderingStrategyEnum;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use RuntimeException;
 
 class SitemapPageCreator
 {
@@ -44,6 +45,13 @@ class SitemapPageCreator
         $languages ??= $site->languages;
         $type = $this->getOrCreateSitemapType();
         $layout = $this->getLayout(LayoutEnum::Default);
+        $existingPage = Page::query()
+            ->where('site_id', $site->id)
+            ->whereHas(
+                'pageUrls',
+                static fn (Builder $query): Builder => $query->where('url', 'like', '%/sitemap-xml'),
+            )
+            ->first();
 
         $defaults = [
             'layout_id' => $layout->id,
@@ -57,16 +65,21 @@ class SitemapPageCreator
             'name' => __('capell-site-discovery::generic.sitemap'),
         ];
 
-        /** @var Page $page */
-        $page = CapellCore::createOrUpdateModel(
-            $this->pageModel,
-            [
-                'site_id' => $site->id,
-                'blueprint_id' => $type->id,
-            ],
-            fn (array $data): array => CapellCore::mergeModelInterceptorData($defaults, $data),
-            PageInterceptorInterface::class,
-        );
+        $page = $existingPage instanceof Page
+            ? $existingPage
+            : CapellCore::createOrUpdateModel(
+                $this->pageModel,
+                [
+                    'site_id' => $site->id,
+                    'blueprint_id' => $type->id,
+                ],
+                fn (array $data): array => CapellCore::mergeModelInterceptorData($defaults, $data),
+                PageInterceptorInterface::class,
+            );
+
+        if (! $page instanceof Page) {
+            throw new RuntimeException('The sitemap page creator did not return a page.');
+        }
 
         $page->forceFill([
             'meta' => [
