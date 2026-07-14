@@ -61,7 +61,6 @@ class SitemapPageCreator
         $page = CapellCore::createOrUpdateModel(
             $this->pageModel,
             [
-                'layout_id' => $layout->id,
                 'site_id' => $site->id,
                 'blueprint_id' => $type->id,
             ],
