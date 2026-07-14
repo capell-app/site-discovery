@@ -54,11 +54,11 @@
     <style>
         /***** Vertical Sitemap from https://github.com/kanyarut/VisualSitemap/blob/master/sitemap.css *****/
         .vsitemap {
-            --color-primary: #0088ce;
-            --color-primary-tint: #fff;
-            --color-secondary: #005399;
-            --color-secondary-tint: #fff;
-            --color-line: #ccc;
+            --color-primary: var(--color-primary-600);
+            --color-primary-tint: var(--color-white);
+            --color-secondary: var(--color-primary-800);
+            --color-secondary-tint: var(--color-white);
+            --color-line: var(--color-gray-300);
             --item-width: 200px;
             --item-gap: 20px;
             text-align: left;
