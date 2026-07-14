@@ -1,0 +1,39 @@
+{
+    "whatThisPluginAdds": {
+        "text": "Site Discovery builds a canonical public-URL registry plus XML and HTML sitemap output from published, indexable Capell content.",
+        "evidence": [
+            "src/Actions/BuildPublicUrlRegistryAction.php",
+            "src/Actions/GenerateSitemapAction.php",
+            "src/Actions/BuildSitemapXmlResponseAction.php",
+            "tests/Feature/SitemapXmlRouteTest.php"
+        ]
+    },
+    "surfaceOutcome": {
+        "text": "Admins can inspect which public URLs are indexable and covered by generated outputs. Search engines and other crawlers receive current sitemap routes as content changes.",
+        "evidence": [
+            "src/Filament/Pages/PublicUrlRegistryPage.php",
+            "tests/Feature/Filament/PublicUrlRegistryPageTest.php",
+            "src/Listeners/Sitemap/RegenerateSitemapsOnPageSaved.php",
+            "src/Manifest/SiteDiscoveryFrontendRoutesContribution.php"
+        ]
+    },
+    "whyItMatters": {
+        "developers": {
+            "text": "URL and discovery-output contracts let packages contribute public records while shared Actions handle deduplication, indexability, sitemap quality, and change notifications.",
+            "evidence": [
+                "src/Contracts/PublicUrlContributor.php",
+                "src/Contracts/DiscoveryOutputSource.php",
+                "src/Actions/ValidateSitemapQualityAction.php",
+                "tests/Integration/Discovery/PublicUrlRegistryActionTest.php"
+            ]
+        },
+        "teams": {
+            "text": "Teams can see whether published pages are being offered to crawlers and correct missing or hidden URLs before discovery suffers.",
+            "evidence": [
+                "docs/overview.admin.md",
+                "src/Actions/BuildGeneratedOutputParityReportAction.php",
+                "tests/Integration/Sitemap/SitemapQualityGateTest.php"
+            ]
+        }
+    }
+}
