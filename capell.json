@@ -73,6 +73,7 @@
     },
     "settings": [],
     "actions": {
+        "setup": "Capell\\SiteDiscovery\\Actions\\SetupSiteDiscoveryPackageAction",
         "buildGeneratedOutputParityReport": "Capell\\SiteDiscovery\\Actions\\BuildGeneratedOutputParityReportAction",
         "buildPublicUrlRegistry": "Capell\\SiteDiscovery\\Actions\\BuildPublicUrlRegistryAction",
         "generateSitemap": "Capell\\SiteDiscovery\\Actions\\GenerateSitemapAction",

@@ -88,11 +88,12 @@ class SitemapPageCreator
                 'title' => __('capell-site-discovery::generic.sitemap'),
             ]);
 
-            $page->pageUrl()->create([
-                'url' => $page->getParentUrl(language: $language) . $translation->slug . '-xml',
+            $page->pageUrls()->updateOrCreate([
                 'language_id' => $language->id,
                 'site_id' => $page->site_id,
                 'type' => 'alias',
+            ], [
+                'url' => $page->getParentUrl(language: $language) . $translation->slug . '-xml',
             ]);
         });
 

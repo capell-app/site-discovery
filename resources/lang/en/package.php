@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 return [
     'description' => 'Make every published Capell page discoverable with automatic XML sitemaps, an HTML sitemap, and the canonical public-URL registry.',
+    'setup' => [
+        'completed' => 'Site Discovery ensured an HTML sitemap for :count site(s).',
+    ],
     'health' => [
         'public_urls' => [
             'label' => 'Site Discovery public URL contributors',
