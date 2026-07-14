@@ -14,6 +14,7 @@ use Capell\Core\Data\RenderableDefinitionData;
 use Capell\Core\Enums\BlueprintSubjectEnum;
 use Capell\Core\Enums\PackageTypeEnum;
 use Capell\Core\Enums\RenderableTypeEnum;
+use Capell\Core\Events\CapellInstalled;
 use Capell\Core\Events\PageDeleted;
 use Capell\Core\Events\PageSaved;
 use Capell\Core\Events\SiteCreated;
@@ -30,6 +31,7 @@ use Capell\SiteDiscovery\Filament\Extenders\Page\SitemapResourceHeaderActionExte
 use Capell\SiteDiscovery\Filament\Extenders\Site\SitemapSiteHeaderActionExtender;
 use Capell\SiteDiscovery\Filament\Extenders\Site\SitemapSiteRecordActionExtender;
 use Capell\SiteDiscovery\Filament\Pages\PublicUrlRegistryPage;
+use Capell\SiteDiscovery\Listeners\Sitemap\EnsureSitemapPagesAfterCapellInstalled;
 use Capell\SiteDiscovery\Listeners\Sitemap\RegenerateSitemapsOnPageDeleted;
 use Capell\SiteDiscovery\Listeners\Sitemap\RegenerateSitemapsOnPageSaved;
 use Capell\SiteDiscovery\Listeners\Sitemap\RegenerateSitemapsOnSiteCreated;
@@ -76,6 +78,9 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
     public function registeringPackage(): void
     {
         $this->app->booted(function (): void {
+            $events = $this->app->make(Dispatcher::class);
+            $events->listen(CapellInstalled::class, EnsureSitemapPagesAfterCapellInstalled::class);
+
             if (! $this->isPackageInstalled()) {
                 return;
             }

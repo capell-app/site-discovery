@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Capell\Core\Data\PackageData;
 use Capell\Core\Enums\PackageTypeEnum;
+use Capell\Core\Events\CapellInstalled;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\PageUrl;
@@ -13,6 +14,7 @@ use Capell\SiteDiscovery\Providers\SiteDiscoveryServiceProvider;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageType;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Event;
 
 uses(SiteDiscoveryTestCase::class);
 
@@ -56,4 +58,17 @@ it('declares the setup lifecycle action in the public manifest', function (): vo
     );
 
     expect($manifest['actions']['setup'] ?? null)->toBe(SetupSiteDiscoveryPackageAction::class);
+});
+
+it('backfills sitemap pages after a spec creates sites at install finalization', function (): void {
+    $language = Language::factory()->create();
+    $site = Site::factory()->withTranslations($language)->create();
+
+    Event::dispatch(new CapellInstalled('/tmp/release-confidence-site-spec.json', true));
+    Event::dispatch(new CapellInstalled('/tmp/release-confidence-site-spec.json', true));
+
+    expect(Page::query()
+        ->where('site_id', $site->id)
+        ->whereHas('blueprint', static fn (Builder $blueprintQuery): Builder => $blueprintQuery->where('key', SitemapPageType::Key))
+        ->count())->toBe(1);
 });
