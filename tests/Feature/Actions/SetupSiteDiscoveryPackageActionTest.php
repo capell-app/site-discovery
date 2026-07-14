@@ -51,6 +51,7 @@ it('backfills one sitemap page and URL per language idempotently', function (): 
 });
 
 it('declares the setup lifecycle action in the public manifest', function (): void {
+    /** @var array{actions: array{setup: class-string}} $manifest */
     $manifest = json_decode(
         (string) file_get_contents(dirname(__DIR__, 3) . '/capell.json'),
         true,

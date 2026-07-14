@@ -17,7 +17,7 @@ final class SetupSiteDiscoveryPackageAction implements PackageLifecycleAction
     public function handle(PackageData $package, array $arguments = [], ?ProgressReporter $reporter = null): void
     {
         $reporter ??= new NullProgressReporter;
-        $siteCount = EnsureSitemapPagesAction::run();
+        $siteCount = (new EnsureSitemapPagesAction)->handle();
 
         $reporter->report((string) __('capell-site-discovery::package.setup.completed', [
             'count' => $siteCount,
