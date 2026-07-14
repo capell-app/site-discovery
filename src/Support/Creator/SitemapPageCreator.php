@@ -47,11 +47,27 @@ class SitemapPageCreator
         $layout = $this->getLayout(LayoutEnum::Default);
         $existingPage = Page::query()
             ->where('site_id', $site->id)
-            ->whereHas(
-                'pageUrls',
-                static fn (Builder $query): Builder => $query->where('url', 'like', '%/sitemap-xml'),
-            )
+            ->where('blueprint_id', $type->id)
+            ->orderBy('id')
             ->first();
+
+        if (! $existingPage instanceof Page) {
+            $reservedPathPage = Page::query()
+                ->where('site_id', $site->id)
+                ->whereHas(
+                    'pageUrls',
+                    static fn (Builder $query): Builder => $query->where('url', 'like', '%/sitemap-xml'),
+                )
+                ->orderBy('id')
+                ->first();
+
+            if ($reservedPathPage instanceof Page
+                && data_get($reservedPathPage->meta, 'component') !== SitemapPageType::ComponentView) {
+                throw new RuntimeException('The reserved sitemap XML path is already owned by another page.');
+            }
+
+            $existingPage = $reservedPathPage;
+        }
 
         $defaults = [
             'layout_id' => $layout->id,
