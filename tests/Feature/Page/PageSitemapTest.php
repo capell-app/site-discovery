@@ -172,6 +172,18 @@ test('sitemap xml page returns 404 if file missing', function (): void {
         ->assertStatus(404);
 });
 
+test('sitemap setup rejects an unrelated page using the reserved XML path', function (): void {
+    $language = Language::factory()->create();
+    $site = Site::factory()->withTranslations(collect([$language]))->create();
+    $page = Page::factory()->site($site)->withTranslations(collect([$language]))->create();
+    PageUrl::factory()->site($site)->language($language)->page($page)->create([
+        'url' => '/sitemap-xml',
+    ]);
+
+    expect(fn (): Page => resolve(SitemapPageCreator::class)->createSitemapPage($site, collect([$language])))
+        ->toThrow(RuntimeException::class, 'reserved sitemap XML path');
+});
+
 test('sitemap xml page returns 304 with ETag', function (): void {
     config(['capell.sitemap.disk' => 'array', 'capell.sitemap.directory' => 'sitemaps']);
     Storage::fake('array');
