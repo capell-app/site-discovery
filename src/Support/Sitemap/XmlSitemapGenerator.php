@@ -80,22 +80,34 @@ class XmlSitemapGenerator
      */
     public function generate(Site $site): string
     {
-        $site->loadMissing('siteDomains.language');
+        $site->load('siteDomains.language');
 
         $domain = $site->siteDomains->first();
         if ($domain === null) {
             throw new SitemapGeneratorException('No site domain found for site ID ' . $site->id);
         }
 
-        $this->process($site);
-
         $disk = config('capell.sitemap.disk', 'local');
         $directory = config('capell.sitemap.directory', 'sitemaps');
         $filename = $domain->getDomainKey() . '.xml';
         $filePath = $directory . '/' . $filename;
         $storage = Storage::disk($disk);
+        $primaryDomainTotal = null;
+
+        $this->process(
+            $site,
+            end: static function (int $total, string $generatedPath) use (&$primaryDomainTotal, $filePath): void {
+                if ($generatedPath === $filePath) {
+                    $primaryDomainTotal = $total;
+                }
+            },
+        );
 
         if (! $storage->exists($filePath)) {
+            if ($primaryDomainTotal === 0) {
+                return $this->toXml([]);
+            }
+
             throw new SitemapGeneratorException(
                 '[SitemapGenerator] Sitemap XML file not found: ' . $filePath .
                 ' | path_exists=no' .
@@ -123,7 +135,7 @@ class XmlSitemapGenerator
         ?Closure $checkpoint = null,
         ?Closure $end = null,
     ): void {
-        $site->loadMissing('siteDomains.language');
+        $site->load('siteDomains.language');
 
         $site->siteDomains->each(function (SiteDomain $domain) use ($site, $start, $prepare, $checkpoint, $end): void {
             $this->generateForDomain($site, $domain, $start, $prepare, $checkpoint, $end);
@@ -144,7 +156,7 @@ class XmlSitemapGenerator
         ?Closure $checkpoint = null,
         ?Closure $end = null,
     ): void {
-        $site->loadMissing('siteDomains.language');
+        $site->load('siteDomains.language');
 
         $site->siteDomains->each(function (SiteDomain $domain) use ($site, $start, $prepare, $checkpoint, $end): void {
             $this->generateForDomainIncremental($site, $domain, $start, $prepare, $checkpoint, $end);

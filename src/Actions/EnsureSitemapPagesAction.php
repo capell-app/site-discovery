@@ -23,7 +23,7 @@ final class EnsureSitemapPagesAction
                 $pageCreator = resolve(SitemapPageCreator::class);
 
                 foreach ($sites as $site) {
-                    $pageCreator->createSitemapPage($site, $site->languages()->get());
+                    $pageCreator->createSitemapPage($site, $site->languages()->get()->toBase());
                     $siteCount++;
                 }
             },

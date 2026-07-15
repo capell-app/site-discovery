@@ -18,6 +18,7 @@ use Capell\Frontend\Enums\RenderingStrategyEnum;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use RuntimeException;
 
 class SitemapPageCreator
 {
@@ -37,13 +38,36 @@ class SitemapPageCreator
     protected string $typeModel = Blueprint::class;
 
     /**
-     * @param  Collection<array-key, mixed>  $languages
+     * @param  Collection<int, Language>  $languages
      */
     public function createSitemapPage(Site $site, ?Collection $languages = null): Page
     {
         $languages ??= $site->languages;
         $type = $this->getOrCreateSitemapType();
         $layout = $this->getLayout(LayoutEnum::Default);
+        $existingPage = Page::query()
+            ->where('site_id', $site->id)
+            ->where('blueprint_id', $type->id)
+            ->orderBy('id')
+            ->first();
+
+        if (! $existingPage instanceof Page) {
+            $reservedPathPage = Page::query()
+                ->where('site_id', $site->id)
+                ->whereHas(
+                    'pageUrls',
+                    static fn (Builder $query): Builder => $query->where('url', 'like', '%/sitemap-xml'),
+                )
+                ->orderBy('id')
+                ->first();
+
+            if ($reservedPathPage instanceof Page
+                && data_get($reservedPathPage->meta, 'component') !== SitemapPageType::ComponentView) {
+                throw new RuntimeException('The reserved sitemap XML path is already owned by another page.');
+            }
+
+            $existingPage = $reservedPathPage;
+        }
 
         $defaults = [
             'layout_id' => $layout->id,
@@ -57,17 +81,21 @@ class SitemapPageCreator
             'name' => __('capell-site-discovery::generic.sitemap'),
         ];
 
-        /** @var Page $page */
-        $page = CapellCore::createOrUpdateModel(
-            $this->pageModel,
-            [
-                'layout_id' => $layout->id,
-                'site_id' => $site->id,
-                'blueprint_id' => $type->id,
-            ],
-            fn (array $data): array => CapellCore::mergeModelInterceptorData($defaults, $data),
-            PageInterceptorInterface::class,
-        );
+        $page = $existingPage instanceof Page
+            ? $existingPage
+            : CapellCore::createOrUpdateModel(
+                $this->pageModel,
+                [
+                    'site_id' => $site->id,
+                    'blueprint_id' => $type->id,
+                ],
+                fn (array $data): array => CapellCore::mergeModelInterceptorData($defaults, $data),
+                PageInterceptorInterface::class,
+            );
+
+        if (! $page instanceof Page) {
+            throw new RuntimeException('The sitemap page creator did not return a page.');
+        }
 
         $page->forceFill([
             'meta' => [
@@ -88,13 +116,18 @@ class SitemapPageCreator
                 'title' => __('capell-site-discovery::generic.sitemap'),
             ]);
 
-            $page->pageUrls()->updateOrCreate([
+            $urlAttributes = [
                 'language_id' => $language->id,
                 'site_id' => $page->site_id,
                 'type' => 'alias',
-            ], [
-                'url' => $page->getParentUrl(language: $language) . $translation->slug . '-xml',
-            ]);
+            ];
+            $url = $page->getParentUrl(language: $language) . $translation->slug . '-xml';
+
+            if ($page->pageUrls()->where($urlAttributes)->where('url', $url)->exists()) {
+                return;
+            }
+
+            $page->pageUrls()->updateOrCreate($urlAttributes, ['url' => $url]);
         });
 
         return $page;

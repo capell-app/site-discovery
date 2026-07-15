@@ -110,6 +110,34 @@ it('writes one XML per domain and includes expected URLs', function (): void {
     }
 });
 
+it('reloads domains before generating when the site relation is stale', function (): void {
+    $languages = Language::factory()->count(2)->create();
+    $site = Site::factory()
+        ->language($languages[0])
+        ->withTranslations($languages[0])
+        ->create();
+    $site->load('siteDomains.language');
+
+    SiteDomain::factory()->for($site)->create([
+        'domain' => 'secondary.example.test',
+        'language_id' => $languages[1]->getKey(),
+    ]);
+    Page::factory()->site($site)->withTranslations($languages)->create();
+
+    (new XmlSitemapGenerator)->generate($site);
+
+    $domainKeys = SiteDomain::query()
+        ->whereBelongsTo($site)
+        ->get()
+        ->map(static fn (SiteDomain $domain): string => $domain->getDomainKey());
+    $xmlFiles = collect(Storage::disk('local')->files('sitemaps_test'))
+        ->filter(static fn (string $path): bool => str_ends_with($path, '.xml'))
+        ->map(static fn (string $path): string => pathinfo($path, PATHINFO_FILENAME));
+
+    expect($site->siteDomains)->toHaveCount(2)
+        ->and($xmlFiles->sort()->values()->all())->toBe($domainKeys->sort()->values()->all());
+});
+
 it('skips generation when no pages and still signals end', function (): void {
     $site = Site::factory()->withTranslations()->create();
     SiteDomain::factory()->for($site)->create();
@@ -141,6 +169,16 @@ it('skips generation when no pages and still signals end', function (): void {
     $files = collect($storage->files('sitemaps_test'));
     expect($files)->toBeEmpty()
         ->and($calls)->toContain('end');
+});
+
+it('returns a valid empty sitemap when the primary domain has no eligible URLs', function (): void {
+    $site = Site::factory()->withTranslations()->create();
+
+    $xml = (new XmlSitemapGenerator)->generate($site);
+
+    expect($xml)->toContain('<urlset')
+        ->and($xml)->not->toContain('<url>')
+        ->and(Storage::disk('local')->files('sitemaps_test'))->toBeEmpty();
 });
 
 it('generates sitemap for path only domains and passes a string domain key to prepare callback', function (): void {
