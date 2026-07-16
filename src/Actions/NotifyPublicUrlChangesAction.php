@@ -11,14 +11,16 @@ use Capell\SiteDiscovery\Contracts\UrlChangeNotifier;
 use Capell\SiteDiscovery\Data\DiscoverableUrlData;
 use Capell\SiteDiscovery\Data\UrlChangeNotificationResultData;
 use Illuminate\Support\Collection;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static Collection<int, UrlChangeNotificationResultData> run(Site $site, Language $language, iterable<int, DiscoverableUrlData|string> $urls, ?SiteDomain $domain = null)
  */
 final class NotifyPublicUrlChangesAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @param  iterable<int, DiscoverableUrlData|string>  $urls

@@ -68,7 +68,7 @@ it('discovers registered public outputs and filters unsafe entries', function ()
         }
     });
 
-    $outputs = (new DiscoverPublicDiscoveryOutputsAction($registry))->handle($site, $language, $domain);
+    $outputs = runBoundAction(DiscoverPublicDiscoveryOutputsAction::class, new DiscoverPublicDiscoveryOutputsAction($registry), $site, $language, $domain);
 
     expect($outputs)->toHaveCount(1)
         ->and($outputs->first()?->key)->toBe('llms-txt')

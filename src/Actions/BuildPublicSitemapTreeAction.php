@@ -10,7 +10,8 @@ use Capell\Core\Models\SiteDomain;
 use Capell\SiteDiscovery\Data\SitemapPageData;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapBuilder;
 use Illuminate\Support\Collection;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 use UnexpectedValueException;
 
 /**
@@ -18,7 +19,8 @@ use UnexpectedValueException;
  */
 final class BuildPublicSitemapTreeAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @return Collection<int, SitemapPageData>

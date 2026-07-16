@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Capell\SiteDiscovery\Actions;
 
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 use Throwable;
 
 final class RedactIndexNowNotificationErrorMessageAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(Throwable|string $error): string
     {

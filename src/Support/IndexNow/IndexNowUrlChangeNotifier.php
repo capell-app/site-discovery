@@ -77,7 +77,7 @@ final class IndexNowUrlChangeNotifier implements UrlChangeNotifier
                 notifier: self::NotifierName,
                 urls: $payload['urlList'],
                 accepted: false,
-                message: (new RedactIndexNowNotificationErrorMessageAction)->handle($connectionException),
+                message: RedactIndexNowNotificationErrorMessageAction::run($connectionException),
             );
         }
 

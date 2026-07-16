@@ -13,6 +13,7 @@ use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsJob;
 use Lorisleiva\Actions\Concerns\AsObject;
 use Throwable;
@@ -22,6 +23,7 @@ use Throwable;
  */
 class GenerateSitemapAction
 {
+    use AsFake;
     use AsJob;
     use AsObject;
 

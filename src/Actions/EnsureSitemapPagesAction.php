@@ -7,10 +7,12 @@ namespace Capell\SiteDiscovery\Actions;
 use Capell\Core\Models\Site;
 use Capell\SiteDiscovery\Support\Creator\SitemapPageCreator;
 use Illuminate\Database\Eloquent\Collection;
+use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 
 final class EnsureSitemapPagesAction
 {
+    use AsFake;
     use AsObject;
 
     public function handle(): int

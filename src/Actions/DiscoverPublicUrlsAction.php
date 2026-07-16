@@ -11,14 +11,16 @@ use Capell\SiteDiscovery\Contracts\DiscoverableUrlSource;
 use Capell\SiteDiscovery\Data\DiscoverablePageData;
 use Capell\SiteDiscovery\Data\DiscoverableUrlData;
 use Illuminate\Support\Collection;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static Collection<int, DiscoverableUrlData> run(Site $site, Language $language, bool $includePages = true, ?SiteDomain $domain = null)
  */
 final class DiscoverPublicUrlsAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @return Collection<int, DiscoverableUrlData>

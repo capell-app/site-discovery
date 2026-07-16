@@ -13,7 +13,8 @@ use Capell\SiteDiscovery\Enums\PublicUrlIndexability;
 use Capell\SiteDiscovery\Enums\SitemapQualityError;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 use SimpleXMLElement;
 
 /**
@@ -21,7 +22,8 @@ use SimpleXMLElement;
  */
 final class ValidateSitemapQualityAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @param  iterable<array-key, PublicUrlRegistryEntryData|SitemapUrlItemData|string>  $entries

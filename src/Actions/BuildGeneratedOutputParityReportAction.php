@@ -15,7 +15,8 @@ use Capell\SiteDiscovery\Enums\PublicUrlContentType;
 use Capell\SiteDiscovery\Enums\PublicUrlIndexability;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 use SimpleXMLElement;
 
 /**
@@ -23,7 +24,8 @@ use SimpleXMLElement;
  */
 final class BuildGeneratedOutputParityReportAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     private const string SITEMAP_NAMESPACE = 'http://www.sitemaps.org/schemas/sitemap/0.9';
 

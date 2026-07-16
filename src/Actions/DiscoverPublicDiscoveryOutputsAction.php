@@ -10,14 +10,16 @@ use Capell\Core\Models\SiteDomain;
 use Capell\SiteDiscovery\Data\DiscoveryOutputData;
 use Capell\SiteDiscovery\Support\DiscoveryOutputRegistry;
 use Illuminate\Support\Collection;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static Collection<int, DiscoveryOutputData> run(Site $site, Language $language, ?SiteDomain $domain = null)
  */
 final class DiscoverPublicDiscoveryOutputsAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function __construct(private readonly DiscoveryOutputRegistry $registry) {}
 

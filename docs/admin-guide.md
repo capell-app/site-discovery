@@ -4,51 +4,52 @@ This guide is for editors who manage how pages are found and owners deciding wha
 
 ## Using Site Discovery (editor how-to)
 
-### How to control what is in your sitemap
+### How to review discovery status
 
-1. Go to **Site Discovery**.
-2. Review the **Sitemap** list of pages offered to search engines.
-3. Include the pages you want found; leave out the ones you don't.
+1. Open **Monitoring > Public URL Registry**.
+2. Review each public URL's **Indexability**, **Sitemap** status, and generated-output status.
+3. Filter by site, language, source package, indexability, sitemap eligibility, or missing outputs to focus the review.
 
-### How to add a single page to the sitemap
+### How to open the sitemap workflow for a page
 
 1. Open the page you want from your **Pages** list.
-2. Use the **Sitemap** action at the top of the page to add or refresh it in the sitemap.
-3. The page is now offered to search engines.
+2. Use the **Sitemap** action at the top of the page to open the shared sitemap workflow.
+3. Review the page's underlying publishing and robots/SEO metadata there or in the page's normal editing controls; Site Discovery does not add a separate indexability editor.
 
 ![An editor uses the package-added sitemap action on the core Pages resource.](screenshots/page-sitemap-action.png)
 
-### How to refresh the sitemap for a whole site
+### How to open the sitemap workflow for a site
 
 1. Open the site you want from your **Sites** list.
-2. Use the **Sitemap** action to rebuild the sitemap for that site.
-3. All of the site's discoverable pages are offered to search engines.
+2. Use the **Sitemap** action to open the shared sitemap workflow scoped to that site.
+3. Use this to review the site's discovery output; ask a developer to run `capell:xml-sitemap --site=<id>` when an operational XML regeneration is needed.
 
 ![An editor uses the package-added sitemap action on the core Sites resource.](screenshots/site-sitemap-action.png)
 
-### How to generate or review sitemap output
+### How to review a URL missing generated output
 
-1. Go to **Site Discovery** and open the sitemap generation tool.
-2. Run it to build the latest sitemap from your current pages.
-3. Review the output to confirm the right pages are listed.
+1. Open **Monitoring > Public URL Registry**.
+2. Filter to URLs with missing outputs or quality errors.
+3. Check whether the URL is indexable and sitemap eligible, then correct its underlying page or SEO metadata if needed.
+4. Re-check after the sitemap workflow or XML generation has run.
 
 ![An administrator generates or reviews sitemap output after pages are in place.](screenshots/sitemap-generation-tool.png)
 
-### How to set a page as findable or hidden
+### How to correct a page's indexability
 
-1. Open the page's **Indexability** setting.
-2. Set it to **Indexable** to allow search engines, or **Noindex** to hide it.
-3. Save. The page's search visibility updates.
+1. Open the underlying page or the host application's SEO controls.
+2. Change its robots metadata to **Indexable** or **Noindex** according to the site's publishing policy.
+3. Save, then return to **Public URL Registry** to confirm the reported state after outputs refresh.
 
 ### How to check what has been indexed
 
-1. In **Site Discovery**, filter by sitemap state or indexability.
+1. In **Monitoring > Public URL Registry**, filter by sitemap state or indexability.
 2. Look for pages marked **Missing from sitemap** or **Noindex** that you actually want found.
 3. Fix any that are set the wrong way.
 
 ### How to audit your public URLs across the site
 
-1. Go to **Public URL Registry**.
+1. Go to **Monitoring > Public URL Registry**.
 2. Review each public URL and whether the expected outputs (sitemap, search, cached copy, and so on) are present.
 3. Use this when you want one place that shows the discovery status for every public address.
 
@@ -66,14 +67,14 @@ This guide is for editors who manage how pages are found and owners deciding wha
 
 ### Turn on first
 
-- **A complete, accurate sitemap.** Make sure your important pages are included and findable before anything else.
+- **A complete, accurate sitemap.** Review important published URLs in **Public URL Registry** and correct any underlying robots metadata before anything else.
 
 ### Add when needed
 
 | Need                             | Enable                         |
 | -------------------------------- | ------------------------------ |
-| Keep private pages out of search | **Noindex** on those pages     |
-| Control AI and search crawlers   | The crawler discovery settings |
+| Keep private pages out of search | **Noindex** in the underlying page or SEO controls |
+| Find missing generated outputs | **Public URL Registry** filters |
 
 ### Don't enable yet
 
@@ -83,13 +84,13 @@ This guide is for editors who manage how pages are found and owners deciding wha
 
 | Role       | First useful screen                             |
 | ---------- | ----------------------------------------------- |
-| Editor     | **Indexability**: set pages findable or hidden  |
-| Site owner | **Sitemap**: confirm the right pages are listed |
+| Editor     | The underlying page/SEO controls: set robots metadata |
+| Site owner | **Monitoring > Public URL Registry**: review output parity |
 
 ## Troubleshooting for editors
 
 | What you see                         | What it means                                        | What to do                                             |
 | ------------------------------------ | ---------------------------------------------------- | ------------------------------------------------------ |
-| A page isn't appearing in search     | It is set to **Noindex** or missing from the sitemap | Set it **Indexable** and include it in the **Sitemap** |
-| A private page shows up in search    | It is **Indexable** when it shouldn't be             | Set it to **Noindex**                                  |
-| "Missing from sitemap" on a key page | The page isn't being offered to search engines       | Include it in the sitemap                              |
+| A page isn't appearing in search     | It is set to **Noindex**, is not sitemap eligible, or output has not refreshed | Correct underlying robots metadata and review the sitemap workflow |
+| A private page shows up in search    | It is **Indexable** when it shouldn't be             | Set it to **Noindex** in the underlying page/SEO controls |
+| "Missing from sitemap" on a key page | The current generated sitemap output does not include an eligible URL | Check its registry state, then run the sitemap workflow or ask a developer to regenerate XML |

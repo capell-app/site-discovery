@@ -8,10 +8,11 @@ Start at the [package README](../README.md) when deciding whether to install thi
 
 | Doc                                             | Use it for                                                                         |
 | ----------------------------------------------- | ---------------------------------------------------------------------------------- |
+| [Admin Guide](admin-guide.md)                   | Review sitemap output and discovery settings from the admin.                       |
 | [Change Notifications](change-notifications.md) | IndexNow setup, notifier contract usage, and operational boundaries.               |
 | [Overview](overview.md)                         | Package boundary, runtime surfaces, install notes, and first troubleshooting path. |
 
-## Read Next
+## Next
 
 | Related doc                                        | Why                                                   |
 | -------------------------------------------------- | ----------------------------------------------------- |

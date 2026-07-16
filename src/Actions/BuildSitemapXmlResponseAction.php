@@ -7,7 +7,8 @@ namespace Capell\SiteDiscovery\Actions;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -15,7 +16,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 final class BuildSitemapXmlResponseAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(Request $request, ?string $sitemapPrefix = null): Response|StreamedResponse
     {

@@ -9,18 +9,22 @@ use Capell\Core\Models\Language;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
 use Capell\SiteDiscovery\Data\DiscoverablePageData;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Database\Eloquent\Builder as BuilderContract;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
+use RuntimeException;
 
 /**
  * @method static Collection<int, DiscoverablePageData> run(Site $site, Language $language)
  */
 final class DiscoverPublicPagesAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @return Collection<int, DiscoverablePageData>
@@ -71,12 +75,18 @@ final class DiscoverPublicPagesAction
             ->map(function (Page $page) use ($site): DiscoverablePageData {
                 $page->setRelation('site', $site);
                 Page::setResolvedPageUrlSiteDomain($page, $site);
+                $pageId = $page->getKey();
+                $updatedAt = $page->getAttribute('updated_at');
+
+                if (! is_int($pageId)) {
+                    throw new RuntimeException('Expected the discoverable page to have an integer key.');
+                }
 
                 return new DiscoverablePageData(
-                    pageId: (int) $page->getKey(),
+                    pageId: $pageId,
                     title: trim(strip_tags($page->translation->title ?? $page->translation->label ?? $page->name ?? '')),
                     url: $page->pageUrl->full_url ?? '',
-                    lastModified: $page->updated_at,
+                    lastModified: $updatedAt instanceof CarbonInterface ? $updatedAt : null,
                     priority: is_numeric($page->meta['priority'] ?? null) ? (float) $page->meta['priority'] : null,
                     changeFrequency: is_string($page->meta['changefreq'] ?? null) ? $page->meta['changefreq'] : null,
                     page: $page,

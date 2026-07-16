@@ -7,6 +7,7 @@ namespace Capell\SiteDiscovery\Actions;
 use Capell\Core\Models\Site;
 use Capell\SiteDiscovery\Jobs\RegenerateSiteSitemapIncrementallyJob;
 use Illuminate\Support\Facades\Cache;
+use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
@@ -14,6 +15,7 @@ use Lorisleiva\Actions\Concerns\AsObject;
  */
 final class RequestSiteSitemapRegenerationAction
 {
+    use AsFake;
     use AsObject;
 
     public function handle(Site $site): bool

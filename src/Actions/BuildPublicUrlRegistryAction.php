@@ -12,14 +12,16 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static Collection<int, PublicUrlRegistryEntryData> run()
  */
 final class BuildPublicUrlRegistryAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @return Collection<int, PublicUrlRegistryEntryData>

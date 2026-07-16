@@ -12,14 +12,16 @@ use Capell\Core\Models\SiteDomain;
 use Capell\SiteDiscovery\Data\UrlChangeNotificationResultData;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static Collection<int, UrlChangeNotificationResultData> run(Pageable $page)
  */
 final class NotifyPageUrlChangesAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @param  Pageable<Model>  $page
