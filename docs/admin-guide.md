@@ -71,10 +71,10 @@ This guide is for editors who manage how pages are found and owners deciding wha
 
 ### Add when needed
 
-| Need                             | Enable                         |
-| -------------------------------- | ------------------------------ |
+| Need                             | Enable                                             |
+| -------------------------------- | -------------------------------------------------- |
 | Keep private pages out of search | **Noindex** in the underlying page or SEO controls |
-| Find missing generated outputs | **Public URL Registry** filters |
+| Find missing generated outputs   | **Public URL Registry** filters                    |
 
 ### Don't enable yet
 
@@ -82,15 +82,15 @@ This guide is for editors who manage how pages are found and owners deciding wha
 
 ### Who does what
 
-| Role       | First useful screen                             |
-| ---------- | ----------------------------------------------- |
-| Editor     | The underlying page/SEO controls: set robots metadata |
+| Role       | First useful screen                                        |
+| ---------- | ---------------------------------------------------------- |
+| Editor     | The underlying page/SEO controls: set robots metadata      |
 | Site owner | **Monitoring > Public URL Registry**: review output parity |
 
 ## Troubleshooting for editors
 
-| What you see                         | What it means                                        | What to do                                             |
-| ------------------------------------ | ---------------------------------------------------- | ------------------------------------------------------ |
-| A page isn't appearing in search     | It is set to **Noindex**, is not sitemap eligible, or output has not refreshed | Correct underlying robots metadata and review the sitemap workflow |
-| A private page shows up in search    | It is **Indexable** when it shouldn't be             | Set it to **Noindex** in the underlying page/SEO controls |
-| "Missing from sitemap" on a key page | The current generated sitemap output does not include an eligible URL | Check its registry state, then run the sitemap workflow or ask a developer to regenerate XML |
+| What you see                         | What it means                                                                  | What to do                                                                                   |
+| ------------------------------------ | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| A page isn't appearing in search     | It is set to **Noindex**, is not sitemap eligible, or output has not refreshed | Correct underlying robots metadata and review the sitemap workflow                           |
+| A private page shows up in search    | It is **Indexable** when it shouldn't be                                       | Set it to **Noindex** in the underlying page/SEO controls                                    |
+| "Missing from sitemap" on a key page | The current generated sitemap output does not include an eligible URL          | Check its registry state, then run the sitemap workflow or ask a developer to regenerate XML |
