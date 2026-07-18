@@ -134,7 +134,9 @@ it('confirms enabled incremental scheduling registers the command event', functi
     $schedule = new Schedule;
     app()->instance(Schedule::class, $schedule);
 
-    (new SiteDiscoveryServiceProvider(app()))->registeringPackage();
+    $provider = new SiteDiscoveryServiceProvider(app());
+    $method = new ReflectionMethod(SiteDiscoveryServiceProvider::class, 'registerIncrementalSitemapSchedule');
+    $method->invoke($provider);
 
     $check = new SiteDiscoveryHealthCheck;
 

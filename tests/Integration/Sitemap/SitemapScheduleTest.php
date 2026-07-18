@@ -15,7 +15,7 @@ it('does not schedule incremental sitemap regeneration by default', function ():
     $schedule = new Schedule;
     app()->instance(Schedule::class, $schedule);
 
-    (new SiteDiscoveryServiceProvider(app()))->registeringPackage();
+    bootSiteDiscoveryProvider();
 
     $event = siteDiscoveryIncrementalSitemapScheduleEvent($schedule);
 
@@ -31,7 +31,7 @@ it('registers the opt-in incremental sitemap schedule', function (): void {
     $schedule = new Schedule;
     app()->instance(Schedule::class, $schedule);
 
-    (new SiteDiscoveryServiceProvider(app()))->registeringPackage();
+    bootSiteDiscoveryProvider();
 
     $event = siteDiscoveryIncrementalSitemapScheduleEvent($schedule);
 
@@ -54,7 +54,7 @@ it('allows cron-based incremental sitemap scheduling', function (): void {
     $schedule = new Schedule;
     app()->instance(Schedule::class, $schedule);
 
-    (new SiteDiscoveryServiceProvider(app()))->registeringPackage();
+    bootSiteDiscoveryProvider();
 
     $event = siteDiscoveryIncrementalSitemapScheduleEvent($schedule);
 
@@ -70,4 +70,11 @@ function siteDiscoveryIncrementalSitemapScheduleEvent(Schedule $schedule): ?Sche
             && $scheduledEvent->description === 'capell-site-discovery:incremental-sitemap');
 
     return $event instanceof ScheduledEvent ? $event : null;
+}
+
+function bootSiteDiscoveryProvider(): void
+{
+    $provider = new SiteDiscoveryServiceProvider(app());
+    $provider->registeringPackage();
+    $provider->callBootedCallbacks();
 }

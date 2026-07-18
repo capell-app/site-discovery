@@ -77,16 +77,16 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
 
     public function registeringPackage(): void
     {
-        $this->app->booted(function (): void {
-            $events = $this->app->make(Dispatcher::class);
-            $events->listen(CapellInstalled::class, EnsureSitemapPagesAfterCapellInstalled::class);
+        parent::registeringPackage();
+    }
 
-            if (! $this->isPackageInstalled()) {
-                return;
-            }
+    #[Override]
+    protected function bootPackage(): self
+    {
+        $events = $this->app->make(Dispatcher::class);
+        $events->listen(CapellInstalled::class, EnsureSitemapPagesAfterCapellInstalled::class);
 
-            $this->bootInstalledPackage();
-        });
+        return $this;
     }
 
     #[Override]
@@ -95,14 +95,15 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
         return CapellCore::isPackageInstalled(self::$packageName);
     }
 
-    private function bootInstalledPackage(): self
+    #[Override]
+    protected function bootInstalledPackage(): self
     {
         return $this
             ->registerBlazeComponents()
             ->registerAdminExtenders()
             ->registerAdminPages()
             ->registerPageRenderables()
-            ->registerLivewireComponents()
+            ->registerPackageLivewireComponents()
             ->registerSitemapPageType()
             ->registerSitemapDefaultPage()
             ->registerSitemapRegistry()
@@ -151,7 +152,7 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
         return $this;
     }
 
-    private function registerLivewireComponents(): self
+    private function registerPackageLivewireComponents(): self
     {
         Livewire::component(SitemapPageType::ComponentView, SitemapLivewireComponent::class);
         Livewire::component('capell-site-discovery.tools.sitemap-tool', SitemapTool::class);
