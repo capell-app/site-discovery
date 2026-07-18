@@ -9,7 +9,6 @@ use Capell\Admin\Providers\Filament\AdminPanelProvider;
 use Capell\Core\Facades\CapellCore;
 use Capell\Frontend\Contracts\FrontendContextReader;
 use Capell\Frontend\Providers\FrontendServiceProvider;
-use Capell\Frontend\Support\CapellFrontendContext;
 use Capell\Frontend\Support\State\FrontendState;
 use Capell\Navigation\Providers\NavigationServiceProvider;
 use Capell\SiteDiscovery\Providers\SiteDiscoveryServiceProvider;
@@ -62,9 +61,6 @@ class SiteDiscoveryTestCase extends AbstractTestCase
 
         $app->scoped(FrontendState::class, fn (): FrontendState => new FrontendState);
         $app->scoped(FrontendContextReader::class, fn (Application $application): FrontendState => $application->make(FrontendState::class));
-        $app->scoped(CapellFrontendContext::class, fn (Application $application): CapellFrontendContext => new CapellFrontendContext($application->make(FrontendContextReader::class)));
-        $app->alias(CapellFrontendContext::class, 'capell.frontend.context');
-
         CapellCore::forcePackageInstalled(AdminServiceProvider::$packageName);
         CapellCore::registerPackage(
             FrontendServiceProvider::$packageName,
