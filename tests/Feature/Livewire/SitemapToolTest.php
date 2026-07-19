@@ -2,11 +2,9 @@
 
 declare(strict_types=1);
 
-use Capell\Core\Models\Site;
 use Capell\SiteDiscovery\Enums\SitemapCacheKey;
+use Capell\SiteDiscovery\Jobs\RebuildAllSitemapsJob;
 use Capell\SiteDiscovery\Livewire\Tools\SitemapTool;
-use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
-use Capell\SiteDiscovery\Tests\Fixtures\SiteDiscoverySitemapToolFakeXmlSitemapGenerator;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Capell\Tests\Fixtures\Models\User;
 use Filament\Facades\Filament;
@@ -25,7 +23,7 @@ it('requires a global admin before queueing sitemap generation', function (): vo
         ->toThrow(AuthorizationException::class);
 });
 
-it('deletes stale sitemap files and queues generation for enabled sites', function (): void {
+it('queues the sitemap rebuild without scanning sites or deleting files in the Livewire request', function (): void {
     app()->register(BusServiceProvider::class);
     Bus::fake();
     Cache::forget(SitemapCacheKey::Generating->value);
@@ -34,18 +32,11 @@ it('deletes stale sitemap files and queues generation for enabled sites', functi
     $user->assignRole('super_admin');
     siteDiscoverySitemapToolAuthReturning($user);
 
-    $firstSite = Site::factory()->default()->withTranslations()->create(['name' => 'Primary']);
-    $secondSite = Site::factory()->withTranslations()->create(['name' => 'Secondary']);
-    $disabledSite = Site::factory()->disabled()->withTranslations()->create(['name' => 'Disabled']);
-    $generator = new SiteDiscoverySitemapToolFakeXmlSitemapGenerator;
-
-    app()->instance(XmlSitemapGenerator::class, $generator);
-
     (new SitemapTool)->generate();
 
-    expect($generator->deletedSiteIds)->toContain($firstSite->getKey(), $secondSite->getKey())
-        ->and($generator->deletedSiteIds)->not->toContain($disabledSite->getKey())
-        ->and(Cache::get(SitemapCacheKey::Generating->value))->toBe(2);
+    Bus::assertDispatched(RebuildAllSitemapsJob::class);
+
+    expect(Cache::get(SitemapCacheKey::Generating->value))->toBe('queued');
 });
 
 function siteDiscoverySitemapToolAuthReturning(?User $user): void

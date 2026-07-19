@@ -4,16 +4,13 @@ declare(strict_types=1);
 
 namespace Capell\SiteDiscovery\Livewire\Tools;
 
-use Capell\Core\Models\Site;
-use Capell\SiteDiscovery\Actions\GenerateSitemapAction;
 use Capell\SiteDiscovery\Enums\SitemapCacheKey;
-use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
+use Capell\SiteDiscovery\Jobs\RebuildAllSitemapsJob;
 use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
 
@@ -23,21 +20,8 @@ class SitemapTool extends Component
     {
         $this->assertGlobalAdmin();
 
-        /** @var class-string<Site> $model */
-        $model = Site::class;
-        $sites = $model::with(['siteDomains'])->enabled()->ordered()->get();
-
-        if ($sites->isEmpty()) {
-            return;
-        }
-
-        $this->deleteAllSitemaps($sites);
-
-        Cache::put(SitemapCacheKey::Generating->value, $sites->count(), now()->addMinutes(60));
-
-        foreach ($sites as $site) {
-            GenerateSitemapAction::dispatch($site);
-        }
+        Cache::put(SitemapCacheKey::Generating->value, 'queued', now()->addMinutes(60));
+        RebuildAllSitemapsJob::dispatch();
 
         Notification::make('sitemap_queue')
             ->status('warning')
@@ -51,16 +35,6 @@ class SitemapTool extends Component
     public function render(): View
     {
         return view('capell-site-discovery::livewire.tools.sitemap-tool');
-    }
-
-    /**
-     * @param  Collection<int, Site>  $sites
-     */
-    private function deleteAllSitemaps(Collection $sites): void
-    {
-        $sites->each(function (Site $site): void {
-            resolve(XmlSitemapGenerator::class)->delete($site);
-        });
     }
 
     private function assertGlobalAdmin(): void
