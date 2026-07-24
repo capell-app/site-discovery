@@ -463,6 +463,7 @@ class XmlSitemapGenerator
         return collect($items)
             ->merge($legacyContributedItems)
             ->merge($registryItems)
+            ->reject(fn (SitemapUrlItemData $item): bool => str_contains($item->loc, '*'))
             ->unique(fn (SitemapUrlItemData $item): string => $item->loc)
             ->values()
             ->all();

@@ -10,6 +10,7 @@ use Capell\Core\Models\SiteDomain;
 use Capell\SiteDiscovery\Contracts\PublicUrlContributor;
 use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
 use Capell\SiteDiscovery\Tests\Fixtures\NoIndexSitemapFixturePublicUrlContributor;
+use Capell\SiteDiscovery\Tests\Fixtures\WildcardSitemapFixturePublicUrlContributor;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Illuminate\Support\Facades\Storage;
 
@@ -327,4 +328,36 @@ it('sitemap includes multiple pages', function (): void {
     expect($xml)->toContain('<urlset')
         ->and($xml)->toContain($pages[0]->pageUrl->full_url)
         ->and($xml)->toContain($pages[1]->pageUrl->full_url);
+});
+
+it('never emits wildcard pattern urls', function (): void {
+    $language = Language::factory()->create();
+    $siteDomain = SiteDomain::factory()->state([
+        'domain' => 'example.com',
+        'language_id' => $language->id,
+        'scheme' => 'https',
+        'path' => null,
+    ])->create();
+    $site = $siteDomain->site;
+    $pageType = Blueprint::factory()->page()->create([
+        'meta' => ['listable' => true, 'sitemap' => true],
+    ]);
+    Page::factory()
+        ->site($site)
+        ->type($pageType)
+        ->withTranslations(collect([$language]))
+        ->create();
+
+    app()->instance(
+        WildcardSitemapFixturePublicUrlContributor::class,
+        new WildcardSitemapFixturePublicUrlContributor($site, $language, 'https://example.com'),
+    );
+    app()->tag([WildcardSitemapFixturePublicUrlContributor::class], PublicUrlContributor::TAG);
+
+    (new XmlSitemapGenerator)->process($site);
+
+    $xml = Storage::disk('local')->get('sitemaps_test/' . $siteDomain->getDomainKey() . '.xml');
+
+    expect($xml)->toContain('https://example.com/blog')
+        ->and($xml)->not()->toContain('*');
 });
