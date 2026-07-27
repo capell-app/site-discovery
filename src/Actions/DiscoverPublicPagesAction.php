@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Capell\SiteDiscovery\Actions;
 
+use Capell\Core\Data\Database\SqlFragment;
 use Capell\Core\Enums\BlueprintGroupEnum;
+use Capell\Core\Facades\CapellDatabase;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
@@ -13,7 +15,6 @@ use Carbon\CarbonInterface;
 use Illuminate\Contracts\Database\Eloquent\Builder as BuilderContract;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 use RuntimeException;
@@ -32,11 +33,13 @@ final class DiscoverPublicPagesAction
     public function handle(Site $site, Language $language): Collection
     {
         $query = Page::query();
+        $priority = CapellDatabase::for($query->getModel())->queryDialect()->jsonExtract(
+            SqlFragment::raw($query->getQuery()->getGrammar()->wrap('pages.meta')),
+            '$.priority',
+        );
 
-        return $query->select([
-            'pages.*',
-            DB::raw("json_extract(pages.meta, '$.priority') AS meta_priority"),
-        ])
+        return $query->select('pages.*')
+            ->selectRaw($priority->sql . ' AS meta_priority', $priority->bindings)
             ->with([
                 'translation' => fn (BuilderContract $query): BuilderContract => $query->where('language_id', $language->id),
             ])
