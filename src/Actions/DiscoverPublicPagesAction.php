@@ -37,9 +37,12 @@ final class DiscoverPublicPagesAction
             SqlFragment::raw($query->getQuery()->getGrammar()->wrap('pages.meta')),
             '$.priority',
         );
+        (new SqlFragment(
+            $priority->sql . ' AS meta_priority',
+            $priority->bindings,
+        ))->applySelect($query->getQuery());
 
-        return $query->select('pages.*')
-            ->selectRaw($priority->sql . ' AS meta_priority', $priority->bindings)
+        return $query->addSelect('pages.*')
             ->with([
                 'translation' => fn (BuilderContract $query): BuilderContract => $query->where('language_id', $language->id),
             ])

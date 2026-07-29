@@ -58,7 +58,7 @@ it('declares the setup lifecycle action in the public manifest', function (): vo
         flags: JSON_THROW_ON_ERROR,
     );
 
-    expect($manifest['actions']['setup'] ?? null)->toBe(SetupSiteDiscoveryPackageAction::class);
+    expect($manifest['actions']['setup'])->toBe(SetupSiteDiscoveryPackageAction::class);
 });
 
 it('backfills sitemap pages after a spec creates sites at install finalization', function (): void {
