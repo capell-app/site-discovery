@@ -23,5 +23,9 @@ return [
         'key' => env('CAPELL_SITE_DISCOVERY_INDEXNOW_KEY'),
         'key_location' => env('CAPELL_SITE_DISCOVERY_INDEXNOW_KEY_LOCATION'),
         'timeout' => 10,
+        // Outbound retry policy. IndexNow submissions are idempotent recrawl hints.
+        'retry_times' => env('CAPELL_SITE_DISCOVERY_INDEXNOW_RETRY_TIMES', 3),
+        'retry_delay_ms' => env('CAPELL_SITE_DISCOVERY_INDEXNOW_RETRY_DELAY_MS', 500),
+        'retry_after_max_ms' => env('CAPELL_SITE_DISCOVERY_INDEXNOW_RETRY_AFTER_MAX_MS', 60000),
     ],
 ];

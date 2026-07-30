@@ -215,12 +215,12 @@
                                 {{ $row->indexability->getLabel() }}
                             </td>
                             @foreach ([
-                                          $row->sitemapStatus,
-                                          $row->aiDiscoveryStatus,
-                                          $row->searchStatus,
-                                          $row->htmlCacheStatus,
-                                          $row->agentDeliveryStatus,
-                                      ] as $status)
+                                $row->sitemapStatus,
+                                $row->aiDiscoveryStatus,
+                                $row->searchStatus,
+                                $row->htmlCacheStatus,
+                                $row->agentDeliveryStatus,
+                            ] as $status)
                                 <td class="px-4 py-3">
                                     <span
                                         class="{{ $this->statusClass($status) }} inline-flex rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset"

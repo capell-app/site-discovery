@@ -7,6 +7,7 @@ namespace Capell\SiteDiscovery\Support\IndexNow;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
+use Capell\Core\Support\Http\OutboundHttpRetry;
 use Capell\SiteDiscovery\Actions\RedactIndexNowNotificationErrorMessageAction;
 use Capell\SiteDiscovery\Contracts\UrlChangeNotifier;
 use Capell\SiteDiscovery\Data\UrlChangeNotificationResultData;
@@ -60,17 +61,22 @@ final class IndexNowUrlChangeNotifier implements UrlChangeNotifier
         }
 
         try {
-            $response = Http::connectTimeout(min(3, $this->timeoutSeconds()))
-                ->timeout($this->timeoutSeconds())
-                ->withoutRedirecting()
-                ->withHeaders(['Host' => $resolvedEndpoint['host_header']])
-                ->withOptions([
-                    'curl' => [
-                        CURLOPT_RESOLVE => [$resolvedEndpoint['curl_resolve']],
-                    ],
-                ])
-                ->acceptJson()
-                ->asJson()
+            // Resubmitting the same URL list is an idempotent recrawl hint, so retrying
+            // a rate-limited or temporarily unavailable endpoint is safe.
+            $response = OutboundHttpRetry::fromConfig('capell-site-discovery.indexnow')
+                ->apply(
+                    Http::connectTimeout(min(3, $this->timeoutSeconds()))
+                        ->timeout($this->timeoutSeconds())
+                        ->withoutRedirecting()
+                        ->withHeaders(['Host' => $resolvedEndpoint['host_header']])
+                        ->withOptions([
+                            'curl' => [
+                                CURLOPT_RESOLVE => [$resolvedEndpoint['curl_resolve']],
+                            ],
+                        ])
+                        ->acceptJson()
+                        ->asJson(),
+                )
                 ->post($resolvedEndpoint['url'], $payload);
         } catch (ConnectionException $connectionException) {
             return new UrlChangeNotificationResultData(

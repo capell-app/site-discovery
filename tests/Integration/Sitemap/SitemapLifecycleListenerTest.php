@@ -6,18 +6,21 @@ use Capell\Core\Actions\PageSavedAction;
 use Capell\Core\Actions\SiteCreatedAction;
 use Capell\Core\Events\PageDeleted;
 use Capell\Core\Events\PageSaved;
+use Capell\Core\Events\SiteCreated;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
 use Capell\SiteDiscovery\Jobs\RegenerateSiteSitemapIncrementallyJob;
 use Capell\SiteDiscovery\Listeners\Sitemap\RegenerateSitemapsOnPageDeleted;
 use Capell\SiteDiscovery\Listeners\Sitemap\RegenerateSitemapsOnPageSaved;
+use Capell\SiteDiscovery\Listeners\Sitemap\RegenerateSitemapsOnSiteCreated;
 use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Illuminate\Bus\BusServiceProvider;
 use Illuminate\Events\CallQueuedListener;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 
 uses(SiteDiscoveryTestCase::class);
@@ -43,6 +46,71 @@ function seoSuiteLifecycleFakeXmlSitemapGenerator(): XmlSitemapGenerator
         }
     };
 }
+
+it('retries and serializes queued sitemap lifecycle listeners', function (
+    RegenerateSitemapsOnPageDeleted|RegenerateSitemapsOnPageSaved|RegenerateSitemapsOnSiteCreated $listener,
+    PageDeleted|PageSaved|SiteCreated $event,
+): void {
+    $middleware = $listener->middleware($event);
+
+    expect($listener->tries)->toBe(3)
+        ->and($listener->backoff)->toBe([10, 60])
+        ->and($middleware)->toHaveCount(1)
+        ->and($middleware[0]->key)->toBe('capell-site-discovery:sitemap-lifecycle:site:55')
+        ->and($middleware[0]->releaseAfter)->toBe(10)
+        ->and($middleware[0]->expiresAfter)->toBe(120)
+        ->and($middleware[0]->shareKey)->toBeTrue();
+})->with([
+    fn (): array => [
+        new RegenerateSitemapsOnPageDeleted,
+        new PageDeleted((new Page)->forceFill(['site_id' => 55])),
+    ],
+    fn (): array => [
+        new RegenerateSitemapsOnPageSaved,
+        new PageSaved((new Page)->forceFill(['site_id' => 55])),
+    ],
+    fn (): array => [
+        new RegenerateSitemapsOnSiteCreated(seoSuiteLifecycleFakeXmlSitemapGenerator()),
+        new SiteCreated((new Site)->forceFill(['id' => 55]), []),
+    ],
+]);
+
+it('reports terminal sitemap lifecycle failures', function (
+    RegenerateSitemapsOnPageDeleted|RegenerateSitemapsOnPageSaved|RegenerateSitemapsOnSiteCreated $listener,
+    PageDeleted|PageSaved|SiteCreated $event,
+    int $expectedModelId,
+): void {
+    $exception = new RuntimeException('Sensitive database bindings.', 72);
+
+    Log::shouldReceive('error')
+        ->once()
+        ->withArgs(static fn (string $message, array $context): bool => str_ends_with($message, 'failed permanently.')
+            && in_array($expectedModelId, [
+                $context['page_id'] ?? null,
+                $context['site_id'] ?? null,
+            ], true)
+            && $context['exception_class'] === RuntimeException::class
+            && $context['exception_code'] === 72
+            && ! array_key_exists('exception', $context));
+
+    $listener->failed($event, $exception);
+})->with([
+    fn (): array => [
+        new RegenerateSitemapsOnPageDeleted,
+        new PageDeleted((new Page)->forceFill(['id' => 42, 'site_id' => 55])),
+        42,
+    ],
+    fn (): array => [
+        new RegenerateSitemapsOnPageSaved,
+        new PageSaved((new Page)->forceFill(['id' => 42, 'site_id' => 55])),
+        42,
+    ],
+    fn (): array => [
+        new RegenerateSitemapsOnSiteCreated(seoSuiteLifecycleFakeXmlSitemapGenerator()),
+        new SiteCreated((new Site)->forceFill(['id' => 55]), []),
+        55,
+    ],
+]);
 
 it('queues the page saved sitemap listener when a page is saved', function (): void {
     Queue::fake();

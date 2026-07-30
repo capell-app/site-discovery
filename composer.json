@@ -14,7 +14,7 @@
     "require": {
         "php": "^8.4",
         "capell-app/admin": "^1.0",
-        "capell-app/core": "^1.0.21",
+        "capell-app/core": "^1.0.25",
         "capell-app/frontend": "^1.0"
     },
     "require-dev": {

@@ -44,6 +44,29 @@ it('submits public url changes to indexnow', function (): void {
         ]);
 });
 
+it('retries a temporarily unavailable indexnow endpoint', function (): void {
+    config()->set('capell-site-discovery.indexnow.key', 'site-key');
+    config()->set('capell-site-discovery.indexnow.endpoint', 'https://api.indexnow.org/indexnow');
+    config()->set('capell-site-discovery.indexnow.retry_times', 2);
+    config()->set('capell-site-discovery.indexnow.retry_delay_ms', 0);
+
+    Http::fake([
+        'https://api.indexnow.org/indexnow' => Http::sequence()
+            ->push([], 503)
+            ->push([], 202),
+    ]);
+
+    $result = (new IndexNowUrlChangeNotifier)->notify(
+        new Site,
+        new Language,
+        indexNowPublicUrls(['https://example.test/one']),
+    );
+
+    expect($result->accepted)->toBeTrue();
+
+    Http::assertSentCount(2);
+});
+
 it('reports skipped indexnow notifications when no key is configured', function (): void {
     config()->set('capell-site-discovery.indexnow.key');
 

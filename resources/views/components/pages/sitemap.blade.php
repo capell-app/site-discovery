@@ -45,7 +45,7 @@
         <div class="vsitemap mb-20 overflow-x-auto">
             <ul>
                 @foreach ($sitemap as $sitemapPage)
-                    @include ('capell::components.pages.sitemap.page', compact('sitemapPage'))
+                    @include('capell::components.pages.sitemap.page', compact('sitemapPage'))
                 @endforeach
             </ul>
         </div>
@@ -153,63 +153,65 @@
 
         /* Responsive */
         /* tablet */
-        @media only screen and (max-width: 768px) {
-            .vsitemap > ul > li > ul > li ul li {
-                flex-direction: column;
-            }
+        @media
+        only screen and (max-width: 768px) {
+                   .vsitemap > ul > li > ul > li ul li {
+                       flex-direction: column;
+                   }
 
-            .vsitemap > ul > li > ul > li ul li ul {
-                margin-top: calc(var(--item-gap) / 2);
-            }
+                   .vsitemap > ul > li > ul > li ul li ul {
+                       margin-top: calc(var(--item-gap) / 2);
+                   }
 
-            .vsitemap > ul > li > ul > li > ul li:after {
-                left: calc(-1 * var(--item-gap) / 2);
-            }
+                   .vsitemap > ul > li > ul > li > ul li:after {
+                       left: calc(-1 * var(--item-gap) / 2);
+                   }
 
-            .vsitemap > ul > li > ul > li > ul > li li:first-child:before {
-                width: calc(var(--item-gap) / 2);
-                left: calc(-1 * var(--item-gap) / 2);
-            }
+                   .vsitemap > ul > li > ul > li > ul > li li:first-child:before {
+                       width: calc(var(--item-gap) / 2);
+                       left: calc(-1 * var(--item-gap) / 2);
+                   }
 
-            .vsitemap > ul > li > ul > li > ul > li li:first-child:after {
-                top: calc(-1 * var(--item-gap) / 2);
-            }
+                   .vsitemap > ul > li > ul > li > ul > li li:first-child:after {
+                       top: calc(-1 * var(--item-gap) / 2);
+                   }
 
-            .vsitemap > ul > li > ul > li > ul > li li:only-child:after {
-                display: block;
-                height: calc(var(--item-gap) / 2 + 1em);
-            }
-        }
+                   .vsitemap > ul > li > ul > li > ul > li li:only-child:after {
+                       display: block;
+                       height: calc(var(--item-gap) / 2 + 1em);
+                   }
+               }
 
-        /* mobile */
-        @media only screen and (max-width: 576px) {
-            .vsitemap > ul > li ul li {
-                flex-direction: column;
-            }
+               /* mobile */
+        @media
+        only screen and (max-width: 576px) {
+                   .vsitemap > ul > li ul li {
+                       flex-direction: column;
+                   }
 
-            .vsitemap > ul > li ul li ul {
-                margin-top: calc(var(--item-gap) / 2);
-            }
+                   .vsitemap > ul > li ul li ul {
+                       margin-top: calc(var(--item-gap) / 2);
+                   }
 
-            .vsitemap > ul > li > ul li:after {
-                left: calc(-1 * var(--item-gap) / 2);
-            }
+                   .vsitemap > ul > li > ul li:after {
+                       left: calc(-1 * var(--item-gap) / 2);
+                   }
 
-            .vsitemap > ul > li > ul > li li:first-child:before {
-                width: calc(var(--item-gap) / 2);
-                left: calc(-1 * var(--item-gap) / 2);
-            }
+                   .vsitemap > ul > li > ul > li li:first-child:before {
+                       width: calc(var(--item-gap) / 2);
+                       left: calc(-1 * var(--item-gap) / 2);
+                   }
 
-            .vsitemap > ul > li > ul > li li:first-child:after {
-                top: calc(-1 * var(--item-gap) / 2);
-            }
+                   .vsitemap > ul > li > ul > li li:first-child:after {
+                       top: calc(-1 * var(--item-gap) / 2);
+                   }
 
-            .vsitemap > ul > li > ul > li li:only-child:after {
-                display: block;
-                height: calc(var(--item-gap) / 2 + 1em);
-            }
-        }
+                   .vsitemap > ul > li > ul > li li:only-child:after {
+                       display: block;
+                       height: calc(var(--item-gap) / 2 + 1em);
+                   }
+               }
 
-        /***** End Vertical Sitemap *****/
+               /***** End Vertical Sitemap *****/
     </style>
 </x-filament-panels::page>

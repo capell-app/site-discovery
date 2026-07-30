@@ -18,13 +18,13 @@
         href="{{ $sitemapPage->url }}"
         target="_blank"
     >
-        @svg ('heroicon-o-arrow-top-right-on-square', 'inline-block h-4 w-4 stroke-current')
+        @svg('heroicon-o-arrow-top-right-on-square', 'inline-block h-4 w-4 stroke-current')
     </a>
 
     @if ($sitemapPage->children?->isNotEmpty())
         <ul>
             @foreach ($sitemapPage->children as $child_page)
-                @include ('capell::components.pages.sitemap.page', ['sitemapPage' => $child_page])
+                @include('capell::components.pages.sitemap.page', ['sitemapPage' => $child_page])
             @endforeach
         </ul>
     @endif
