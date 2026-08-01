@@ -12,6 +12,7 @@ use Capell\Core\Models\SiteDomain;
 use Capell\Frontend\Facades\Frontend;
 use Capell\Frontend\Livewire\Page\AbstractPage;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapBuilder;
+use Capell\SiteDiscovery\Support\Sitemap\SitemapPublicationStore;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Date;
@@ -72,10 +73,9 @@ class Sitemap extends AbstractPage
         }
 
         $storage = Storage::disk(config('capell.sitemap.disk'));
-        $directory = config('capell.sitemap.directory');
-        $filePath = $directory . '/' . $filename;
+        $filePath = resolve(SitemapPublicationStore::class)->resolveFilePath($domainKey, $filename);
 
-        abort_unless($storage->exists($filePath), 404);
+        abort_unless(is_string($filePath) && $storage->exists($filePath), 404);
 
         $size = $storage->size($filePath);
         $lastModifiedTs = $storage->lastModified($filePath);

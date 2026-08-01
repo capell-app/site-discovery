@@ -10,6 +10,7 @@ use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
 use Capell\SiteDiscovery\Actions\BuildPublicUrlRegistryAction;
 use Capell\SiteDiscovery\Actions\DiscoverPublicUrlsAction;
+use Capell\SiteDiscovery\Actions\PromoteStagedSitemapSetAction;
 use Capell\SiteDiscovery\Actions\ValidateSitemapQualityAction;
 use Capell\SiteDiscovery\Data\DiscoverableUrlData;
 use Capell\SiteDiscovery\Data\PublicUrlRegistryEntryData;
@@ -19,6 +20,8 @@ use Capell\SiteDiscovery\Data\SitemapNewsData;
 use Capell\SiteDiscovery\Data\SitemapPageData;
 use Capell\SiteDiscovery\Data\SitemapUrlItemData;
 use Capell\SiteDiscovery\Data\SitemapVideoData;
+use Capell\SiteDiscovery\Data\StagedSitemapDomainData;
+use Capell\SiteDiscovery\Data\StagedSitemapSetData;
 use Capell\SiteDiscovery\Exceptions\SitemapGeneratorException;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -27,7 +30,9 @@ use DateTimeInterface;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class XmlSitemapGenerator
 {
@@ -45,80 +50,46 @@ class XmlSitemapGenerator
     }
 
     /**
-     * Delete all sitemap files (main, chunks, state) for every domain of the site.
+     * Delete the currently published sitemap set and compatibility files.
      */
     public function delete(Site $site): void
     {
-        $disk = config('capell.sitemap.disk', 'local');
-        $directory = config('capell.sitemap.directory', 'sitemaps');
+        $site->load('siteDomains.language');
+
+        $disk = $this->disk();
+        $directory = $this->directory();
         $storage = Storage::disk($disk);
         $state = new SitemapStateStore($disk, $directory);
+        $publicationStore = resolve(SitemapPublicationStore::class);
 
-        $this->ensureDirectoryExists($storage, $directory);
+        $publicationStore->forgetSite($this->siteKey($site));
 
         $site->siteDomains->each(function (SiteDomain $domain) use ($directory, $storage, $state): void {
             $domainKey = $domain->getDomainKey();
-
-            // Main sitemap file
-            $storage->delete($directory . '/' . $domainKey . '.xml');
-
-            // Chunk files: {domainKey}-p{n}.xml
-            foreach ($storage->files($directory) as $file) {
-                $basename = basename($file);
-                if (str_starts_with($basename, $domainKey . '-p') && str_ends_with($basename, '.xml')) {
-                    $storage->delete($file);
-                }
-            }
-
-            // State file
+            $this->deleteDomainFiles($storage, $directory, $domainKey);
             $state->delete($domainKey);
         });
     }
 
     /**
-     * Backwards-compatible API to generate the sitemap without progress callbacks.
+     * Backwards-compatible API to generate and atomically publish a complete sitemap set.
      */
     public function generate(Site $site): string
     {
+        $this->process($site);
         $site->load('siteDomains.language');
 
         $domain = $site->siteDomains->first();
-        if ($domain === null) {
-            throw new SitemapGeneratorException('No site domain found for site ID ' . $site->id);
-        }
+        throw_unless($domain instanceof SiteDomain, SitemapGeneratorException::class, 'No site domain found for site ID ' . $site->id);
 
-        $disk = config('capell.sitemap.disk', 'local');
-        $directory = config('capell.sitemap.directory', 'sitemaps');
         $filename = $domain->getDomainKey() . '.xml';
-        $filePath = $directory . '/' . $filename;
-        $storage = Storage::disk($disk);
-        $primaryDomainTotal = null;
+        $filePath = resolve(SitemapPublicationStore::class)->resolveFilePath($domain->getDomainKey(), $filename);
 
-        $this->process(
-            $site,
-            end: static function (int $total, string $generatedPath) use (&$primaryDomainTotal, $filePath): void {
-                if ($generatedPath === $filePath) {
-                    $primaryDomainTotal = $total;
-                }
-            },
-        );
+        throw_unless(is_string($filePath), SitemapGeneratorException::class, 'Published sitemap XML file not found: ' . $filename);
 
-        if (! $storage->exists($filePath)) {
-            if ($primaryDomainTotal === 0) {
-                return $this->toXml([]);
-            }
+        $xml = Storage::disk($this->disk())->get($filePath);
 
-            throw new SitemapGeneratorException(
-                '[SitemapGenerator] Sitemap XML file not found: ' . $filePath .
-                ' | path_exists=no' .
-                ' | dir_exists=' . ($storage->exists($directory) ? 'yes' : 'no') .
-                ' | dir_contents=' . json_encode($storage->allFiles($directory)),
-            );
-        }
-
-        $xml = $storage->get($filePath);
-
-        throw_unless(is_string($xml), SitemapGeneratorException::class, 'Failed to read sitemap XML file: ' . $filePath);
+        throw_unless(is_string($xml), SitemapGeneratorException::class, 'Failed to read published sitemap XML file: ' . $filePath);
 
         return $xml;
     }
@@ -135,19 +106,23 @@ class XmlSitemapGenerator
         ?Closure $checkpoint = null,
         ?Closure $end = null,
     ): void {
-        $site->load('siteDomains.language');
+        $stagedSet = $this->stage(
+            site: $site,
+            start: $start,
+            prepare: $prepare,
+            checkpoint: $checkpoint,
+        );
+        $publishedSet = PromoteStagedSitemapSetAction::run($stagedSet);
 
-        $site->siteDomains->each(function (SiteDomain $domain) use ($site, $start, $prepare, $checkpoint, $end): void {
-            $this->generateForDomain($site, $domain, $start, $prepare, $checkpoint, $end);
-        });
+        $this->writeCompatibilityFiles($publishedSet);
+        $this->signalCompletedDomains($publishedSet, $end);
     }
 
     /**
-     * Incremental variant: only rewrites a domain's sitemap when page state has changed
-     * since the last run. Also handles sitemap index generation for large sitemaps.
+     * Incremental generation skips publication only when every domain is unchanged.
+     * When one domain changes, a complete replacement set is staged and promoted.
      *
      * The $end closure receives: (int $total, string $filePath, bool $regenerated)
-     * $regenerated is true when the XML was rewritten, false when it was skipped.
      */
     public function processIncremental(
         Site $site,
@@ -157,141 +132,56 @@ class XmlSitemapGenerator
         ?Closure $end = null,
     ): void {
         $site->load('siteDomains.language');
+        $contexts = $this->buildDomainContexts($site, $start, $prepare);
+        $state = new SitemapStateStore($this->disk(), $this->directory());
+        $publicationStore = resolve(SitemapPublicationStore::class);
+        $hasChanges = false;
 
-        $site->siteDomains->each(function (SiteDomain $domain) use ($site, $start, $prepare, $checkpoint, $end): void {
-            $this->generateForDomainIncremental($site, $domain, $start, $prepare, $checkpoint, $end);
-        });
-    }
+        foreach ($contexts as $context) {
+            $domainKey = $context['domain']->getDomainKey();
+            $storedMap = $publicationStore->hasDomain($domainKey)
+                ? $publicationStore->urlState($domainKey)
+                : $state->load($domainKey);
 
-    protected function generateForDomain(
-        Site $site,
-        SiteDomain $domain,
-        ?Closure $start = null,
-        ?Closure $prepare = null,
-        ?Closure $checkpoint = null,
-        ?Closure $end = null,
-    ): void {
-        $disk = config('capell.sitemap.disk', 'local');
-        $directory = config('capell.sitemap.directory', 'sitemaps');
-        $storage = Storage::disk($disk);
-
-        $this->ensureDirectoryExists($storage, $directory);
-
-        if ($this->generatorFactory instanceof Closure) {
-            ($this->generatorFactory)($site, $domain, $start, $prepare, $checkpoint, $end);
-
-            return;
+            if ($state->hasChanged($context['urlState'], $storedMap)) {
+                $hasChanges = true;
+            }
         }
 
-        if ($start instanceof Closure) {
-            $start($domain);
-        }
-
-        $language = $domain->language;
-
-        throw_unless($language instanceof Language, SitemapGeneratorException::class, 'Sitemap domain requires a language.');
-
-        $this->forgetSitemapPageCaches($site->id, (int) $language->id);
-        $items = $this->buildUrlItems($site, $domain);
-        $total = count($items);
-
-        if ($prepare instanceof Closure) {
-            $prepare($total, $domain->getDomainKey());
-        }
-
-        if ($total > 0) {
-            foreach ($items as $item) {
-                if ($checkpoint instanceof Closure) {
-                    $checkpoint($item->loc);
+        if (! $hasChanges) {
+            foreach ($contexts as $context) {
+                if ($end instanceof Closure) {
+                    $end(
+                        count($context['items']),
+                        $this->directory() . '/' . $context['domain']->getDomainKey() . '.xml',
+                        false,
+                    );
                 }
             }
 
-            $filePath = $this->writeItems($storage, $directory, $domain, $items);
-
-            // Save state so the next incremental run has a baseline.
-            $state = new SitemapStateStore($disk, $directory);
-            $state->save($domain->getDomainKey(), $state->buildUrlMap($items));
-        } else {
-            $filePath = $directory . '/' . $domain->getDomainKey() . '.xml';
-            $this->deleteDomainFiles($storage, $directory, $domain->getDomainKey());
-
-            $state = new SitemapStateStore($disk, $directory);
-            $state->save($domain->getDomainKey(), []);
+            return;
         }
 
-        if ($end instanceof Closure) {
-            $end($total, $filePath);
-        }
+        $stagedSet = $this->stageContexts($site, $contexts, $checkpoint);
+        $publishedSet = PromoteStagedSitemapSetAction::run($stagedSet);
+
+        $this->writeCompatibilityFiles($publishedSet);
+        $this->signalCompletedDomains($publishedSet, $end, true);
     }
 
-    protected function generateForDomainIncremental(
+    public function stage(
         Site $site,
-        SiteDomain $domain,
         ?Closure $start = null,
         ?Closure $prepare = null,
         ?Closure $checkpoint = null,
-        ?Closure $end = null,
-    ): void {
-        $disk = config('capell.sitemap.disk', 'local');
-        $directory = config('capell.sitemap.directory', 'sitemaps');
-        $storage = Storage::disk($disk);
-        $domainKey = $domain->getDomainKey();
+    ): StagedSitemapSetData {
+        $site->load('siteDomains.language');
 
-        $this->ensureDirectoryExists($storage, $directory);
-
-        if ($this->generatorFactory instanceof Closure) {
-            ($this->generatorFactory)($site, $domain, $start, $prepare, $checkpoint, $end);
-
-            return;
-        }
-
-        if ($start instanceof Closure) {
-            $start($domain);
-        }
-
-        $language = $domain->language;
-
-        throw_unless($language instanceof Language, SitemapGeneratorException::class, 'Sitemap domain requires a language.');
-
-        $this->forgetSitemapPageCaches($site->id, (int) $language->id);
-        $items = $this->buildUrlItems($site, $domain);
-        $total = count($items);
-
-        if ($prepare instanceof Closure) {
-            $prepare($total, $domain->getDomainKey());
-        }
-
-        $state = new SitemapStateStore($disk, $directory);
-        $currentMap = $state->buildUrlMap($items);
-        $storedMap = $state->load($domainKey);
-
-        if (! $state->hasChanged($currentMap, $storedMap)) {
-            // Nothing changed — skip disk I/O entirely.
-            if ($end instanceof Closure) {
-                $end($total, $directory . '/' . $domainKey . '.xml', false);
-            }
-
-            return;
-        }
-
-        if ($total > 0) {
-            foreach ($items as $item) {
-                if ($checkpoint instanceof Closure) {
-                    $checkpoint($item->loc);
-                }
-            }
-
-            $filePath = $this->writeItems($storage, $directory, $domain, $items);
-            $state->save($domainKey, $currentMap);
-        } else {
-            $filePath = $directory . '/' . $domainKey . '.xml';
-            $this->deleteDomainFiles($storage, $directory, $domainKey);
-            $state->save($domainKey, []);
-        }
-
-        if ($end instanceof Closure) {
-            $end($total, $filePath, true);
-        }
+        return $this->stageContexts(
+            site: $site,
+            contexts: $this->buildDomainContexts($site, $start, $prepare),
+            checkpoint: $checkpoint,
+        );
     }
 
     /**
@@ -315,13 +205,16 @@ class XmlSitemapGenerator
         $this->deleteChunkFiles($storage, $directory, $domainKey);
 
         if (count($items) <= $maxPerFile) {
-            $storage->put($mainPath, $this->toXml($items));
+            throw_unless(
+                $storage->put($mainPath, $this->toXml($items)),
+                SitemapGeneratorException::class,
+                'Unable to write staged sitemap XML: ' . $mainPath,
+            );
 
             return $mainPath;
         }
 
-        $xmlPath = rtrim((string) config('capell.sitemap.xml_path', '/sitemap-xml'), '/');
-        $baseUrl = rtrim($domain->full_url, '/') . $xmlPath;
+        $baseUrl = $this->publicChunkBaseUrl($domain);
         $now = now()->format(DATE_ATOM);
         $indexEntries = [];
         $chunk = [];
@@ -343,7 +236,11 @@ class XmlSitemapGenerator
             $indexEntries[] = $this->writeChunk($storage, $directory, $domainKey, $baseUrl, $chunkNumber, $chunk, $now);
         }
 
-        $storage->put($mainPath, $this->toIndexXml($indexEntries));
+        throw_unless(
+            $storage->put($mainPath, $this->toIndexXml($indexEntries)),
+            SitemapGeneratorException::class,
+            'Unable to write staged sitemap index XML: ' . $mainPath,
+        );
 
         return $mainPath;
     }
@@ -353,6 +250,234 @@ class XmlSitemapGenerator
         if (! $storage->exists($directory)) {
             $storage->makeDirectory($directory);
         }
+    }
+
+    /**
+     * @return list<array{domain: SiteDomain, items: array<int, SitemapUrlItemData>, urlState: array<string, string>}>
+     */
+    private function buildDomainContexts(
+        Site $site,
+        ?Closure $start,
+        ?Closure $prepare,
+    ): array {
+        throw_if($site->siteDomains->isEmpty(), SitemapGeneratorException::class, 'No site domain found for site ID ' . $site->id);
+
+        $contexts = [];
+        $state = new SitemapStateStore($this->disk(), $this->directory());
+
+        foreach ($site->siteDomains as $domain) {
+            if ($this->generatorFactory instanceof Closure) {
+                throw new SitemapGeneratorException('Custom sitemap generator factories cannot bypass staged publication.');
+            }
+
+            if ($start instanceof Closure) {
+                $start($domain);
+            }
+
+            $language = $domain->language;
+            throw_unless($language instanceof Language, SitemapGeneratorException::class, 'Sitemap domain requires a language.');
+
+            $this->forgetSitemapPageCaches(
+                $this->integerModelKey($site, 'Site'),
+                $this->integerModelKey($language, 'Language'),
+            );
+            $items = $this->buildUrlItems($site, $domain);
+
+            if ($prepare instanceof Closure) {
+                $prepare(count($items), $domain->getDomainKey());
+            }
+
+            $contexts[] = [
+                'domain' => $domain,
+                'items' => $items,
+                'urlState' => $state->buildUrlMap($items),
+            ];
+        }
+
+        return $contexts;
+    }
+
+    /**
+     * @param  list<array{domain: SiteDomain, items: array<int, SitemapUrlItemData>, urlState: array<string, string>}>  $contexts
+     */
+    private function stageContexts(
+        Site $site,
+        array $contexts,
+        ?Closure $checkpoint,
+    ): StagedSitemapSetData {
+        $storage = Storage::disk($this->disk());
+        $siteKey = $this->siteKey($site);
+        $generationId = $siteKey . '-' . bin2hex(random_bytes(16));
+        $stagingDirectory = $this->directory() . '/.staging/' . $generationId;
+        $domains = [];
+
+        try {
+            foreach ($contexts as $context) {
+                foreach ($context['items'] as $item) {
+                    if ($checkpoint instanceof Closure) {
+                        $checkpoint($item->loc);
+                    }
+                }
+
+                $domain = $context['domain'];
+                $mainPath = $this->writeItems($storage, $stagingDirectory, $domain, $context['items']);
+                $mainXml = $storage->get($mainPath);
+
+                throw_unless(is_string($mainXml), SitemapGeneratorException::class, 'Unable to read staged sitemap main XML.');
+
+                $domainKey = $domain->getDomainKey();
+                $filenames = [];
+
+                foreach ($storage->files($stagingDirectory) as $path) {
+                    $filename = basename($path);
+
+                    if ($filename === $domainKey . '.xml'
+                        || preg_match('/^' . preg_quote($domainKey, '/') . '-p[1-9][0-9]*\.xml$/', $filename) === 1) {
+                        $filenames[] = $filename;
+                    }
+                }
+
+                sort($filenames);
+                $language = $domain->language;
+
+                throw_unless($language instanceof Language, SitemapGeneratorException::class, 'Sitemap domain requires a language.');
+
+                $domains[] = new StagedSitemapDomainData(
+                    domainKey: $domainKey,
+                    languageId: $this->integerModelKey($language, 'Language'),
+                    mainFilename: basename($mainPath),
+                    filenames: $filenames,
+                    urlCount: count($context['items']),
+                    urlState: $context['urlState'],
+                    etag: hash('sha256', $mainXml),
+                    publicChunkBaseUrl: $this->publicChunkBaseUrl($domain),
+                );
+            }
+
+            return new StagedSitemapSetData(
+                siteKey: $siteKey,
+                generationId: $generationId,
+                directory: $stagingDirectory,
+                domains: $domains,
+            );
+        } catch (Throwable $throwable) {
+            $storage->deleteDirectory($stagingDirectory);
+
+            throw $throwable;
+        }
+    }
+
+    private function signalCompletedDomains(
+        StagedSitemapSetData $sitemapSet,
+        ?Closure $end,
+        ?bool $regenerated = null,
+    ): void {
+        if (! $end instanceof Closure) {
+            return;
+        }
+
+        foreach ($sitemapSet->domains as $domain) {
+            $arguments = [
+                $domain->urlCount,
+                $this->directory() . '/' . $domain->mainFilename,
+            ];
+
+            if ($regenerated !== null) {
+                $arguments[] = $regenerated;
+            }
+
+            $end(...$arguments);
+        }
+    }
+
+    private function writeCompatibilityFiles(StagedSitemapSetData $sitemapSet): void
+    {
+        $storage = Storage::disk($this->disk());
+        $state = new SitemapStateStore($this->disk(), $this->directory());
+
+        foreach ($sitemapSet->domains as $domain) {
+            try {
+                if ($domain->urlCount > 0) {
+                    foreach ($domain->filenames as $filename) {
+                        $contents = $storage->get($sitemapSet->directory . '/' . $filename);
+
+                        if (is_string($contents)) {
+                            $storage->put($this->directory() . '/' . $filename, $contents);
+                        }
+                    }
+                } else {
+                    $storage->delete($this->directory() . '/' . $domain->mainFilename);
+                }
+
+                $publishedFilenames = $domain->urlCount > 0 ? $domain->filenames : [];
+                foreach ($storage->files($this->directory()) as $path) {
+                    $filename = basename($path);
+
+                    if (str_starts_with($filename, $domain->domainKey . '-p')
+                        && str_ends_with($filename, '.xml')
+                        && ! in_array($filename, $publishedFilenames, true)) {
+                        $storage->delete($path);
+                    }
+                }
+
+                $state->save($domain->domainKey, $domain->urlState);
+            } catch (Throwable $throwable) {
+                Log::notice('Site Discovery could not refresh a legacy sitemap compatibility file.', [
+                    'domain_key' => $domain->domainKey,
+                    'exception' => $throwable,
+                ]);
+            }
+        }
+    }
+
+    private function disk(): string
+    {
+        $disk = config('capell.sitemap.disk', 'local');
+
+        return is_string($disk) && $disk !== '' ? $disk : 'local';
+    }
+
+    private function directory(): string
+    {
+        $directory = config('capell.sitemap.directory', 'sitemaps');
+
+        return is_string($directory) && trim($directory, '/') !== ''
+            ? trim($directory, '/')
+            : 'sitemaps';
+    }
+
+    private function siteKey(Site $site): string
+    {
+        $siteKey = $site->getKey();
+
+        throw_unless(is_int($siteKey) || (is_string($siteKey) && $siteKey !== ''), SitemapGeneratorException::class, 'Site must have a scalar key.');
+
+        return is_int($siteKey) ? (string) $siteKey : $siteKey;
+    }
+
+    private function integerModelKey(Site|Language $model, string $modelName): int
+    {
+        $modelKey = $model->getKey();
+
+        if (is_int($modelKey)) {
+            return $modelKey;
+        }
+
+        if (is_string($modelKey) && ctype_digit($modelKey)) {
+            return (int) $modelKey;
+        }
+
+        throw new SitemapGeneratorException($modelName . ' must have an integer key.');
+    }
+
+    private function publicChunkBaseUrl(SiteDomain $domain): string
+    {
+        $configuredPath = config('capell.sitemap.xml_path', '/sitemap-xml');
+        $xmlPath = is_string($configuredPath) && $configuredPath !== ''
+            ? '/' . trim($configuredPath, '/')
+            : '/sitemap-xml';
+
+        return rtrim($domain->full_url, '/') . rtrim($xmlPath, '/');
     }
 
     /**
@@ -369,7 +494,11 @@ class XmlSitemapGenerator
         string $lastModified,
     ): array {
         $chunkFile = $directory . '/' . $domainKey . '-p' . $chunkNumber . '.xml';
-        $storage->put($chunkFile, $this->toXml($chunk));
+        throw_unless(
+            $storage->put($chunkFile, $this->toXml($chunk)),
+            SitemapGeneratorException::class,
+            'Unable to write staged sitemap chunk XML: ' . $chunkFile,
+        );
 
         return [
             'loc' => $baseUrl . '?p=' . $chunkNumber,

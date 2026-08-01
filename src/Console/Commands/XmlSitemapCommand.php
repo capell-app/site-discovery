@@ -53,8 +53,6 @@ class XmlSitemapCommand extends Command
      */
     private function runFull(XmlSitemapGenerator $generator, Site $site, array &$rows): void
     {
-        $generator->delete($site);
-
         $currentDomain = new class
         {
             public ?SiteDomain $domain = null;

@@ -8,6 +8,7 @@ use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
 use Capell\SiteDiscovery\Data\SiteMapData;
 use Capell\SiteDiscovery\Enums\SitemapCacheKey;
+use Capell\SiteDiscovery\Support\Sitemap\SitemapPublicationStore;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapStateStore;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -32,6 +33,7 @@ class SitemapLoader
                 $sitemaps = [];
 
                 $sites = Site::excludingPreview()->with('siteDomains')->get();
+                $publicationStore = resolve(SitemapPublicationStore::class);
                 $state = new SitemapStateStore(
                     disk: $disk,
                     directory: $directory,
@@ -44,17 +46,20 @@ class SitemapLoader
                         continue;
                     }
 
-                    $site->siteDomains->each(function (SiteDomain $domain) use (&$sitemaps, $storage, $directory, $state): void {
+                    $site->siteDomains->each(function (SiteDomain $domain) use (&$sitemaps, $storage, $publicationStore, $state): void {
                         $filename = $domain->getDomainKey() . '.xml';
+                        $publishedPath = $publicationStore->resolveFilePath($domain->getDomainKey(), $filename);
 
-                        if (! $storage->exists($directory . '/' . $filename)) {
+                        if (! is_string($publishedPath) || ! $storage->exists($publishedPath)) {
                             return;
                         }
 
                         $sitemaps[] = [
                             'name' => $domain->name,
                             'url' => $domain->full_url . '/sitemap-xml',
-                            'total' => $state->urlCount($domain->getDomainKey()) ?? 0,
+                            'total' => $publicationStore->urlCount($domain->getDomainKey())
+                                ?? $state->urlCount($domain->getDomainKey())
+                                ?? 0,
                         ];
                     });
                 }

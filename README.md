@@ -37,13 +37,13 @@ Screenshot contract: `docs/screenshots.json`.
 
 ![Site resource sitemap action](docs/screenshots/site-sitemap-action.png)
 
-- Page resource sitemap action (admin, required).
-- Site resource sitemap action (admin, required).
-- Sitemap generation tool (admin, required).
-- Public HTML sitemap page (frontend, required).
-- Generated XML sitemap output (frontend, required).
-- Public URL Registry parity page (admin, required).
-- Public URL Registry quality report (admin, required).
+- Page resource sitemap action (admin, required evidence).
+- Site resource sitemap action (admin, required evidence).
+- Sitemap generation tool (admin, required evidence).
+- Public HTML sitemap page (frontend, required evidence).
+- Generated XML sitemap output (frontend, required evidence).
+- Public URL Registry parity page (admin, required evidence).
+- Public URL Registry quality report (admin, required evidence).
 
 ## Technical Shape
 
@@ -54,12 +54,12 @@ Screenshot contract: `docs/screenshots.json`.
 - Route files: `packages/site-discovery/routes/web.php`.
 - Extension contracts: `DiscoverableUrlSource`, `DiscoveryOutputSource`, `GeneratedOutputCoverageSource`, `PublicUrlContributor`, `Sitemapable`, `UrlChangeNotifier`.
 - Listeners: `EnsureSitemapPagesAfterCapellInstalled`, `RegenerateSitemapsOnPageDeleted`, `RegenerateSitemapsOnPageSaved`, `RegenerateSitemapsOnSiteCreated`.
-- Actions: `BuildGeneratedOutputParityReportAction`, `BuildPublicSitemapTreeAction`, `BuildPublicUrlRegistryAction`, `BuildSitemapXmlResponseAction`, `DiscoverPublicDiscoveryOutputsAction`, `DiscoverPublicPagesAction`, `DiscoverPublicUrlsAction`, `EnsureSitemapPagesAction`, `GenerateSitemapAction`, `NotifyPageUrlChangesAction`, `NotifyPublicUrlChangesAction`, `RedactIndexNowNotificationErrorMessageAction`, `and 3 more`.
-- Data objects: `DiscoverablePageData`, `DiscoverableUrlData`, `DiscoveryOutputData`, `GeneratedOutputParityReportData`, `GeneratedOutputParityRowData`, `PublicUrlData`, `PublicUrlRegistryEntryData`, `SiteMapData`, `SitemapAlternateData`, `SitemapImageData`, `SitemapNewsData`, `SitemapPageData`, `and 5 more`.
-- Jobs: `RegenerateSiteSitemapIncrementallyJob`.
+- Actions: `BuildGeneratedOutputParityReportAction`, `BuildPublicSitemapTreeAction`, `BuildPublicUrlRegistryAction`, `BuildSitemapXmlResponseAction`, `DiscoverPublicDiscoveryOutputsAction`, `DiscoverPublicPagesAction`, `DiscoverPublicUrlsAction`, `EnsureSitemapPagesAction`, `GenerateSitemapAction`, `GenerateSitemapIncrementallyAction`, `NotifyPageUrlChangesAction`, `NotifyPublicUrlChangesAction`, `and 6 more`.
+- Data objects: `DiscoverablePageData`, `DiscoverableUrlData`, `DiscoveryOutputData`, `GeneratedOutputParityReportData`, `GeneratedOutputParityRowData`, `PublicUrlData`, `PublicUrlRegistryEntryData`, `SiteMapData`, `SitemapAlternateData`, `SitemapImageData`, `SitemapNewsData`, `SitemapPageData`, `and 7 more`.
+- Jobs: `RebuildAllSitemapsJob`, `RebuildSiteSitemapJob`, `RegenerateSiteSitemapIncrementallyJob`.
 - Command signatures: `capell:xml-sitemap`.
 - Manifest action API: `buildGeneratedOutputParityReport: Capell\SiteDiscovery\Actions\BuildGeneratedOutputParityReportAction`, `buildPublicUrlRegistry: Capell\SiteDiscovery\Actions\BuildPublicUrlRegistryAction`, `generateSitemap: Capell\SiteDiscovery\Actions\GenerateSitemapAction`, `setup: Capell\SiteDiscovery\Actions\SetupSiteDiscoveryPackageAction`, `validateSitemapQuality: Capell\SiteDiscovery\Actions\ValidateSitemapQualityAction`.
-- Scheduled commands: `capell:xml-sitemap --incremental`.
+- Scheduled commands: `capell:xml-sitemap --incremental (manifest declared)`.
 - Console command classes: `XmlSitemapCommand`.
 - Manifest contributions: `admin-page: Capell\SiteDiscovery\Manifest\PublicUrlRegistryPageContribution`, `route: Capell\SiteDiscovery\Manifest\SiteDiscoveryFrontendRoutesContribution`, `scheduled-job: Capell\SiteDiscovery\Manifest\SiteDiscoveryIncrementalSitemapScheduleContribution`.
 - Health checks: `Capell\SiteDiscovery\Health\SiteDiscoveryHealthCheck`.
@@ -80,7 +80,7 @@ This package has no schema impact. It extends Capell through `admin-page` contri
 - Database changes: no package migrations declared.
 - Config: `config/capell-site-discovery.php`.
 - Settings: no package settings declared.
-- Queues or schedules: scheduled commands `capell:xml-sitemap --incremental`; queue jobs `RegenerateSiteSitemapIncrementallyJob`.
+- Queues or schedules: scheduled commands `capell:xml-sitemap --incremental (manifest declared)`; queue jobs `RebuildAllSitemapsJob`, `RebuildSiteSitemapJob`, `RegenerateSiteSitemapIncrementallyJob`.
 - Cache tags: `site-discovery`.
 - Commands: `capell:xml-sitemap`.
 
@@ -89,7 +89,7 @@ This package has no schema impact. It extends Capell through `admin-page` contri
 - Keep required Capell packages on compatible v4 releases: `capell-app/admin`, `capell-app/core`, `capell-app/frontend`.
 - Review package configuration before production-like verification: `config/capell-site-discovery.php`.
 - Review middleware, throttling, signatures, and public-output safety in `routes/web.php` before exposing routes.
-- Register the host scheduler so these declared commands run at their documented frequencies: `capell:xml-sitemap --incremental`.
+- Keep the host Laravel scheduler running so package-registered schedules can execute: `capell:xml-sitemap --incremental (manifest declared)`.
 - Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
 - Custom write integrations must preserve invalidation for `site-discovery` cache tags.
 
@@ -106,7 +106,7 @@ This package has no schema impact. It extends Capell through `admin-page` contri
 
 1. Install the package: `composer require capell-app/site-discovery`.
 2. Review `config/capell-site-discovery.php` before enabling the package.
-3. Open the Page resource sitemap action and confirm the admin workflow loads.
+3. Open the package admin surface at `/screenshot-fixtures/site-discovery/page-sitemap-action` and confirm Site Discovery is available.
 
 ## Next Steps
 

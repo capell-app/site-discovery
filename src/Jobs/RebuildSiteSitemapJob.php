@@ -7,7 +7,6 @@ namespace Capell\SiteDiscovery\Jobs;
 use Capell\Core\Models\Site;
 use Capell\SiteDiscovery\Actions\GenerateSitemapAction;
 use Capell\SiteDiscovery\Enums\SitemapCacheKey;
-use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -36,7 +35,7 @@ final class RebuildSiteSitemapJob implements ShouldBeUnique, ShouldQueue
 
     public function __construct(public readonly int $siteId) {}
 
-    public function handle(XmlSitemapGenerator $generator): void
+    public function handle(): void
     {
         $site = Site::query()->with('siteDomains')->enabled()->find($this->siteId);
 
@@ -46,7 +45,6 @@ final class RebuildSiteSitemapJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        $generator->delete($site);
         GenerateSitemapAction::dispatch($site);
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\SiteDiscovery\Actions;
 
+use Capell\SiteDiscovery\Support\Sitemap\SitemapPublicationStore;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
@@ -22,11 +23,12 @@ final class BuildSitemapXmlResponseAction
     public function handle(Request $request, ?string $sitemapPrefix = null): Response|StreamedResponse
     {
         $disk = $this->configString('capell.sitemap.disk', 'local');
-        $directory = trim($this->configString('capell.sitemap.directory', 'sitemaps'), '/');
-        $filePath = $directory . '/' . $this->filename($request, $sitemapPrefix);
+        $filename = $this->filename($request, $sitemapPrefix);
+        $domainKey = $this->domainKey($request, $sitemapPrefix);
+        $filePath = resolve(SitemapPublicationStore::class)->resolveFilePath($domainKey, $filename);
         $storage = Storage::disk($disk);
 
-        abort_unless($storage->exists($filePath), 404);
+        abort_unless(is_string($filePath) && $storage->exists($filePath), 404);
 
         $contents = $storage->get($filePath);
 

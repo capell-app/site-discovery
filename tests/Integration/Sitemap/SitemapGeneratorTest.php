@@ -167,8 +167,9 @@ it('skips generation when no pages and still signals end', function (): void {
         $storage->makeDirectory('sitemaps_test');
     }
 
-    $files = collect($storage->files('sitemaps_test'));
-    expect($files)->toBeEmpty()
+    $xmlFiles = collect($storage->files('sitemaps_test'))
+        ->filter(static fn (string $path): bool => str_ends_with($path, '.xml'));
+    expect($xmlFiles)->toBeEmpty()
         ->and($calls)->toContain('end');
 });
 
@@ -177,9 +178,12 @@ it('returns a valid empty sitemap when the primary domain has no eligible URLs',
 
     $xml = (new XmlSitemapGenerator)->generate($site);
 
+    $xmlFiles = collect(Storage::disk('local')->files('sitemaps_test'))
+        ->filter(static fn (string $path): bool => str_ends_with($path, '.xml'));
+
     expect($xml)->toContain('<urlset')
         ->and($xml)->not->toContain('<url>')
-        ->and(Storage::disk('local')->files('sitemaps_test'))->toBeEmpty();
+        ->and($xmlFiles)->toBeEmpty();
 });
 
 it('generates sitemap for path only domains and passes a string domain key to prepare callback', function (): void {

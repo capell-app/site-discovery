@@ -3,14 +3,15 @@
 declare(strict_types=1);
 
 use Capell\Core\Models\Site;
+use Capell\SiteDiscovery\Actions\GenerateSitemapAction;
 use Capell\SiteDiscovery\Enums\SitemapCacheKey;
 use Capell\SiteDiscovery\Jobs\RebuildAllSitemapsJob;
 use Capell\SiteDiscovery\Jobs\RebuildSiteSitemapJob;
-use Capell\SiteDiscovery\Tests\Fixtures\SiteDiscoverySitemapToolFakeXmlSitemapGenerator;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Illuminate\Bus\BusServiceProvider;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Queue;
 
 uses(SiteDiscoveryTestCase::class);
 
@@ -39,13 +40,15 @@ it('clears the progress marker when the rebuild job fails', function (): void {
     expect(Cache::has(SitemapCacheKey::Generating->value))->toBeFalse();
 });
 
-it('deletes one sites stale files inside its bounded rebuild job', function (): void {
+it('queues atomic generation without deleting the currently served set', function (): void {
     app()->register(BusServiceProvider::class);
-    Bus::fake();
+    Queue::fake();
     $site = Site::factory()->default()->withTranslations()->create();
-    $generator = new SiteDiscoverySitemapToolFakeXmlSitemapGenerator;
 
-    (new RebuildSiteSitemapJob((int) $site->getKey()))->handle($generator);
+    (new RebuildSiteSitemapJob((int) $site->getKey()))->handle();
 
-    expect($generator->deletedSiteIds)->toBe([(int) $site->getKey()]);
+    GenerateSitemapAction::assertPushed(
+        callback: static fn (GenerateSitemapAction $action, array $parameters): bool => ($parameters[0] ?? null) instanceof Site
+            && $parameters[0]->is($site),
+    );
 });

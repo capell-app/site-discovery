@@ -13,6 +13,7 @@ use Capell\SiteDiscovery\Data\SitemapUrlItemData;
 use Capell\SiteDiscovery\Enums\GeneratedOutputParityStatus;
 use Capell\SiteDiscovery\Enums\PublicUrlContentType;
 use Capell\SiteDiscovery\Enums\PublicUrlIndexability;
+use Capell\SiteDiscovery\Support\Sitemap\SitemapPublicationStore;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Lorisleiva\Actions\Concerns\AsFake;
@@ -270,8 +271,12 @@ final class BuildGeneratedOutputParityReportAction
             return ['available' => true, 'urls' => []];
         }
 
-        $urls = collect($storage->files($directory))
-            ->filter(fn (string $file): bool => str_ends_with($file, '.xml'))
+        $publishedPaths = resolve(SitemapPublicationStore::class)->publishedXmlPaths();
+        $xmlPaths = $publishedPaths !== []
+            ? collect($publishedPaths)
+            : collect($storage->files($directory))->filter(fn (string $file): bool => str_ends_with($file, '.xml'));
+
+        $urls = $xmlPaths
             ->flatMap(function (string $file) use ($storage): Collection {
                 $xml = $storage->get($file);
 

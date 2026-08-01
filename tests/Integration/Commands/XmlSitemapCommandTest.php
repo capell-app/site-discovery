@@ -92,7 +92,7 @@ it('generates full XML sitemaps for the selected enabled site', function (): voi
         ->expectsOutputToContain('1 sitemap generated successfully')
         ->assertExitCode(Command::SUCCESS);
 
-    expect($generator->deletedSiteIds)->toBe([$selectedSite->id])
+    expect($generator->deletedSiteIds)->toBe([])
         ->and($generator->processedSiteIds)->toBe([$selectedSite->id])
         ->and($generator->processedSiteIds)->not->toContain($otherSite->id)
         ->and($generator->processedSiteIds)->not->toContain($disabledSite->id)

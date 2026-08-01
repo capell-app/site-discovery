@@ -35,6 +35,14 @@ This guide is for editors who manage how pages are found and owners deciding wha
 
 ![An administrator generates or reviews sitemap output after pages are in place.](screenshots/sitemap-generation-tool.png)
 
+### How to recover and verify XML sitemap output
+
+1. Correct the queue, content, or sitemap storage failure before rebuilding.
+2. Ask a developer to run `capell:xml-sitemap --site=42` for the affected site. The existing complete set remains public until its replacement is fully generated and validated.
+3. Check the public headers with `curl -I https://example.com/sitemap-xml`. Expect `200` and a weak SHA-256 ETag such as `ETag: W/"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"`.
+4. Verify revalidation with `curl -I -H 'If-None-Match: W/"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"' https://example.com/sitemap-xml`. Expect `304` only when that exact set remains current.
+5. If generation or validation fails, confirm the previous ETag and XML body are still served, correct the failure, and rerun the rebuild. Do not delete the sitemap directory or current-set manifest as a recovery step.
+
 ### How to correct a page's indexability
 
 1. Open the underlying page or the host application's SEO controls.

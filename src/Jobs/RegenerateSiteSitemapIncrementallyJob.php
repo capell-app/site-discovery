@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Capell\SiteDiscovery\Jobs;
 
 use Capell\Core\Models\Site;
-use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
+use Capell\SiteDiscovery\Actions\GenerateSitemapIncrementallyAction;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -30,7 +30,7 @@ final class RegenerateSiteSitemapIncrementallyJob implements ShouldBeUnique, Sho
         $this->uniqueFor = $this->uniqueSeconds();
     }
 
-    public function handle(XmlSitemapGenerator $generator): void
+    public function handle(): void
     {
         $site = Site::query()->find($this->siteId);
 
@@ -38,7 +38,7 @@ final class RegenerateSiteSitemapIncrementallyJob implements ShouldBeUnique, Sho
             return;
         }
 
-        $generator->processIncremental($site);
+        GenerateSitemapIncrementallyAction::run($site);
     }
 
     public function uniqueId(): string
