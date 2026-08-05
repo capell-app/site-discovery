@@ -23,6 +23,7 @@ use Capell\SiteDiscovery\Data\SitemapVideoData;
 use Capell\SiteDiscovery\Data\StagedSitemapDomainData;
 use Capell\SiteDiscovery\Data\StagedSitemapSetData;
 use Capell\SiteDiscovery\Exceptions\SitemapGeneratorException;
+use Capell\SiteDiscovery\Support\Sitemap\Pages\PagesSitemap;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Closure;
@@ -535,6 +536,7 @@ class XmlSitemapGenerator
             lastmod: $sitemapPage->lastModified,
             changefreq: $sitemapPage->changeFrequency,
             priority: $sitemapPage->priority !== null ? number_format($sitemapPage->priority, 1, '.', '') : null,
+            alternates: $sitemapPage->alternates,
         );
 
         foreach ($this->normalizeChildren($sitemapPage->children) as $child) {
@@ -643,11 +645,11 @@ class XmlSitemapGenerator
 
     private function forgetSitemapPageCaches(int $siteId, int $languageId): void
     {
-        $baseKey = CacheEnum::sitemapPages($siteId, $languageId);
+        Cache::forget(CacheEnum::sitemapPages($siteId, $languageId));
 
-        Cache::forget($baseKey);
-        Cache::forget($baseKey . '.public');
-        Cache::forget($baseKey . '.with-edit-urls');
+        foreach (PagesSitemap::payloadCacheKeys($siteId, $languageId) as $key) {
+            Cache::forget($key);
+        }
     }
 
     private function deleteDomainFiles(Filesystem $storage, string $directory, string $domainKey): void

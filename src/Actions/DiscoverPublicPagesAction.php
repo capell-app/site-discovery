@@ -45,6 +45,12 @@ final class DiscoverPublicPagesAction
         return $query->addSelect('pages.*')
             ->with([
                 'translation' => fn (BuilderContract $query): BuilderContract => $query->where('language_id', $language->id),
+                'pageUrls' => fn (BuilderContract $query): BuilderContract => $query
+                    ->where('status', true)
+                    ->whereNull('type'),
+                'pageUrls.language',
+                'pageUrls.siteDomain',
+                'translations',
             ])
             ->withWhereHas(
                 'pageUrl',

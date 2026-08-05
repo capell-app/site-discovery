@@ -17,6 +17,26 @@ use LogicException;
 
 class PagesSitemap extends AbstractSitemapPages
 {
+    private const string PAYLOAD_VERSION = 'v2';
+
+    /**
+     * @return list<string>
+     */
+    public static function payloadCacheKeys(int $siteId, int $languageId): array
+    {
+        return [
+            self::payloadCacheKey($siteId, $languageId),
+            self::payloadCacheKey($siteId, $languageId, withEditUrl: true),
+        ];
+    }
+
+    public static function payloadCacheKey(int $siteId, int $languageId, bool $withEditUrl = false): string
+    {
+        return CacheEnum::sitemapPages($siteId, $languageId)
+            . '.' . self::PAYLOAD_VERSION
+            . ($withEditUrl ? '.with-edit-urls' : '.public');
+    }
+
     /**
      * @return Collection<array-key, mixed>
      */
@@ -44,7 +64,7 @@ class PagesSitemap extends AbstractSitemapPages
 
     public function format(Page $page): SitemapPageData
     {
-        return SitemapPageData::fromPage($page, withEditUrl: $this->withEditUrl);
+        return SitemapPageData::fromPage($page, withEditUrl: $this->withEditUrl, withAlternates: true);
     }
 
     /**
@@ -63,6 +83,6 @@ class PagesSitemap extends AbstractSitemapPages
 
     private function cacheKey(int $siteId, int $languageId): string
     {
-        return CacheEnum::sitemapPages($siteId, $languageId) . ($this->withEditUrl ? '.with-edit-urls' : '.public');
+        return self::payloadCacheKey($siteId, $languageId, $this->withEditUrl);
     }
 }

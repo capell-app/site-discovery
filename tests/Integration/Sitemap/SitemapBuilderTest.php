@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Capell\Core\Enums\CacheEnum;
 use Capell\Core\Models\Blueprint;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Page;
@@ -111,7 +110,7 @@ describe('SitemapBuilder', function (): void {
             ->and($parentNode->children->first()->pageId)->toBe($childPage->id)
             ->and($parentNode->children->first()->url)->toBe($childPage->pageUrl->full_url);
 
-        $cacheKey = CacheEnum::sitemapPages($siteDomain->site->id, $language->id) . '.public';
+        $cacheKey = PagesSitemap::payloadCacheKey($siteDomain->site->id, $language->id);
         $cachedPayload = Cache::get($cacheKey);
         $cachedResult = (new PagesSitemap(
             site: $siteDomain->site,
