@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Capell\SiteDiscovery\Actions;
 
+use Capell\DiscoveryFoundation\Data\PublicUrlRegistryEntryData;
+use Capell\DiscoveryFoundation\Enums\PublicUrlContentType;
+use Capell\DiscoveryFoundation\Enums\PublicUrlIndexability;
 use Capell\SiteDiscovery\Contracts\GeneratedOutputCoverageSource;
 use Capell\SiteDiscovery\Data\DiscoveryOutputData;
 use Capell\SiteDiscovery\Data\GeneratedOutputParityReportData;
 use Capell\SiteDiscovery\Data\GeneratedOutputParityRowData;
-use Capell\SiteDiscovery\Data\PublicUrlRegistryEntryData;
 use Capell\SiteDiscovery\Data\SitemapUrlItemData;
 use Capell\SiteDiscovery\Enums\GeneratedOutputParityStatus;
-use Capell\SiteDiscovery\Enums\PublicUrlContentType;
-use Capell\SiteDiscovery\Enums\PublicUrlIndexability;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPublicationStore;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;

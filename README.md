@@ -15,7 +15,7 @@ Evidence: [`src/Actions/BuildPublicUrlRegistryAction.php`](src/Actions/BuildPubl
 Status details:
 
 - Status: Available
-- Tier: premium
+- Tier: free
 - Bundle: search-seo
 - Composer package: `capell-app/site-discovery`
 - Namespace: `Capell\SiteDiscovery`

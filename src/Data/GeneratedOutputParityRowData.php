@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Capell\SiteDiscovery\Data;
 
+use Capell\DiscoveryFoundation\Enums\PublicUrlContentType;
+use Capell\DiscoveryFoundation\Enums\PublicUrlIndexability;
 use Capell\SiteDiscovery\Enums\GeneratedOutputParityStatus;
-use Capell\SiteDiscovery\Enums\PublicUrlContentType;
-use Capell\SiteDiscovery\Enums\PublicUrlIndexability;
 use Carbon\CarbonImmutable;
 use Spatie\LaravelData\Data;
 

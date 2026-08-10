@@ -6,9 +6,9 @@ namespace Capell\SiteDiscovery\Tests\Fixtures;
 
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Site;
-use Capell\SiteDiscovery\Contracts\PublicUrlContributor;
-use Capell\SiteDiscovery\Data\PublicUrlData;
-use Capell\SiteDiscovery\Enums\PublicUrlIndexability;
+use Capell\DiscoveryFoundation\Contracts\PublicUrlContributor;
+use Capell\DiscoveryFoundation\Data\PublicUrlData;
+use Capell\DiscoveryFoundation\Enums\PublicUrlIndexability;
 use Illuminate\Support\Collection;
 
 final readonly class NoIndexSitemapFixturePublicUrlContributor implements PublicUrlContributor

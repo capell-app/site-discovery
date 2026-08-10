@@ -5,12 +5,12 @@ declare(strict_types=1);
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
-use Capell\SiteDiscovery\Actions\BuildPublicUrlRegistryAction;
-use Capell\SiteDiscovery\Contracts\PublicUrlContributor;
-use Capell\SiteDiscovery\Data\PublicUrlData;
-use Capell\SiteDiscovery\Data\PublicUrlRegistryEntryData;
-use Capell\SiteDiscovery\Enums\PublicUrlContentType;
-use Capell\SiteDiscovery\Enums\PublicUrlIndexability;
+use Capell\DiscoveryFoundation\Actions\BuildPublicUrlRegistryAction;
+use Capell\DiscoveryFoundation\Contracts\PublicUrlContributor;
+use Capell\DiscoveryFoundation\Data\PublicUrlData;
+use Capell\DiscoveryFoundation\Data\PublicUrlRegistryEntryData;
+use Capell\DiscoveryFoundation\Enums\PublicUrlContentType;
+use Capell\DiscoveryFoundation\Enums\PublicUrlIndexability;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
@@ -48,7 +48,7 @@ it('includes existing CMS page URLs from the built-in page contributor', functio
 
     expect($entry)->toBeInstanceOf(PublicUrlRegistryEntryData::class)
         ->and($entry?->canonicalUrl)->toStartWith('http')
-        ->and($entry?->sourcePackage)->toBe('capell-app/site-discovery')
+        ->and($entry?->sourcePackage)->toBe('capell-app/discovery-foundation')
         ->and($entry?->routeName)->toBe('capell.pages.show')
         ->and($entry?->siteId)->toBe((int) $this->site->getKey())
         ->and($entry?->languageId)->toBe((int) $this->language->getKey())

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\SiteDiscovery\Contracts;
 
-use Capell\SiteDiscovery\Data\PublicUrlRegistryEntryData;
+use Capell\DiscoveryFoundation\Data\PublicUrlRegistryEntryData;
 use Illuminate\Support\Collection;
 
 interface GeneratedOutputCoverageSource

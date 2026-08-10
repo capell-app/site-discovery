@@ -9,7 +9,7 @@
     "description": "Make every published Capell page discoverable with automatic XML sitemaps, an HTML sitemap, and the canonical public-URL registry that powers the Search & SEO bundle.",
     "product": {
         "group": "Capell Search & SEO",
-        "tier": "premium",
+        "tier": "free",
         "bundle": "search-seo"
     },
     "namespace": "Capell\\SiteDiscovery",
@@ -18,6 +18,7 @@
         "requires": [
             "capell-app/admin",
             "capell-app/core",
+            "capell-app/discovery-foundation",
             "capell-app/frontend"
         ],
         "supports": [
@@ -179,7 +180,7 @@
         }
     ],
     "commercial": {
-        "proposedLicense": "paid",
+        "proposedLicense": "free",
         "requestedCertification": "first-party",
         "supportPolicy": "priority",
         "privateDocsRequested": true

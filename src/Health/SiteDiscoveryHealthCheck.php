@@ -6,11 +6,11 @@ namespace Capell\SiteDiscovery\Health;
 
 use Capell\Core\Contracts\Extensions\ChecksExtensionHealth;
 use Capell\Core\Data\Diagnostics\DoctorCheckResultData;
+use Capell\DiscoveryFoundation\Contracts\PublicUrlContributor;
+use Capell\DiscoveryFoundation\Support\PublicUrls\CmsPagePublicUrlContributor;
 use Capell\SiteDiscovery\Actions\BuildSitemapXmlResponseAction;
-use Capell\SiteDiscovery\Contracts\PublicUrlContributor;
 use Capell\SiteDiscovery\Data\SitemapUrlItemData;
 use Capell\SiteDiscovery\Http\Controllers\SitemapXmlController;
-use Capell\SiteDiscovery\Support\PublicUrls\CmsPagePublicUrlContributor;
 use Capell\SiteDiscovery\Support\Sitemap\Pages\PagesSitemap;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageRegistry;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageType;

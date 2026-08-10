@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Capell\SiteDiscovery\Actions;
 
-use Capell\SiteDiscovery\Data\PublicUrlRegistryEntryData;
+use Capell\DiscoveryFoundation\Data\PublicUrlRegistryEntryData;
+use Capell\DiscoveryFoundation\Enums\PublicUrlContentType;
+use Capell\DiscoveryFoundation\Enums\PublicUrlIndexability;
 use Capell\SiteDiscovery\Data\SitemapQualityErrorData;
 use Capell\SiteDiscovery\Data\SitemapQualityReportData;
 use Capell\SiteDiscovery\Data\SitemapUrlItemData;
-use Capell\SiteDiscovery\Enums\PublicUrlContentType;
-use Capell\SiteDiscovery\Enums\PublicUrlIndexability;
 use Capell\SiteDiscovery\Enums\SitemapQualityError;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;

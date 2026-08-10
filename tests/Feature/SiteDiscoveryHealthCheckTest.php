@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use Capell\Core\Data\Diagnostics\DoctorCheckResultData;
+use Capell\DiscoveryFoundation\Support\PublicUrls\CmsPagePublicUrlContributor;
 use Capell\SiteDiscovery\Health\SiteDiscoveryHealthCheck;
 use Capell\SiteDiscovery\Providers\SiteDiscoveryServiceProvider;
-use Capell\SiteDiscovery\Support\PublicUrls\CmsPagePublicUrlContributor;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageRegistry;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Illuminate\Console\Scheduling\Schedule;

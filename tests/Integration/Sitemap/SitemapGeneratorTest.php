@@ -7,7 +7,7 @@ use Capell\Core\Models\Language;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
-use Capell\SiteDiscovery\Contracts\PublicUrlContributor;
+use Capell\DiscoveryFoundation\Contracts\PublicUrlContributor;
 use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
 use Capell\SiteDiscovery\Tests\Fixtures\NoIndexSitemapFixturePublicUrlContributor;
 use Capell\SiteDiscovery\Tests\Fixtures\WildcardSitemapFixturePublicUrlContributor;

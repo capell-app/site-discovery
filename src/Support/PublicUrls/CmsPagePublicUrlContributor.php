@@ -7,11 +7,11 @@ namespace Capell\SiteDiscovery\Support\PublicUrls;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
+use Capell\DiscoveryFoundation\Contracts\PublicUrlContributor;
+use Capell\DiscoveryFoundation\Data\PublicUrlData;
+use Capell\DiscoveryFoundation\Enums\PublicUrlContentType;
 use Capell\SiteDiscovery\Actions\DiscoverPublicPagesAction;
-use Capell\SiteDiscovery\Contracts\PublicUrlContributor;
 use Capell\SiteDiscovery\Data\DiscoverablePageData;
-use Capell\SiteDiscovery\Data\PublicUrlData;
-use Capell\SiteDiscovery\Enums\PublicUrlContentType;
 use Illuminate\Support\Collection;
 
 final class CmsPagePublicUrlContributor implements PublicUrlContributor

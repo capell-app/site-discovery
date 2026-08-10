@@ -7,6 +7,7 @@ namespace Capell\SiteDiscovery\Tests;
 use Capell\Admin\Providers\AdminServiceProvider;
 use Capell\Admin\Providers\Filament\AdminPanelProvider;
 use Capell\Core\Facades\CapellCore;
+use Capell\DiscoveryFoundation\Providers\DiscoveryFoundationServiceProvider;
 use Capell\Frontend\Contracts\FrontendContextReader;
 use Capell\Frontend\Providers\FrontendServiceProvider;
 use Capell\Frontend\Support\State\FrontendState;
@@ -46,6 +47,7 @@ class SiteDiscoveryTestCase extends AbstractTestCase
             ...parent::getPackageProviders($app),
             AdminServiceProvider::class,
             AdminPanelProvider::class,
+            DiscoveryFoundationServiceProvider::class,
             SiteDiscoveryServiceProvider::class,
             FrontendServiceProvider::class,
             LivewireServiceProvider::class,
@@ -68,6 +70,7 @@ class SiteDiscoveryTestCase extends AbstractTestCase
         );
         CapellCore::forcePackageInstalled(FrontendServiceProvider::$packageName);
         CapellCore::forcePackageInstalled(SiteDiscoveryServiceProvider::$packageName);
+        CapellCore::forcePackageInstalled(DiscoveryFoundationServiceProvider::$packageName);
 
         CapellCore::registerPackage(
             NavigationServiceProvider::$packageName,

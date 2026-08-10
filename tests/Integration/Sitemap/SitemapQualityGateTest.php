@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 use Capell\Core\Models\Language;
 use Capell\Core\Models\SiteDomain;
+use Capell\DiscoveryFoundation\Contracts\PublicUrlContributor;
+use Capell\DiscoveryFoundation\Data\PublicUrlData;
+use Capell\DiscoveryFoundation\Data\PublicUrlRegistryEntryData;
+use Capell\DiscoveryFoundation\Enums\PublicUrlContentType;
+use Capell\DiscoveryFoundation\Enums\PublicUrlIndexability;
 use Capell\SiteDiscovery\Actions\ValidateSitemapQualityAction;
-use Capell\SiteDiscovery\Contracts\PublicUrlContributor;
-use Capell\SiteDiscovery\Data\PublicUrlData;
-use Capell\SiteDiscovery\Data\PublicUrlRegistryEntryData;
-use Capell\SiteDiscovery\Enums\PublicUrlContentType;
-use Capell\SiteDiscovery\Enums\PublicUrlIndexability;
 use Capell\SiteDiscovery\Enums\SitemapQualityError;
 use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;

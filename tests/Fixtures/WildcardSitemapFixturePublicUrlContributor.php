@@ -6,8 +6,8 @@ namespace Capell\SiteDiscovery\Tests\Fixtures;
 
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Site;
-use Capell\SiteDiscovery\Contracts\PublicUrlContributor;
-use Capell\SiteDiscovery\Data\PublicUrlData;
+use Capell\DiscoveryFoundation\Contracts\PublicUrlContributor;
+use Capell\DiscoveryFoundation\Data\PublicUrlData;
 use Illuminate\Support\Collection;
 
 final readonly class WildcardSitemapFixturePublicUrlContributor implements PublicUrlContributor

@@ -116,6 +116,28 @@
             "notes": "Capture the registry page with missing output or quality errors visible after seeding at least one missing downstream output.",
             "useCase": "An administrator filters the registry to find URLs missing generated outputs or failing sitemap quality checks.",
             "screenshotPath": "packages/site-discovery/docs/screenshots/public-url-quality-report.png"
+        },
+        {
+            "id": "site-discovery-admin-sidebar-menu-open",
+            "title": "Page resource sitemap action with admin sidebar menu open.",
+            "package": "site-discovery",
+            "surface": "admin",
+            "targetType": "admin-surface",
+            "target": "PageResource",
+            "scenario": "frontend-page",
+            "url": "/screenshot-fixtures/site-discovery/page-sitemap-action",
+            "waitFor": ".site-discovery",
+            "colorSchemes": ["light"],
+            "required": false,
+            "notes": "Capture the package-added Sitemap header action on the core Pages resource. Capture this same admin surface with the fully collapsible sidebar opened.",
+            "useCase": "An editor uses the package-added sitemap action on the core Pages resource.",
+            "screenshotPath": "packages/site-discovery/docs/screenshots/site-discovery-admin-sidebar-menu-open.png",
+            "beforeWait": [
+                {
+                    "type": "click",
+                    "selector": ".fi-topbar-open-collapse-sidebar-btn"
+                }
+            ]
         }
     ]
 }

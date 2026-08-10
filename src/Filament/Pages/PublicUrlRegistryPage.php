@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Capell\SiteDiscovery\Filament\Pages;
 
 use BackedEnum;
+use Capell\DiscoveryFoundation\Enums\PublicUrlIndexability;
 use Capell\SiteDiscovery\Actions\BuildGeneratedOutputParityReportAction;
 use Capell\SiteDiscovery\Data\GeneratedOutputParityReportData;
 use Capell\SiteDiscovery\Data\GeneratedOutputParityRowData;
 use Capell\SiteDiscovery\Enums\GeneratedOutputParityStatus;
-use Capell\SiteDiscovery\Enums\PublicUrlIndexability;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;

@@ -25,7 +25,6 @@ use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Renderables\RenderableRegistry;
 use Capell\SiteDiscovery\Console\Commands\XmlSitemapCommand;
 use Capell\SiteDiscovery\Contracts\DiscoveryOutputSource;
-use Capell\SiteDiscovery\Contracts\PublicUrlContributor;
 use Capell\SiteDiscovery\Contracts\UrlChangeNotifier;
 use Capell\SiteDiscovery\Filament\Extenders\Page\SitemapResourceHeaderActionExtender;
 use Capell\SiteDiscovery\Filament\Extenders\Site\SitemapSiteHeaderActionExtender;
@@ -42,7 +41,6 @@ use Capell\SiteDiscovery\Support\Creator\SitemapPageCreator;
 use Capell\SiteDiscovery\Support\DiscoveryOutputRegistry;
 use Capell\SiteDiscovery\Support\IndexNow\IndexNowUrlChangeNotifier;
 use Capell\SiteDiscovery\Support\Interceptors\SitemapPageTypeInterceptor;
-use Capell\SiteDiscovery\Support\PublicUrls\CmsPagePublicUrlContributor;
 use Capell\SiteDiscovery\Support\Sitemap\Pages\PagesSitemap;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageRegistry;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageType;
@@ -107,7 +105,6 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
             ->registerSitemapPageType()
             ->registerSitemapDefaultPage()
             ->registerSitemapRegistry()
-            ->registerPublicUrlContributors()
             ->registerDiscoveryOutputRegistry()
             ->registerUrlChangeNotifiers()
             ->registerSitemapEventListeners()
@@ -208,14 +205,6 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
         /** @var SitemapPageRegistry $registry */
         $registry = $this->app->make(SitemapPageRegistry::class);
         $registry->register('default', PagesSitemap::class);
-
-        return $this;
-    }
-
-    private function registerPublicUrlContributors(): self
-    {
-        $this->app->singleton(CmsPagePublicUrlContributor::class);
-        $this->app->tag([CmsPagePublicUrlContributor::class], PublicUrlContributor::TAG);
 
         return $this;
     }

@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Capell\SiteDiscovery\Enums\PublicUrlContentType;
-use Capell\SiteDiscovery\Enums\PublicUrlIndexability;
+use Capell\DiscoveryFoundation\Enums\PublicUrlContentType;
+use Capell\DiscoveryFoundation\Enums\PublicUrlIndexability;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 
 uses(SiteDiscoveryTestCase::class);
