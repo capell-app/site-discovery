@@ -44,6 +44,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Generated XML sitemap output (frontend, required evidence).
 - Public URL Registry parity page (admin, required evidence).
 - Public URL Registry quality report (admin, required evidence).
+- Page resource sitemap action with admin sidebar menu open (admin, supplementary evidence).
 
 ## Technical Shape
 
@@ -72,7 +73,7 @@ This package has no schema impact. It extends Capell through `admin-page` contri
 
 ## Install Impact
 
-- Required packages: `capell-app/admin`, `capell-app/core`, `capell-app/frontend`.
+- Required packages: `capell-app/admin`, `capell-app/core`, `capell-app/discovery-foundation`, `capell-app/frontend`.
 - Admin navigation: declares `admin-page: PublicUrlRegistryPageContribution`; each Filament page or resource controls its own navigation visibility.
 - Admin/editor extensions: none declared.
 - Permissions: `View:PublicUrlRegistryPage`.
@@ -86,7 +87,7 @@ This package has no schema impact. It extends Capell through `admin-page` contri
 
 ## Common Pitfalls
 
-- Keep required Capell packages on compatible v4 releases: `capell-app/admin`, `capell-app/core`, `capell-app/frontend`.
+- Keep required Capell packages on compatible v4 releases: `capell-app/admin`, `capell-app/core`, `capell-app/discovery-foundation`, `capell-app/frontend`.
 - Review package configuration before production-like verification: `config/capell-site-discovery.php`.
 - Review middleware, throttling, signatures, and public-output safety in `routes/web.php` before exposing routes.
 - Keep the host Laravel scheduler running so package-registered schedules can execute: `capell:xml-sitemap --incremental (manifest declared)`.
@@ -120,7 +121,7 @@ This package has no schema impact. It extends Capell through `admin-page` contri
 - [Capell content language plan](../../docs/CONTENT_LANGUAGE_PLAN.md)
 - [Capell documentation design system](../../docs/DESIGN_SYSTEM.md)
 - [Capell and package ERD notes](../../docs/erd/capell-and-package-erds.md)
-- Related packages: [Agent Delivery](../agent-delivery/README.md), [Search](../search/README.md), [Seo Suite](../seo-suite/README.md), [Url Manager](../url-manager/README.md).
+- Related packages: [Discovery Foundation](../discovery-foundation/README.md), [Agent Delivery](../agent-delivery/README.md), [Search](../search/README.md), [Seo Suite](../seo-suite/README.md), [Url Manager](../url-manager/README.md).
 - Focused tests: `vendor/bin/pest packages/site-discovery/tests --configuration=phpunit.xml`.
 
 <!-- prettier-ignore-end -->
