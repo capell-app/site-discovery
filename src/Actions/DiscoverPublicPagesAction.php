@@ -9,6 +9,7 @@ use Capell\Core\Enums\BlueprintGroupEnum;
 use Capell\Core\Facades\CapellDatabase;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Page;
+use Capell\Core\Models\PageUrl;
 use Capell\Core\Models\Site;
 use Capell\SiteDiscovery\Data\DiscoverablePageData;
 use Carbon\CarbonInterface;
@@ -85,6 +86,8 @@ final class DiscoverPublicPagesAction
             ->filter(fn (Page $page): bool => ! $this->hasNoIndexDirective($page->meta ?? [])
                 && ! $this->hasNoIndexDirective($page->translation->meta ?? []))
             ->map(function (Page $page) use ($site): DiscoverablePageData {
+                /** @var PageUrl|null $pageUrl */
+                $pageUrl = $page->getRelationValue('pageUrl');
                 $page->setRelation('site', $site);
                 Page::setResolvedPageUrlSiteDomain($page, $site);
                 $pageId = $page->getKey();
@@ -97,7 +100,7 @@ final class DiscoverPublicPagesAction
                 return new DiscoverablePageData(
                     pageId: $pageId,
                     title: trim(strip_tags($page->translation->title ?? $page->translation->label ?? $page->name ?? '')),
-                    url: $page->pageUrl->full_url ?? '',
+                    url: $pageUrl === null ? '' : ($pageUrl->full_url ?? ''),
                     lastModified: $updatedAt instanceof CarbonInterface ? $updatedAt : null,
                     priority: is_numeric($page->meta['priority'] ?? null) ? (float) $page->meta['priority'] : null,
                     changeFrequency: is_string($page->meta['changefreq'] ?? null) ? $page->meta['changefreq'] : null,
