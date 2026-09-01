@@ -19,6 +19,7 @@ use Capell\SiteDiscovery\Actions\GenerateSitemapAction;
 use Capell\SiteDiscovery\Actions\ValidateSitemapQualityAction;
 use Capell\SiteDiscovery\Contracts\GeneratedOutputCoverageSource;
 use Capell\SiteDiscovery\Enums\GeneratedOutputParityStatus;
+use Capell\SiteDiscovery\Enums\PublicUrlOutput;
 use Capell\SiteDiscovery\Filament\Pages\PublicUrlRegistryPage;
 use Capell\SiteDiscovery\Manifest\PublicUrlRegistryPageContribution;
 use Capell\SiteDiscovery\Manifest\SiteDiscoveryFrontendRoutesContribution;
@@ -213,7 +214,7 @@ it('declares the public url registry page in the package manifest', function ():
         ->and($manifest['contributionTraceability']['deferredContributions'])->toBe([]);
 });
 
-it('renders registry parity rows and filters missing output in the admin page', function (): void {
+it('defaults to the repair queue and keeps the full matrix under row details', function (): void {
     test()->actingAsAdmin();
 
     $language = Language::factory()->create(['code' => 'en']);
@@ -261,14 +262,89 @@ it('renders registry parity rows and filters missing output in the admin page', 
 
     Livewire::test(PublicUrlRegistryPage::class)
         ->assertSuccessful()
+        ->assertSet('queueView', PublicUrlRegistryPage::VIEW_NEEDS_ATTENTION)
         ->assertSee(__('capell-site-discovery::generic.public_url_registry'))
-        ->assertSee('https://example.com/missing-public')
-        ->assertSee('https://example.com/noindex-private')
-        ->set('missingOutputFilter', 'missing')
+        // The default view is the repair queue: only the URL missing from an
+        // eligible output appears, and the noindex URL is not repair work.
         ->assertSee('https://example.com/missing-public')
         ->assertDontSee('https://example.com/noindex-private')
-        ->set('missingOutputFilter', '')
-        ->set('sourcePackageFilter', 'capell-app/private')
-        ->assertSee('https://example.com/noindex-private')
-        ->assertDontSee('https://example.com/missing-public');
+        // Each issue states the reason, the responsible area, and a next step.
+        ->assertSee(PublicUrlOutput::Sitemap->missingReason())
+        ->assertSee(PublicUrlOutput::Sitemap->responsibleArea())
+        ->assertSee(PublicUrlOutput::Sitemap->missingNextStep())
+        ->assertSee(__('capell-site-discovery::generic.next_step'))
+        // The complete matrix stays available under row details.
+        ->assertSee(__('capell-site-discovery::generic.full_output_matrix'))
+        ->assertSee(GeneratedOutputParityStatus::Missing->getLabel())
+        // All URLs is an explicit alternate view.
+        ->set('queueView', PublicUrlRegistryPage::VIEW_ALL)
+        ->assertSee('https://example.com/missing-public')
+        ->assertSee('https://example.com/noindex-private');
+});
+
+it('filters the repair queue by output and by advanced filters', function (): void {
+    test()->actingAsAdmin();
+
+    $language = Language::factory()->create(['code' => 'en']);
+    $siteDomain = SiteDomain::factory()->state([
+        'domain' => 'example.com',
+        'language_id' => $language->id,
+        'scheme' => 'https',
+        'path' => null,
+    ])->create();
+    $site = $siteDomain->site;
+
+    app()->instance('site-discovery-public-url-registry-page-filter-source', new readonly class($site, $language) implements PublicUrlContributor
+    {
+        public function __construct(
+            private Site $site,
+            private Language $language,
+        ) {}
+
+        /**
+         * @return Collection<int, PublicUrlData>
+         */
+        public function publicUrls(): Collection
+        {
+            return collect([
+                new PublicUrlData(
+                    canonicalUrl: 'https://example.com/first',
+                    sourcePackage: 'capell-app/public',
+                    site: $this->site,
+                    language: $this->language,
+                ),
+                new PublicUrlData(
+                    canonicalUrl: 'https://example.com/second',
+                    sourcePackage: 'capell-app/other',
+                    site: $this->site,
+                    language: $this->language,
+                ),
+            ]);
+        }
+    });
+    app()->tag(['site-discovery-public-url-registry-page-filter-source'], PublicUrlContributor::TAG);
+
+    Livewire::test(PublicUrlRegistryPage::class)
+        ->assertSee('https://example.com/first')
+        ->assertSee('https://example.com/second')
+        ->set('outputFilter', PublicUrlOutput::Sitemap->value)
+        ->assertSee('https://example.com/first')
+        ->set('outputFilter', '')
+        ->call('toggleAdvancedFilters')
+        ->assertSet('showAdvancedFilters', true)
+        ->set('sourcePackageFilter', 'capell-app/other')
+        ->assertSee('https://example.com/second')
+        ->assertDontSee('https://example.com/first')
+        ->call('clearFilters')
+        ->assertSet('sourcePackageFilter', '')
+        ->assertSee('https://example.com/first')
+        ->assertSee('https://example.com/second');
+});
+
+it('explains an empty repair queue instead of showing a filter message', function (): void {
+    test()->actingAsAdmin();
+
+    Livewire::test(PublicUrlRegistryPage::class)
+        ->assertSuccessful()
+        ->assertSee(__('capell-site-discovery::generic.no_urls_need_attention'));
 });

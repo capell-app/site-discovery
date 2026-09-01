@@ -42,8 +42,8 @@ Screenshot contract: `docs/screenshots.json`.
 - Sitemap generation tool (admin, required evidence).
 - Public HTML sitemap page (frontend, required evidence).
 - Generated XML sitemap output (frontend, required evidence).
-- Public URL Registry parity page (admin, required evidence).
-- Public URL Registry quality report (admin, required evidence).
+- Public URL Registry repair queue (admin, required evidence).
+- Public URL Registry row details (admin, required evidence).
 - Page resource sitemap action with admin sidebar menu open (admin, supplementary evidence).
 
 ## Technical Shape
@@ -55,11 +55,11 @@ Screenshot contract: `docs/screenshots.json`.
 - Route files: `packages/site-discovery/routes/web.php`.
 - Extension contracts: `DiscoverableUrlSource`, `DiscoveryOutputSource`, `GeneratedOutputCoverageSource`, `PublicUrlContributor`, `Sitemapable`, `UrlChangeNotifier`.
 - Listeners: `EnsureSitemapPagesAfterCapellInstalled`, `RegenerateSitemapsOnPageDeleted`, `RegenerateSitemapsOnPageSaved`, `RegenerateSitemapsOnSiteCreated`.
-- Actions: `BuildGeneratedOutputParityReportAction`, `BuildPublicSitemapTreeAction`, `BuildPublicUrlRegistryAction`, `BuildSitemapXmlResponseAction`, `DiscoverPublicDiscoveryOutputsAction`, `DiscoverPublicPagesAction`, `DiscoverPublicUrlsAction`, `EnsureSitemapPagesAction`, `GenerateSitemapAction`, `GenerateSitemapIncrementallyAction`, `NotifyPageUrlChangesAction`, `NotifyPublicUrlChangesAction`, `and 6 more`.
-- Data objects: `DiscoverablePageData`, `DiscoverableUrlData`, `DiscoveryOutputData`, `GeneratedOutputParityReportData`, `GeneratedOutputParityRowData`, `PublicUrlData`, `PublicUrlRegistryEntryData`, `SiteMapData`, `SitemapAlternateData`, `SitemapImageData`, `SitemapNewsData`, `SitemapPageData`, `and 7 more`.
+- Actions: `BuildGeneratedOutputParityReportAction`, `BuildPublicSitemapTreeAction`, `BuildPublicUrlRegistryAction`, `BuildPublicUrlRepairQueueAction`, `BuildSitemapXmlResponseAction`, `DiscoverPublicDiscoveryOutputsAction`, `DiscoverPublicPagesAction`, `DiscoverPublicUrlsAction`, `EnsureSitemapPagesAction`, `GenerateSitemapAction`, `GenerateSitemapIncrementallyAction`, `NotifyPageUrlChangesAction`, `and 7 more`.
+- Data objects: `DiscoverablePageData`, `DiscoverableUrlData`, `DiscoveryOutputData`, `GeneratedOutputParityReportData`, `GeneratedOutputParityRowData`, `PublicUrlData`, `PublicUrlOutputIssueData`, `PublicUrlRegistryEntryData`, `PublicUrlRepairItemData`, `PublicUrlRepairQueueData`, `SiteMapData`, `SitemapAlternateData`, `and 10 more`.
 - Jobs: `RebuildAllSitemapsJob`, `RebuildSiteSitemapJob`, `RegenerateSiteSitemapIncrementallyJob`.
 - Command signatures: `capell:xml-sitemap`.
-- Manifest action API: `buildGeneratedOutputParityReport: Capell\SiteDiscovery\Actions\BuildGeneratedOutputParityReportAction`, `buildPublicUrlRegistry: Capell\SiteDiscovery\Actions\BuildPublicUrlRegistryAction`, `generateSitemap: Capell\SiteDiscovery\Actions\GenerateSitemapAction`, `setup: Capell\SiteDiscovery\Actions\SetupSiteDiscoveryPackageAction`, `validateSitemapQuality: Capell\SiteDiscovery\Actions\ValidateSitemapQualityAction`.
+- Manifest action API: `buildGeneratedOutputParityReport: Capell\SiteDiscovery\Actions\BuildGeneratedOutputParityReportAction`, `buildPublicUrlRegistry: Capell\SiteDiscovery\Actions\BuildPublicUrlRegistryAction`, `buildPublicUrlRepairQueue: Capell\SiteDiscovery\Actions\BuildPublicUrlRepairQueueAction`, `generateSitemap: Capell\SiteDiscovery\Actions\GenerateSitemapAction`, `setup: Capell\SiteDiscovery\Actions\SetupSiteDiscoveryPackageAction`, `validateSitemapQuality: Capell\SiteDiscovery\Actions\ValidateSitemapQualityAction`.
 - Scheduled commands: `capell:xml-sitemap --incremental (manifest declared)`.
 - Console command classes: `XmlSitemapCommand`.
 - Manifest contributions: `admin-page: Capell\SiteDiscovery\Manifest\PublicUrlRegistryPageContribution`, `route: Capell\SiteDiscovery\Manifest\SiteDiscoveryFrontendRoutesContribution`, `scheduled-job: Capell\SiteDiscovery\Manifest\SiteDiscoveryIncrementalSitemapScheduleContribution`.

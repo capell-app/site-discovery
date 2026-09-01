@@ -4,11 +4,12 @@
 
 ## What it does for you
 
-Site Discovery builds the public HTML and XML sitemap outputs for enabled Capell sites and provides a registry for checking whether each canonical public URL appears in the outputs that should contain it. It reads indexability and robots decisions from the underlying content and SEO providers; it does not provide its own editor for those values.
+Site Discovery builds the public HTML and XML sitemap outputs for enabled Capell sites and turns the canonical public-URL inventory into a repair queue: the URLs that are missing from an output they are eligible for, each with a reason, the area that owns that output, and a next step. It reads indexability and robots decisions from the underlying content and SEO providers; it does not provide its own editor for those values.
 
 ## Where to work
 
-- Open **Monitoring > Public URL Registry** to review canonical URLs by source package, site, language, indexability, sitemap eligibility, AI-discovery eligibility, and generated-output status.
+- Open **Monitoring > Public URL Registry**. It opens on **Needs attention** and lists only URLs missing from an eligible output. **Cannot be checked** lists URLs whose outputs have no coverage provider, and **All URLs** shows the complete inventory.
+- Filter the queue by **Output** and **Site**, or open **Advanced filters** for source package, language, indexability, sitemap eligibility, and AI-discovery eligibility. Each row keeps the complete eligibility and five-output matrix under **Full eligibility and output matrix**.
 - Use **Sitemap** from the existing **Pages** or **Sites** screens to open Capell's shared sitemap workflow. These actions are links to that workflow, not direct regeneration buttons for the current record.
 - The package also contributes the global sitemap generation tool and the public HTML sitemap page type. The XML route uses the configured `capell.sitemap.xml_path`, which defaults to `/sitemap-xml` and also supports a site path prefix.
 
@@ -34,12 +35,20 @@ For operational recovery, correct the generation or storage failure, run `capell
 
 ## Read the Public URL Registry
 
-- **Present** means the current generated output contains the normalised canonical URL.
-- **Missing** means the URL is eligible for that available output but was not found in it. Regenerate the relevant sitemap or downstream output, then reload the report.
-- **Not eligible** reflects the URL's indexability, robots, content type, or package-provided eligibility. Change those values on the underlying page or SEO screen, not in the registry.
-- **Unknown** means no coverage provider is available for that output; it is not proof that the URL is missing.
+A URL is in one of three queue states:
 
-The report reads the current XML files and current output contributors. It is a parity snapshot, not a historical crawl or a record of what a search engine has indexed. Sitemap quality validation excludes URLs with URL-specific quality errors from generation, so use the registry's missing-output filter together with the underlying page data when investigating a gap.
+- **Needs attention** means at least one output that this URL is eligible for does not contain it. This is the only state that is repair work.
+- **Cannot be checked** means no output is missing it, but at least one eligible output has no coverage provider installed. This is not proof that the URL is missing.
+- **Healthy** means every eligible output contains the URL. Ineligible and noindex URLs are healthy, not broken.
+
+The per-output statuses under row details are unchanged:
+
+- **Present** means the current generated output contains the normalised canonical URL.
+- **Missing** means the URL is eligible for that available output but was not found in it. Follow the next step shown on the issue, then reload the queue.
+- **Not eligible** reflects the URL's indexability, robots, content type, or package-provided eligibility. Change those values on the underlying page or SEO screen, not in the registry.
+- **Unavailable** means no coverage provider is available for that output.
+
+The queue is projected from the same parity report as before, so it reads the current XML files and current output contributors. It is a parity snapshot, not a historical crawl or a record of what a search engine has indexed. Sitemap quality validation excludes URLs with URL-specific quality errors from generation, so use the queue together with the underlying page data when investigating a gap.
 
 ## Optional IndexNow notifications
 

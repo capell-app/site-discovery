@@ -6,9 +6,10 @@ This guide is for editors who manage how pages are found and owners deciding wha
 
 ### How to review discovery status
 
-1. Open **Monitoring > Public URL Registry**.
-2. Review each public URL's **Indexability**, **Sitemap** status, and generated-output status.
-3. Filter by site, language, source package, indexability, sitemap eligibility, or missing outputs to focus the review.
+1. Open **Monitoring > Public URL Registry**. It opens on **Needs attention**: the public URLs that are missing from an output they are eligible for.
+2. Read each URL's issues. Every issue names the output, the reason in plain language, the area that owns that output, and the next step to take.
+3. Switch to **Cannot be checked** for URLs whose outputs have no installed package reporting coverage, or **All URLs** for the complete inventory.
+4. Narrow the queue with the **Output** and **Site** filters, or open **Advanced filters** for source package, language, indexability, and eligibility.
 
 ### How to open the sitemap workflow for a page
 
@@ -28,10 +29,11 @@ This guide is for editors who manage how pages are found and owners deciding wha
 
 ### How to review a URL missing generated output
 
-1. Open **Monitoring > Public URL Registry**.
-2. Filter to URLs with missing outputs or quality errors.
-3. Check whether the URL is indexable and sitemap eligible, then correct its underlying page or SEO metadata if needed.
-4. Re-check after the sitemap workflow or XML generation has run.
+1. Open **Monitoring > Public URL Registry** and stay on the default **Needs attention** view.
+2. Filter by **Output** when you want to work through one output at a time, for example everything missing from the sitemap.
+3. Follow the **Next step** shown on the issue.
+4. Open **Full eligibility and output matrix** on the row when you need the complete picture: every output's status plus indexability, content type, and both eligibility flags.
+5. Re-check after the sitemap workflow or XML generation has run.
 
 ![An administrator generates or reviews sitemap output after pages are in place.](screenshots/sitemap-generation-tool.png)
 
@@ -51,25 +53,25 @@ This guide is for editors who manage how pages are found and owners deciding wha
 
 ### How to check what has been indexed
 
-1. In **Monitoring > Public URL Registry**, filter by sitemap state or indexability.
-2. Look for pages marked **Missing from sitemap** or **Noindex** that you actually want found.
+1. In **Monitoring > Public URL Registry**, open **Advanced filters** and filter by indexability or sitemap eligibility.
+2. Look for pages marked **Noindex**, or eligible pages sitting in the **Needs attention** queue, that you actually want found.
 3. Fix any that are set the wrong way.
 
 ### How to audit your public URLs across the site
 
 1. Go to **Monitoring > Public URL Registry**.
-2. Review each public URL and whether the expected outputs (sitemap, search, cached copy, and so on) are present.
+2. Switch to **All URLs** to see every public address, including the healthy ones.
 3. Use this when you want one place that shows the discovery status for every public address.
 
-![An administrator audits generated-output parity for public URLs across installed packages.](screenshots/public-url-registry-page.png)
+![An administrator works through the public URLs that are missing from a generated output.](screenshots/public-url-registry-page.png)
 
-### How to find URLs missing outputs or failing quality checks
+### How to audit the full matrix behind a queue item
 
-1. In **Public URL Registry**, filter to URLs with missing outputs or quality errors.
-2. Work through anything flagged, for example a page missing from the sitemap.
-3. Re-check after you fix each one so the list clears.
+1. In **Public URL Registry**, find the URL you are investigating.
+2. Open **Full eligibility and output matrix** on that row.
+3. Read the five output statuses together with indexability, content type, sitemap eligibility, and AI-discovery eligibility. **Not eligible** is not a fault; it reflects the URL's own metadata.
 
-![An administrator filters the registry to find URLs missing generated outputs or failing sitemap quality checks.](screenshots/public-url-quality-report.png)
+![An administrator opens a queue row to audit the full eligibility and output matrix behind a repair item.](screenshots/public-url-quality-report.png)
 
 ## Rolling out Site Discovery (for owners)
 
@@ -82,7 +84,7 @@ This guide is for editors who manage how pages are found and owners deciding wha
 | Need                             | Enable                                             |
 | -------------------------------- | -------------------------------------------------- |
 | Keep private pages out of search | **Noindex** in the underlying page or SEO controls |
-| Find missing generated outputs   | **Public URL Registry** filters                    |
+| Find missing generated outputs   | **Public URL Registry**, **Needs attention** view  |
 
 ### Don't enable yet
 
@@ -90,15 +92,15 @@ This guide is for editors who manage how pages are found and owners deciding wha
 
 ### Who does what
 
-| Role       | First useful screen                                        |
-| ---------- | ---------------------------------------------------------- |
-| Editor     | The underlying page/SEO controls: set robots metadata      |
-| Site owner | **Monitoring > Public URL Registry**: review output parity |
+| Role       | First useful screen                                         |
+| ---------- | ----------------------------------------------------------- |
+| Editor     | The underlying page/SEO controls: set robots metadata       |
+| Site owner | **Monitoring > Public URL Registry**: work the repair queue |
 
 ## Troubleshooting for editors
 
-| What you see                         | What it means                                                                  | What to do                                                                                   |
-| ------------------------------------ | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
-| A page isn't appearing in search     | It is set to **Noindex**, is not sitemap eligible, or output has not refreshed | Correct underlying robots metadata and review the sitemap workflow                           |
-| A private page shows up in search    | It is **Indexable** when it shouldn't be                                       | Set it to **Noindex** in the underlying page/SEO controls                                    |
-| "Missing from sitemap" on a key page | The current generated sitemap output does not include an eligible URL          | Check its registry state, then run the sitemap workflow or ask a developer to regenerate XML |
+| What you see                         | What it means                                                                  | What to do                                                                                                       |
+| ------------------------------------ | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| A page isn't appearing in search     | It is set to **Noindex**, is not sitemap eligible, or output has not refreshed | Correct underlying robots metadata and review the sitemap workflow                                               |
+| A private page shows up in search    | It is **Indexable** when it shouldn't be                                       | Set it to **Noindex** in the underlying page/SEO controls                                                        |
+| "Missing from sitemap" on a key page | The current generated sitemap output does not include an eligible URL          | Follow the next step shown on the queue item, then run the sitemap workflow or ask a developer to regenerate XML |

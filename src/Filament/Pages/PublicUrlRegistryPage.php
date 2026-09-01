@@ -6,10 +6,13 @@ namespace Capell\SiteDiscovery\Filament\Pages;
 
 use BackedEnum;
 use Capell\DiscoveryFoundation\Enums\PublicUrlIndexability;
-use Capell\SiteDiscovery\Actions\BuildGeneratedOutputParityReportAction;
-use Capell\SiteDiscovery\Data\GeneratedOutputParityReportData;
+use Capell\SiteDiscovery\Actions\BuildPublicUrlRepairQueueAction;
 use Capell\SiteDiscovery\Data\GeneratedOutputParityRowData;
+use Capell\SiteDiscovery\Data\PublicUrlRepairItemData;
+use Capell\SiteDiscovery\Data\PublicUrlRepairQueueData;
 use Capell\SiteDiscovery\Enums\GeneratedOutputParityStatus;
+use Capell\SiteDiscovery\Enums\PublicUrlOutput;
+use Capell\SiteDiscovery\Enums\PublicUrlRepairStatus;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
@@ -17,9 +20,24 @@ use Override;
 
 final class PublicUrlRegistryPage extends Page
 {
-    public string $sourcePackageFilter = '';
+    public const string VIEW_NEEDS_ATTENTION = 'needs_attention';
+
+    public const string VIEW_UNAVAILABLE = 'unavailable';
+
+    public const string VIEW_ALL = 'all';
+
+    /**
+     * Default to the repair queue rather than the full parity matrix.
+     */
+    public string $queueView = self::VIEW_NEEDS_ATTENTION;
+
+    public string $outputFilter = '';
 
     public string $siteFilter = '';
+
+    public bool $showAdvancedFilters = false;
+
+    public string $sourcePackageFilter = '';
 
     public string $languageFilter = '';
 
@@ -28,8 +46,6 @@ final class PublicUrlRegistryPage extends Page
     public string $sitemapEligibleFilter = '';
 
     public string $aiDiscoveryEligibleFilter = '';
-
-    public string $missingOutputFilter = '';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedLink;
 
@@ -41,7 +57,7 @@ final class PublicUrlRegistryPage extends Page
 
     protected string $view = 'capell-site-discovery::filament.pages.public-url-registry';
 
-    private ?GeneratedOutputParityReportData $cachedReport = null;
+    private ?PublicUrlRepairQueueData $cachedQueue = null;
 
     #[Override]
     public static function getNavigationLabel(): string
@@ -67,17 +83,79 @@ final class PublicUrlRegistryPage extends Page
         return __('capell-site-discovery::generic.public_url_registry_info');
     }
 
-    public function report(): GeneratedOutputParityReportData
+    public function queue(): PublicUrlRepairQueueData
     {
-        return $this->cachedReport ??= BuildGeneratedOutputParityReportAction::run();
+        return $this->cachedQueue ??= BuildPublicUrlRepairQueueAction::run();
     }
 
     /**
-     * @return list<GeneratedOutputParityRowData>
+     * @return list<PublicUrlRepairItemData>
      */
-    public function rows(): array
+    public function items(): array
     {
-        return array_values($this->filteredRows()->values()->all());
+        return array_values($this->filteredItems()->values()->all());
+    }
+
+    public function toggleAdvancedFilters(): void
+    {
+        $this->showAdvancedFilters = ! $this->showAdvancedFilters;
+    }
+
+    public function clearFilters(): void
+    {
+        $this->outputFilter = '';
+        $this->siteFilter = '';
+        $this->sourcePackageFilter = '';
+        $this->languageFilter = '';
+        $this->indexabilityFilter = '';
+        $this->sitemapEligibleFilter = '';
+        $this->aiDiscoveryEligibleFilter = '';
+    }
+
+    public function hasActiveFilters(): bool
+    {
+        return $this->outputFilter !== ''
+            || $this->siteFilter !== ''
+            || $this->sourcePackageFilter !== ''
+            || $this->languageFilter !== ''
+            || $this->indexabilityFilter !== ''
+            || $this->sitemapEligibleFilter !== ''
+            || $this->aiDiscoveryEligibleFilter !== '';
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function viewOptions(): array
+    {
+        return [
+            self::VIEW_NEEDS_ATTENTION => (string) __('capell-site-discovery::generic.view_needs_attention'),
+            self::VIEW_UNAVAILABLE => (string) __('capell-site-discovery::generic.view_unavailable'),
+            self::VIEW_ALL => (string) __('capell-site-discovery::generic.view_all_urls'),
+        ];
+    }
+
+    public function viewCount(string $view): int
+    {
+        $queue = $this->queue();
+
+        return match ($view) {
+            self::VIEW_NEEDS_ATTENTION => $queue->needsAttentionUrls,
+            self::VIEW_UNAVAILABLE => $queue->unavailableUrls,
+            default => $queue->totalUrls,
+        };
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function outputOptions(): array
+    {
+        return collect(PublicUrlOutput::cases())
+            ->mapWithKeys(fn (PublicUrlOutput $output): array => [
+                $output->value => $output->getLabel(),
+            ])
+            ->all();
     }
 
     /**
@@ -140,15 +218,13 @@ final class PublicUrlRegistryPage extends Page
         ];
     }
 
-    /**
-     * @return array<string, string>
-     */
-    public function missingOutputOptions(): array
+    public function repairStatusClass(PublicUrlRepairStatus $status): string
     {
-        return [
-            'missing' => (string) __('capell-site-discovery::generic.missing_output_only'),
-            'clean' => (string) __('capell-site-discovery::generic.without_missing_output'),
-        ];
+        return match ($status) {
+            PublicUrlRepairStatus::NeedsAttention => 'bg-danger-50 text-danger-700 ring-danger-600/20 dark:bg-danger-400/10 dark:text-danger-400 dark:ring-danger-400/30',
+            PublicUrlRepairStatus::Unavailable => 'bg-warning-50 text-warning-700 ring-warning-600/20 dark:bg-warning-400/10 dark:text-warning-400 dark:ring-warning-400/30',
+            PublicUrlRepairStatus::Healthy => 'bg-success-50 text-success-700 ring-success-600/20 dark:bg-success-400/10 dark:text-success-400 dark:ring-success-400/30',
+        };
     }
 
     public function statusClass(GeneratedOutputParityStatus $status): string
@@ -161,24 +237,38 @@ final class PublicUrlRegistryPage extends Page
         };
     }
 
-    public function errorLabel(string $error): string
+    public function outputLabel(string $output): string
     {
-        return (string) __('capell-site-discovery::generic.generated_output_parity_error.' . $error);
+        return PublicUrlOutput::from($output)->getLabel();
+    }
+
+    public function emptyStateMessage(): string
+    {
+        if ($this->hasActiveFilters()) {
+            return (string) __('capell-site-discovery::generic.no_urls_for_filters');
+        }
+
+        return match ($this->queueView) {
+            self::VIEW_NEEDS_ATTENTION => (string) __('capell-site-discovery::generic.no_urls_need_attention'),
+            self::VIEW_UNAVAILABLE => (string) __('capell-site-discovery::generic.no_unavailable_outputs'),
+            default => (string) __('capell-site-discovery::generic.no_registry_urls'),
+        };
     }
 
     /**
-     * @return Collection<int, GeneratedOutputParityRowData>
+     * @return Collection<int, PublicUrlRepairItemData>
      */
-    private function filteredRows(): Collection
+    private function filteredItems(): Collection
     {
-        return $this->allRows()
-            ->filter(fn (GeneratedOutputParityRowData $row): bool => $this->matchesSourcePackage($row))
-            ->filter(fn (GeneratedOutputParityRowData $row): bool => $this->matchesSite($row))
-            ->filter(fn (GeneratedOutputParityRowData $row): bool => $this->matchesLanguage($row))
-            ->filter(fn (GeneratedOutputParityRowData $row): bool => $this->matchesIndexability($row))
-            ->filter(fn (GeneratedOutputParityRowData $row): bool => $this->matchesBooleanFilter($this->sitemapEligibleFilter, $row->isSitemapEligible))
-            ->filter(fn (GeneratedOutputParityRowData $row): bool => $this->matchesBooleanFilter($this->aiDiscoveryEligibleFilter, $row->isAiDiscoveryEligible))
-            ->filter(fn (GeneratedOutputParityRowData $row): bool => $this->matchesMissingOutput($row));
+        return collect($this->queue()->items)
+            ->filter(fn (PublicUrlRepairItemData $item): bool => $this->matchesView($item))
+            ->filter(fn (PublicUrlRepairItemData $item): bool => $this->matchesOutput($item))
+            ->filter(fn (PublicUrlRepairItemData $item): bool => $this->matchesSite($item->row))
+            ->filter(fn (PublicUrlRepairItemData $item): bool => $this->matchesSourcePackage($item->row))
+            ->filter(fn (PublicUrlRepairItemData $item): bool => $this->matchesLanguage($item->row))
+            ->filter(fn (PublicUrlRepairItemData $item): bool => $this->matchesIndexability($item->row))
+            ->filter(fn (PublicUrlRepairItemData $item): bool => $this->matchesBooleanFilter($this->sitemapEligibleFilter, $item->row->isSitemapEligible))
+            ->filter(fn (PublicUrlRepairItemData $item): bool => $this->matchesBooleanFilter($this->aiDiscoveryEligibleFilter, $item->row->isAiDiscoveryEligible));
     }
 
     /**
@@ -186,7 +276,28 @@ final class PublicUrlRegistryPage extends Page
      */
     private function allRows(): Collection
     {
-        return collect($this->report()->rows);
+        return collect($this->queue()->items)
+            ->map(fn (PublicUrlRepairItemData $item): GeneratedOutputParityRowData => $item->row);
+    }
+
+    private function matchesView(PublicUrlRepairItemData $item): bool
+    {
+        return match ($this->queueView) {
+            self::VIEW_NEEDS_ATTENTION => $item->status === PublicUrlRepairStatus::NeedsAttention,
+            self::VIEW_UNAVAILABLE => $item->status === PublicUrlRepairStatus::Unavailable,
+            default => true,
+        };
+    }
+
+    private function matchesOutput(PublicUrlRepairItemData $item): bool
+    {
+        if ($this->outputFilter === '') {
+            return true;
+        }
+
+        $output = PublicUrlOutput::tryFrom($this->outputFilter);
+
+        return $output instanceof PublicUrlOutput && $item->affects($output);
     }
 
     private function matchesSourcePackage(GeneratedOutputParityRowData $row): bool
@@ -214,15 +325,6 @@ final class PublicUrlRegistryPage extends Page
         return match ($filter) {
             'yes' => $value,
             'no' => ! $value,
-            default => true,
-        };
-    }
-
-    private function matchesMissingOutput(GeneratedOutputParityRowData $row): bool
-    {
-        return match ($this->missingOutputFilter) {
-            'missing' => $row->hasMissingOutput(),
-            'clean' => ! $row->hasMissingOutput(),
             default => true,
         };
     }

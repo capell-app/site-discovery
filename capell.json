@@ -77,6 +77,7 @@
         "setup": "Capell\\SiteDiscovery\\Actions\\SetupSiteDiscoveryPackageAction",
         "buildGeneratedOutputParityReport": "Capell\\SiteDiscovery\\Actions\\BuildGeneratedOutputParityReportAction",
         "buildPublicUrlRegistry": "Capell\\SiteDiscovery\\Actions\\BuildPublicUrlRegistryAction",
+        "buildPublicUrlRepairQueue": "Capell\\SiteDiscovery\\Actions\\BuildPublicUrlRepairQueueAction",
         "generateSitemap": "Capell\\SiteDiscovery\\Actions\\GenerateSitemapAction",
         "validateSitemapQuality": "Capell\\SiteDiscovery\\Actions\\ValidateSitemapQualityAction"
     },
