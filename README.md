@@ -10,8 +10,6 @@ Site Discovery builds a canonical public-URL registry plus XML and HTML sitemap 
 
 Admins can inspect which public URLs are indexable and covered by generated outputs. Search engines and other crawlers receive current sitemap routes as content changes.
 
-Evidence: [`src/Actions/BuildPublicUrlRegistryAction.php`](src/Actions/BuildPublicUrlRegistryAction.php), [`src/Actions/GenerateSitemapAction.php`](src/Actions/GenerateSitemapAction.php), [`src/Actions/BuildSitemapXmlResponseAction.php`](src/Actions/BuildSitemapXmlResponseAction.php), [`tests/Feature/SitemapXmlRouteTest.php`](tests/Feature/SitemapXmlRouteTest.php), [`src/Filament/Pages/PublicUrlRegistryPage.php`](src/Filament/Pages/PublicUrlRegistryPage.php), [`tests/Feature/Filament/PublicUrlRegistryPageTest.php`](tests/Feature/Filament/PublicUrlRegistryPageTest.php), [`src/Listeners/Sitemap/RegenerateSitemapsOnPageSaved.php`](src/Listeners/Sitemap/RegenerateSitemapsOnPageSaved.php), [`src/Manifest/SiteDiscoveryFrontendRoutesContribution.php`](src/Manifest/SiteDiscoveryFrontendRoutesContribution.php).
-
 Status details:
 
 - Status: Available
@@ -26,8 +24,6 @@ Status details:
 **For developers:** URL and discovery-output contracts let packages contribute public records while shared Actions handle deduplication, indexability, sitemap quality, and change notifications.
 
 **For teams:** Teams can see whether published pages are being offered to crawlers and correct missing or hidden URLs before discovery suffers.
-
-Evidence: [`src/Contracts/PublicUrlContributor.php`](src/Contracts/PublicUrlContributor.php), [`src/Contracts/DiscoveryOutputSource.php`](src/Contracts/DiscoveryOutputSource.php), [`src/Actions/ValidateSitemapQualityAction.php`](src/Actions/ValidateSitemapQualityAction.php), [`tests/Integration/Discovery/PublicUrlRegistryActionTest.php`](tests/Integration/Discovery/PublicUrlRegistryActionTest.php), [`docs/overview.admin.md`](docs/overview.admin.md), [`src/Actions/BuildGeneratedOutputParityReportAction.php`](src/Actions/BuildGeneratedOutputParityReportAction.php), [`tests/Integration/Sitemap/SitemapQualityGateTest.php`](tests/Integration/Sitemap/SitemapQualityGateTest.php).
 
 ## Screens And Workflow
 
@@ -87,6 +83,7 @@ Screenshot contract: `docs/screenshots.json`.
 - `RegenerateSitemapsOnPageDeleted`
 - `RegenerateSitemapsOnPageSaved`
 - `RegenerateSitemapsOnSiteCreated`
+- `RegenerateSitemapsOnSiteDomainCreated`
 
 ### Actions
 
@@ -225,7 +222,7 @@ This package has no schema impact. It extends Capell through `admin-page` contri
 ## Quick Start
 
 1. Install the package: `composer require capell-app/site-discovery`.
-2. Open the package admin surface at `/screenshot-fixtures/site-discovery/page-sitemap-action` and confirm Site Discovery is available.
+2. Open the package admin surface at `/admin/pages` and confirm Site Discovery is available.
 
 ## Next Steps
 
@@ -241,6 +238,5 @@ This package has no schema impact. It extends Capell through `admin-page` contri
 - [Capell documentation design system](../../docs/DESIGN_SYSTEM.md)
 - [Capell and package ERD notes](../../docs/erd/capell-and-package-erds.md)
 - Related packages: [Discovery Foundation](../discovery-foundation/README.md), [Agent Delivery](../agent-delivery/README.md), [Search](../search/README.md), [Seo Suite](../seo-suite/README.md), [Url Manager](../url-manager/README.md).
-- Focused tests: `vendor/bin/pest packages/site-discovery/tests --configuration=phpunit.xml`.
 
 <!-- prettier-ignore-end -->

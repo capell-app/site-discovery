@@ -12,12 +12,12 @@
             "surface": "admin",
             "targetType": "admin-surface",
             "target": "PageResource",
-            "scenario": "frontend-page",
-            "url": "/screenshot-fixtures/site-discovery/page-sitemap-action",
-            "waitFor": ".site-discovery",
+            "scenario": "admin-index",
+            "url": "/admin/pages",
+            "waitFor": "a[href$=\"/admin/sitemap\"]",
             "colorSchemes": ["light"],
             "required": true,
-            "notes": "Capture the package-added Sitemap header action on the core Pages resource.",
+            "notes": "Capture the real installed Filament surface after the manifest fixture commands prepare its data and widget settings.",
             "useCase": "An editor uses the package-added sitemap action on the core Pages resource.",
             "screenshotPath": "packages/site-discovery/docs/screenshots/page-sitemap-action.png"
         },
@@ -28,14 +28,24 @@
             "surface": "admin",
             "targetType": "admin-surface",
             "target": "SiteResource",
-            "scenario": "frontend-page",
-            "url": "/screenshot-fixtures/site-discovery/site-sitemap-action",
-            "waitFor": ".site-discovery",
+            "scenario": "admin-index",
+            "url": "/admin/sites",
+            "waitFor": "a[href*=\"/admin/sitemap?site_id=\"]",
             "colorSchemes": ["light"],
             "required": true,
-            "notes": "Capture the package-added Sitemap header or row action on the core Sites resource.",
+            "notes": "Capture the real installed Filament surface after the manifest fixture commands prepare its data and widget settings.",
             "useCase": "An editor uses the package-added sitemap action on the core Sites resource.",
-            "screenshotPath": "packages/site-discovery/docs/screenshots/site-sitemap-action.png"
+            "screenshotPath": "packages/site-discovery/docs/screenshots/site-sitemap-action.png",
+            "beforeWait": [
+                {
+                    "type": "click",
+                    "selector": ".fi-ta-row .fi-dropdown-trigger"
+                },
+                {
+                    "type": "waitFor",
+                    "selector": "a[href*=\"/admin/sitemap?site_id=\"]"
+                }
+            ]
         },
         {
             "id": "sitemap-generation-tool",
@@ -44,12 +54,12 @@
             "surface": "admin",
             "targetType": "admin-surface",
             "target": "SitemapTool",
-            "scenario": "frontend-page",
-            "url": "/screenshot-fixtures/site-discovery/sitemap-generation-tool",
-            "waitFor": ".site-discovery",
+            "scenario": "admin-index",
+            "url": "/admin/sitemap",
+            "waitFor": ".fi-page",
             "colorSchemes": ["light"],
             "required": true,
-            "notes": "Capture the Livewire sitemap generation tool after demo pages are seeded.",
+            "notes": "Capture the real installed Filament surface after the manifest fixture commands prepare its data and widget settings.",
             "useCase": "An administrator generates or reviews sitemap output after demo pages are seeded.",
             "screenshotPath": "packages/site-discovery/docs/screenshots/sitemap-generation-tool.png"
         },
@@ -108,14 +118,24 @@
             "surface": "admin",
             "targetType": "admin-surface",
             "target": "PublicUrlRegistryPage",
-            "scenario": "frontend-page",
-            "url": "/screenshot-fixtures/site-discovery/public-url-quality-report",
+            "scenario": "admin-index",
+            "url": "/admin/site-discovery/public-url-registry",
             "waitFor": "[data-public-url-repair-queue]",
             "colorSchemes": ["light"],
             "required": true,
-            "notes": "Capture a repair-queue row with its details disclosure open, showing the complete eligibility and five-output matrix retained for diagnosis and audit.",
+            "notes": "Capture the real installed Filament surface after the manifest fixture commands prepare its data and widget settings.",
             "useCase": "An administrator opens a queue row to audit the full eligibility and output matrix behind a repair item.",
-            "screenshotPath": "packages/site-discovery/docs/screenshots/public-url-quality-report.png"
+            "screenshotPath": "packages/site-discovery/docs/screenshots/public-url-quality-report.png",
+            "beforeWait": [
+                {
+                    "type": "click",
+                    "selector": "button[wire\\:click*=\"queueView\"]:has-text(\"All\")"
+                },
+                {
+                    "type": "click",
+                    "selector": "[data-public-url-repair-queue] details summary >> nth=0"
+                }
+            ]
         },
         {
             "id": "site-discovery-admin-sidebar-menu-open",
@@ -124,18 +144,22 @@
             "surface": "admin",
             "targetType": "admin-surface",
             "target": "PageResource",
-            "scenario": "frontend-page",
-            "url": "/screenshot-fixtures/site-discovery/page-sitemap-action",
-            "waitFor": ".site-discovery",
+            "scenario": "admin-index",
+            "url": "/admin/pages",
+            "waitFor": "a[href$=\"/admin/sitemap\"]",
             "colorSchemes": ["light"],
             "required": false,
-            "notes": "Capture the package-added Sitemap header action on the core Pages resource. Capture this same admin surface with the fully collapsible sidebar opened.",
+            "notes": "Capture the real installed Filament surface after the manifest fixture commands prepare its data and widget settings.",
             "useCase": "An editor uses the package-added sitemap action on the core Pages resource.",
             "screenshotPath": "packages/site-discovery/docs/screenshots/site-discovery-admin-sidebar-menu-open.png",
             "beforeWait": [
                 {
                     "type": "click",
                     "selector": ".fi-topbar-open-collapse-sidebar-btn"
+                },
+                {
+                    "type": "waitFor",
+                    "selector": ".fi-sidebar.fi-sidebar-open"
                 }
             ]
         }
