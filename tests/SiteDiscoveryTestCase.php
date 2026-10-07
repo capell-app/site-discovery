@@ -15,6 +15,8 @@ use Capell\Navigation\Providers\NavigationServiceProvider;
 use Capell\SiteDiscovery\Providers\SiteDiscoveryServiceProvider;
 use Capell\Tests\AbstractTestCase;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\Translation\Translator;
+use Illuminate\Contracts\View\Factory;
 use Illuminate\Support\Facades\ParallelTesting;
 use Illuminate\Support\Facades\Storage;
 use Livewire\LivewireServiceProvider;
@@ -26,10 +28,12 @@ class SiteDiscoveryTestCase extends AbstractTestCase
     protected function setUp(): void
     {
         parent::setUp();
-
+        CapellCore::forcePackageInstalled(AdminServiceProvider::$packageName);
+        CapellCore::forcePackageInstalled(FrontendServiceProvider::$packageName);
+        CapellCore::forcePackageInstalled(DiscoveryFoundationServiceProvider::$packageName);
+        CapellCore::forcePackageInstalled(SiteDiscoveryServiceProvider::$packageName);
         $testToken = getenv('TEST_TOKEN') ?: 'sequential';
         $storageToken = substr(hash('sha256', $testToken . '|' . getmypid()), 0, 16);
-
         ParallelTesting::resolveTokenUsing(static fn (): string => $storageToken);
         config(['filesystems.disks.local.root' => storage_path('framework/testing/disks/site-discovery-' . $storageToken)]);
         Storage::forgetDisk('local');
@@ -74,6 +78,9 @@ class SiteDiscoveryTestCase extends AbstractTestCase
         CapellCore::forcePackageInstalled(FrontendServiceProvider::$packageName);
         CapellCore::forcePackageInstalled(SiteDiscoveryServiceProvider::$packageName);
         CapellCore::forcePackageInstalled(DiscoveryFoundationServiceProvider::$packageName);
+        $app->make(Translator::class)->addNamespace('capell-site-discovery', __DIR__ . '/../resources/lang');
+        $app->make(Factory::class)->addNamespace('capell', __DIR__ . '/../resources/views');
+        $app->make(Factory::class)->addNamespace('capell-site-discovery', __DIR__ . '/../resources/views');
 
         CapellCore::registerPackage(
             NavigationServiceProvider::$packageName,

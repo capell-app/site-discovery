@@ -49,9 +49,11 @@ use Capell\SiteDiscovery\Support\Sitemap\SitemapPageType;
 use Illuminate\Console\Scheduling\Event as ScheduledEvent;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
 use Livewire\Livewire;
 use Override;
+use ReflectionProperty;
 use Spatie\LaravelPackageTools\Package;
 
 final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
@@ -62,6 +64,9 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
 
     public static PackageTypeEnum $type = PackageTypeEnum::Plugin;
 
+    private bool $packageRuntimeBooted = false;
+
+    #[Override]
     public function configurePackage(Package $package): void
     {
         $package
@@ -69,12 +74,12 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
             ->hasConfigFile()
             ->hasViews(self::$name)
             ->hasTranslations()
-            ->hasRoute('web')
             ->hasCommands([
                 XmlSitemapCommand::class,
             ]);
     }
 
+    #[Override]
     public function registeringPackage(): void
     {
         parent::registeringPackage();
@@ -83,8 +88,14 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
     #[Override]
     protected function bootPackage(): self
     {
+        if ($this->packageRuntimeBooted) {
+            return $this;
+        }
+
         $events = $this->app->make(Dispatcher::class);
         $events->listen(CapellInstalled::class, EnsureSitemapPagesAfterCapellInstalled::class);
+
+        $this->packageRuntimeBooted = true;
 
         return $this;
     }
@@ -96,9 +107,10 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
     }
 
     #[Override]
-    protected function bootInstalledPackage(): self
+    protected function bootInstalledRuntime(): void
     {
-        return $this
+        $this
+            ->registerRoutes()
             ->registerBlazeComponents()
             ->registerAdminExtenders()
             ->registerAdminPages()
@@ -110,8 +122,24 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
             ->registerDiscoveryOutputRegistry()
             ->registerUrlChangeNotifiers()
             ->registerSitemapEventListeners()
-            ->registerIncrementalSitemapSchedule()
-            ->registerFrontendViews();
+            ->registerIncrementalSitemapSchedule();
+
+        $this->app->booted($this->registerFrontendViews(...));
+    }
+
+    private function registerRoutes(): self
+    {
+        $router = $this->app->make(Router::class);
+        $groups = new ReflectionProperty(Router::class, 'groupStack');
+        $previous = $groups->getValue($router);
+        $groups->setValue($router, []);
+        try {
+            $this->loadRoutesFrom(__DIR__ . '/../../routes/web.php');
+        } finally {
+            $groups->setValue($router, $previous);
+        }
+
+        return $this;
     }
 
     private function registerBlazeComponents(): self

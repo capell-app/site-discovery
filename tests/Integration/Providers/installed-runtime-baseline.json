@@ -1,0 +1,98 @@
+{
+    "version": 3,
+    "package": "site-discovery",
+    "scenarios": {
+        "default": {
+            "source": {
+                "ref": "origin/main",
+                "commit": "646068b2d21e233ea517c342d62bc0eca1762192",
+                "providers": {
+                    "Providers/SiteDiscoveryServiceProvider.php": "06ffb16d928794ff6ef0544adf391b5f9dab060e68bab340f89e13d4eef5bce4"
+                }
+            },
+            "disabledContributions": ["capell:xml-sitemap --incremental"],
+            "surfaces": {
+                "routes": [
+                    "capell-frontend.sitemap-xml",
+                    "capell-frontend.sitemap-xml.prefixed"
+                ],
+                "livewire": [
+                    "capell-site-discovery.tools.sitemap-tool=Capell\\SiteDiscovery\\Livewire\\Tools\\SitemapTool",
+                    "site.sitemap=Capell\\SiteDiscovery\\Livewire\\Page\\Sitemap"
+                ],
+                "filament": [
+                    "page:Capell\\SiteDiscovery\\Filament\\Pages\\PublicUrlRegistryPage"
+                ],
+                "listeners": [
+                    "Capell\\Core\\Events\\CapellInstalled|Capell\\SiteDiscovery\\Listeners\\Sitemap\\EnsureSitemapPagesAfterCapellInstalled",
+                    "Capell\\Core\\Events\\PageDeleted|Capell\\SiteDiscovery\\Listeners\\Sitemap\\RegenerateSitemapsOnPageDeleted",
+                    "Capell\\Core\\Events\\PageSaved|Capell\\SiteDiscovery\\Listeners\\Sitemap\\RegenerateSitemapsOnPageSaved",
+                    "Capell\\Core\\Events\\SiteCreated|Capell\\SiteDiscovery\\Listeners\\Sitemap\\RegenerateSitemapsOnSiteCreated",
+                    "eloquent.created: Capell\\Core\\Models\\SiteDomain|Capell\\SiteDiscovery\\Listeners\\Sitemap\\RegenerateSitemapsOnSiteDomainCreated"
+                ],
+                "gates": [],
+                "policies": [],
+                "commands": ["capell:xml-sitemap"],
+                "view-namespaces": ["capell-site-discovery"],
+                "config-keys": [
+                    "capell-site-discovery",
+                    "capell-site-discovery.event_sitemap_regeneration",
+                    "capell-site-discovery.event_sitemap_regeneration.debounce_seconds",
+                    "capell-site-discovery.event_sitemap_regeneration.pending_grace_seconds",
+                    "capell-site-discovery.event_sitemap_regeneration.unique_for_seconds",
+                    "capell-site-discovery.incremental_sitemap_schedule",
+                    "capell-site-discovery.incremental_sitemap_schedule.cron",
+                    "capell-site-discovery.incremental_sitemap_schedule.daily_at",
+                    "capell-site-discovery.incremental_sitemap_schedule.enabled",
+                    "capell-site-discovery.incremental_sitemap_schedule.frequency",
+                    "capell-site-discovery.incremental_sitemap_schedule.overlap_expires_after_minutes",
+                    "capell-site-discovery.indexnow",
+                    "capell-site-discovery.indexnow.enabled",
+                    "capell-site-discovery.indexnow.endpoint",
+                    "capell-site-discovery.indexnow.key",
+                    "capell-site-discovery.indexnow.key_location",
+                    "capell-site-discovery.indexnow.retry_after_max_ms",
+                    "capell-site-discovery.indexnow.retry_delay_ms",
+                    "capell-site-discovery.indexnow.retry_times",
+                    "capell-site-discovery.indexnow.timeout"
+                ],
+                "migrations": []
+            },
+            "uninstalledSurfaces": {
+                "routes": [],
+                "livewire": [],
+                "filament": [],
+                "listeners": [
+                    "Capell\\Core\\Events\\CapellInstalled|Capell\\SiteDiscovery\\Listeners\\Sitemap\\EnsureSitemapPagesAfterCapellInstalled"
+                ],
+                "gates": [],
+                "policies": [],
+                "commands": ["capell:xml-sitemap"],
+                "view-namespaces": ["capell-site-discovery"],
+                "config-keys": [
+                    "capell-site-discovery",
+                    "capell-site-discovery.event_sitemap_regeneration",
+                    "capell-site-discovery.event_sitemap_regeneration.debounce_seconds",
+                    "capell-site-discovery.event_sitemap_regeneration.pending_grace_seconds",
+                    "capell-site-discovery.event_sitemap_regeneration.unique_for_seconds",
+                    "capell-site-discovery.incremental_sitemap_schedule",
+                    "capell-site-discovery.incremental_sitemap_schedule.cron",
+                    "capell-site-discovery.incremental_sitemap_schedule.daily_at",
+                    "capell-site-discovery.incremental_sitemap_schedule.enabled",
+                    "capell-site-discovery.incremental_sitemap_schedule.frequency",
+                    "capell-site-discovery.incremental_sitemap_schedule.overlap_expires_after_minutes",
+                    "capell-site-discovery.indexnow",
+                    "capell-site-discovery.indexnow.enabled",
+                    "capell-site-discovery.indexnow.endpoint",
+                    "capell-site-discovery.indexnow.key",
+                    "capell-site-discovery.indexnow.key_location",
+                    "capell-site-discovery.indexnow.retry_after_max_ms",
+                    "capell-site-discovery.indexnow.retry_delay_ms",
+                    "capell-site-discovery.indexnow.retry_times",
+                    "capell-site-discovery.indexnow.timeout"
+                ],
+                "migrations": []
+            }
+        }
+    }
+}

@@ -76,5 +76,7 @@ function bootSiteDiscoveryProvider(): void
 {
     $provider = new SiteDiscoveryServiceProvider(app());
     $provider->registeringPackage();
-    $provider->callBootedCallbacks();
+
+    $bootInstalledRuntime = new ReflectionMethod(SiteDiscoveryServiceProvider::class, 'bootInstalledRuntime');
+    $bootInstalledRuntime->invoke($provider);
 }
