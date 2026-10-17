@@ -3,12 +3,15 @@
 declare(strict_types=1);
 
 use Capell\Core\Data\Diagnostics\DoctorCheckResultData;
+use Capell\Core\Facades\CapellCore;
+use Capell\DiscoveryFoundation\Providers\DiscoveryFoundationServiceProvider;
 use Capell\DiscoveryFoundation\Support\PublicUrls\CmsPagePublicUrlContributor;
 use Capell\SiteDiscovery\Health\SiteDiscoveryHealthCheck;
-use Capell\SiteDiscovery\Providers\SiteDiscoveryServiceProvider;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageRegistry;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
+use Capell\Tests\Support\PackageInstallationTestCase;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Storage;
 
 uses(SiteDiscoveryTestCase::class);
@@ -122,27 +125,29 @@ it('fails incremental diagnostics when schedule configuration is invalid', funct
 });
 
 it('confirms enabled incremental scheduling registers the command event', function (): void {
-    config([
-        'capell.sitemap.disk' => 'local',
-        'capell.sitemap.directory' => 'sitemaps_health_check',
-        'capell-site-discovery.incremental_sitemap_schedule.enabled' => true,
-        'capell-site-discovery.incremental_sitemap_schedule.frequency' => 'dailyAt',
-        'capell-site-discovery.incremental_sitemap_schedule.daily_at' => '02:30',
-        'capell-site-discovery.incremental_sitemap_schedule.overlap_expires_after_minutes' => 65,
-    ]);
+    PackageInstallationTestCase::assertInProcessInstallation('site-discovery', function (Application $app, Closure $refresh): void {
+        config([
+            'capell.sitemap.disk' => 'local',
+            'capell.sitemap.directory' => 'sitemaps_health_check',
+            'capell-site-discovery.incremental_sitemap_schedule.enabled' => true,
+            'capell-site-discovery.incremental_sitemap_schedule.frequency' => 'dailyAt',
+            'capell-site-discovery.incremental_sitemap_schedule.daily_at' => '02:30',
+            'capell-site-discovery.incremental_sitemap_schedule.overlap_expires_after_minutes' => 65,
+        ]);
 
-    $schedule = new Schedule;
-    app()->instance(Schedule::class, $schedule);
+        $schedule = new Schedule;
+        app()->instance(Schedule::class, $schedule);
 
-    $provider = new SiteDiscoveryServiceProvider(app());
-    $method = new ReflectionMethod(SiteDiscoveryServiceProvider::class, 'registerIncrementalSitemapSchedule');
-    $method->invoke($provider);
+        CapellCore::forcePackageInstalled(DiscoveryFoundationServiceProvider::$packageName);
+        $app->register(DiscoveryFoundationServiceProvider::class);
+        $refresh();
 
-    $check = new SiteDiscoveryHealthCheck;
+        $check = new SiteDiscoveryHealthCheck;
 
-    expect($check->incrementalScheduleConfigurationIsValid())->toBeTrue()
-        ->and($check->incrementalScheduleIsRegisteredWhenEnabled())->toBeTrue()
-        ->and($check->incrementalSitemapIsReady())->toBeTrue();
+        expect($check->incrementalScheduleConfigurationIsValid())->toBeTrue()
+            ->and($check->incrementalScheduleIsRegisteredWhenEnabled())->toBeTrue()
+            ->and($check->incrementalSitemapIsReady())->toBeTrue();
+    });
 });
 
 it('fails the HTML sitemap check when the default page registry entry is missing', function (): void {

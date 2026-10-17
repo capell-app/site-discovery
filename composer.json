@@ -13,8 +13,8 @@
     "license": "proprietary",
     "require": {
         "php": "^8.4",
-        "capell-app/admin": "^1.0",
-        "capell-app/core": "^1.0.25",
+        "capell-app/admin": "^1.0.66",
+        "capell-app/core": "^1.0.71",
         "capell-app/discovery-foundation": "^1.0",
         "capell-app/frontend": "^1.0"
     },

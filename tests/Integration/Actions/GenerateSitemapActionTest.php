@@ -142,8 +142,10 @@ it('atomically promotes a complete set and keeps the previous set for recovery',
         ->and($storage->exists($newPath))->toBeTrue()
         ->and($oldGenerationId)->not->toBe($publishedSet->generationId)
         ->and($publicationStore->currentGenerationId((string) $site->getKey()))->toBe($publishedSet->generationId)
-        ->and($publicationStore->rollbackGenerationId((string) $site->getKey()))->toBe($oldGenerationId)
-        ->and(fn () => PromoteStagedSitemapSetAction::run($stagedSet))->not->toThrow(Throwable::class);
+        ->and($publicationStore->rollbackGenerationId((string) $site->getKey()))->toBe($oldGenerationId);
+
+    $republishedSet = PromoteStagedSitemapSetAction::run($stagedSet);
+    expect($republishedSet->generationId)->toBe($publishedSet->generationId);
 
     Page::factory()->site($site)->withTranslations(collect([$language]))->create();
     Cache::flush();

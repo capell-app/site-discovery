@@ -71,13 +71,14 @@
             "targetType": "frontend-url",
             "target": "/sitemap",
             "scenario": "frontend-page",
-            "url": "/screenshot-fixtures/site-discovery/html-sitemap-page",
-            "waitFor": ".site-discovery",
+            "url": "/sitemap",
+            "waitFor": "main",
             "colorSchemes": ["light"],
             "required": true,
-            "notes": "Capture public sitemap output with only discoverable public pages visible.",
+            "notes": "Opt-in, read-only package screenshot fixture with a small deterministic set of discoverable URLs. The XML presentation renders the fixture sitemap as escaped text.",
             "useCase": "A visitor opens the public HTML sitemap and sees only discoverable public pages.",
-            "screenshotPath": "packages/site-discovery/docs/screenshots/html-sitemap-page.png"
+            "screenshotPath": "packages/site-discovery/docs/screenshots/html-sitemap-page.png",
+            "user": false
         },
         {
             "id": "xml-sitemap-output",
@@ -85,15 +86,16 @@
             "package": "site-discovery",
             "surface": "frontend",
             "targetType": "frontend-url",
-            "target": "/sitemap-xml",
+            "target": "/screenshot-fixtures/site-discovery/xml-sitemap-output",
             "scenario": "frontend-page",
             "url": "/screenshot-fixtures/site-discovery/xml-sitemap-output",
-            "waitFor": ".site-discovery",
+            "waitFor": "[data-screenshot-xml-sitemap] pre:has-text(\"<urlset\")",
             "colorSchemes": ["light"],
             "required": true,
-            "notes": "Run capell:xml-sitemap in the host app before capture. The endpoint serves the generated domain XML file.",
+            "notes": "Opt-in, read-only package screenshot fixture with a small deterministic set of discoverable URLs. The XML presentation renders the fixture sitemap as escaped text.",
             "useCase": "A crawler or operator reviews generated XML sitemap output after running sitemap generation.",
-            "screenshotPath": "packages/site-discovery/docs/screenshots/xml-sitemap-output.png"
+            "screenshotPath": "packages/site-discovery/docs/screenshots/xml-sitemap-output.png",
+            "user": false
         },
         {
             "id": "public-url-registry-page",
@@ -102,14 +104,15 @@
             "surface": "admin",
             "targetType": "admin-surface",
             "target": "PublicUrlRegistryPage",
-            "scenario": "frontend-page",
-            "url": "/admin/site-discovery/public-url-registry",
-            "waitFor": "[data-public-url-repair-queue]",
+            "scenario": "admin-index",
+            "url": "/screenshot-fixtures/site-discovery/public-url-registry-page",
+            "waitFor": "[data-public-url-repair-queue]:has-text(\"/workshops\")",
             "colorSchemes": ["light"],
             "required": true,
-            "notes": "Capture the authenticated installed-package repair queue in its default Needs attention view, showing each URL with its missing or unavailable outputs, the plain-language reason, the responsible output area, and the next step.",
+            "notes": "Opt-in fixture redirects to the real Filament registry page with a deterministic three-URL repair queue, projected by the normal repair action. No database records or output files are changed.",
             "useCase": "An administrator works through the public URLs that are missing from a generated output.",
-            "screenshotPath": "packages/site-discovery/docs/screenshots/public-url-registry-page.png"
+            "screenshotPath": "packages/site-discovery/docs/screenshots/public-url-registry-page.png",
+            "fullPage": false
         },
         {
             "id": "public-url-quality-report",

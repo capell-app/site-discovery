@@ -6,12 +6,12 @@ namespace Capell\SiteDiscovery\Listeners\Sitemap;
 
 use Capell\Core\Events\SiteCreated;
 use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-class RegenerateSitemapsOnSiteCreated implements ShouldQueue
+class RegenerateSitemapsOnSiteCreated implements ShouldQueueAfterCommit
 {
     public int $tries = 3;
 

@@ -176,6 +176,7 @@ Screenshot contract: `docs/screenshots.json`.
 - `packages/site-discovery/resources/views/filament/pages/public-url-registry.blade.php`
 - `packages/site-discovery/resources/views/livewire/page/sitemap.blade.php`
 - `packages/site-discovery/resources/views/livewire/tools/sitemap-tool.blade.php`
+- `packages/site-discovery/resources/views/screenshots/sitemap.blade.php`
 - `packages/site-discovery/resources/views/sitemap/sitemap-page.blade.php`
 
 ### Cache tags

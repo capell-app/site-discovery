@@ -23,6 +23,7 @@ use Capell\Core\Models\Blueprint;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
+use Capell\Core\Support\Packages\RouteGroupIsolation;
 use Capell\Core\Support\Renderables\RenderableRegistry;
 use Capell\SiteDiscovery\Console\Commands\XmlSitemapCommand;
 use Capell\SiteDiscovery\Contracts\DiscoveryOutputSource;
@@ -48,12 +49,13 @@ use Capell\SiteDiscovery\Support\Sitemap\SitemapPageRegistry;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageType;
 use Illuminate\Console\Scheduling\Event as ScheduledEvent;
 use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Events\Dispatcher;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
+use Illuminate\View\FileViewFinder;
 use Livewire\Livewire;
 use Override;
-use ReflectionProperty;
 use Spatie\LaravelPackageTools\Package;
 
 final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
@@ -63,8 +65,6 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
     public static string $packageName = 'capell-app/site-discovery';
 
     public static PackageTypeEnum $type = PackageTypeEnum::Plugin;
-
-    private bool $packageRuntimeBooted = false;
 
     #[Override]
     public function configurePackage(Package $package): void
@@ -80,35 +80,22 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
     }
 
     #[Override]
-    public function registeringPackage(): void
-    {
-        parent::registeringPackage();
-    }
-
-    #[Override]
     protected function bootPackage(): self
     {
-        if ($this->packageRuntimeBooted) {
-            return $this;
-        }
-
         $events = $this->app->make(Dispatcher::class);
-        $events->listen(CapellInstalled::class, EnsureSitemapPagesAfterCapellInstalled::class);
-
-        $this->packageRuntimeBooted = true;
+        $listeners = $events->getRawListeners()[CapellInstalled::class] ?? [];
+        if (! is_array($listeners) || ! in_array(EnsureSitemapPagesAfterCapellInstalled::class, $listeners, true)) {
+            $events->listen(CapellInstalled::class, EnsureSitemapPagesAfterCapellInstalled::class);
+        }
 
         return $this;
     }
 
     #[Override]
-    protected function isPackageInstalled(): bool
-    {
-        return CapellCore::isPackageInstalled(self::$packageName);
-    }
-
-    #[Override]
     protected function bootInstalledRuntime(): void
     {
+        $this->loadTranslationsFrom(__DIR__ . '/../../resources/lang', self::$name);
+
         $this
             ->registerRoutes()
             ->registerBlazeComponents()
@@ -122,22 +109,25 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
             ->registerDiscoveryOutputRegistry()
             ->registerUrlChangeNotifiers()
             ->registerSitemapEventListeners()
-            ->registerIncrementalSitemapSchedule();
+            ->registerIncrementalSitemapSchedule()
+            ->registerFrontendViews();
+    }
 
-        $this->app->booted($this->registerFrontendViews(...));
+    #[Override]
+    protected function bootPackageViews(): self
+    {
+        if (! $this->isPackageInstalled()) {
+            parent::bootPackageViews();
+        }
+
+        return $this;
     }
 
     private function registerRoutes(): self
     {
-        $router = $this->app->make(Router::class);
-        $groups = new ReflectionProperty(Router::class, 'groupStack');
-        $previous = $groups->getValue($router);
-        $groups->setValue($router, []);
-        try {
+        RouteGroupIsolation::run($this->app->make(Router::class), function (): void {
             $this->loadRoutesFrom(__DIR__ . '/../../routes/web.php');
-        } finally {
-            $groups->setValue($router, $previous);
-        }
+        });
 
         return $this;
     }
@@ -281,7 +271,7 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
 
     private function registerIncrementalSitemapSchedule(): self
     {
-        $this->callAfterResolving(Schedule::class, function (Schedule $schedule): void {
+        $this->registerSchedule(function (Schedule $schedule): void {
             if (config('capell-site-discovery.incremental_sitemap_schedule.enabled', false) !== true) {
                 return;
             }
@@ -327,6 +317,14 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
 
     private function registerFrontendViews(): self
     {
+        $path = $this->package->basePath('/../resources/views');
+        $path = realpath($path) ?: $path;
+
+        $finder = $this->app->make(Factory::class)->getFinder();
+        if (! $finder instanceof FileViewFinder || ! in_array($path, $finder->getHints()[self::$name] ?? [], true)) {
+            parent::bootPackageViews();
+        }
+
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'capell');
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'capell-site-discovery');
 

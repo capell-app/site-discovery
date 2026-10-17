@@ -18,7 +18,7 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
 use Override;
 
-final class PublicUrlRegistryPage extends Page
+class PublicUrlRegistryPage extends Page
 {
     public const string VIEW_NEEDS_ATTENTION = 'needs_attention';
 

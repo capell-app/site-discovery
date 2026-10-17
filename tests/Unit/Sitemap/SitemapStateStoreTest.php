@@ -50,7 +50,10 @@ it('delete removes the state file', function (): void {
 it('delete is a no-op when no state file exists', function (): void {
     $store = new SitemapStateStore('local', 'sitemaps');
 
-    expect(fn () => $store->delete('nonexistent-domain'))->not->toThrow(Throwable::class);
+    $store->delete('nonexistent-domain');
+
+    expect($store->load('nonexistent-domain'))->toBe([])
+        ->and(Storage::disk('local')->exists('sitemaps/.state/nonexistent-domain.json'))->toBeFalse();
 });
 
 it('hasChanged returns false for identical maps', function (): void {

@@ -7,12 +7,12 @@ namespace Capell\SiteDiscovery\Listeners\Sitemap;
 use Capell\Core\Events\PageDeleted;
 use Capell\SiteDiscovery\Actions\NotifyPageUrlChangesAction;
 use Capell\SiteDiscovery\Actions\RequestSiteSitemapRegenerationAction;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-class RegenerateSitemapsOnPageDeleted implements ShouldQueue
+class RegenerateSitemapsOnPageDeleted implements ShouldQueueAfterCommit
 {
     public int $tries = 3;
 
