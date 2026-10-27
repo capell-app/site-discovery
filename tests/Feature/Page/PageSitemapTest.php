@@ -8,6 +8,7 @@ use Capell\Core\Models\Page;
 use Capell\Core\Models\PageUrl;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\Translation;
+use Capell\SiteDiscovery\Actions\DiscoverPublicPagesAction;
 use Capell\SiteDiscovery\Support\Creator\SitemapPageCreator;
 use Capell\SiteDiscovery\Support\Loader\SitemapLoader;
 use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
@@ -361,4 +362,24 @@ test('sitemap xml page returns 404 for a chunk page that does not exist', functi
 
     get(siteDiscoveryPageUrl($sitemapPage) . '-xml?p=99')
         ->assertStatus(404);
+});
+
+test('anonymous noindex content stays reachable while disabled URLs deny access', function (): void {
+    $language = Language::factory()->create();
+    $site = Site::factory()->withTranslations($language)->create();
+    $public = Page::factory()->site($site)->withTranslations($language, [
+        'title' => 'Public unindexed document',
+        'meta' => ['robots' => ['noindex']],
+    ])->create();
+    $protected = Page::factory()->site($site)->withTranslations($language, [
+        'title' => 'Unpublished document',
+    ])->create();
+    $protectedUrl = siteDiscoveryPageUrl($protected);
+    $protected->pageUrl?->update(['status' => false]);
+    Cache::flush();
+
+    get(siteDiscoveryPageUrl($public))->assertOk()->assertSee('Public unindexed document');
+    expect(DiscoverPublicPagesAction::run($site, $language)->pluck('pageId')->all())
+        ->not->toContain((int) $public->getKey());
+    get($protectedUrl)->assertNotFound()->assertDontSee('Unpublished document');
 });

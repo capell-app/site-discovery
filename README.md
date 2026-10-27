@@ -225,6 +225,12 @@ This package has no schema impact. It extends Capell through `admin-page` contri
 1. Install the package: `composer require capell-app/site-discovery`.
 2. Open the package admin surface at `/admin/pages` and confirm Site Discovery is available.
 
+## Upgrading
+
+No manual steps between minor versions.
+
+Read [CHANGELOG.md](CHANGELOG.md) before upgrading.
+
 ## Next Steps
 
 - [Package docs](docs/README.md)

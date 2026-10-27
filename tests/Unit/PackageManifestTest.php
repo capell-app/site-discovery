@@ -115,6 +115,13 @@ it('declares committed marketplace assets for buyer-facing screenshot capture ta
             continue;
         }
 
+        // Match gallery-quality.cjs: illustrative captures are documentation only.
+        $fixtureKind = $contractEntry['fixtureKind'] ?? null;
+
+        if (is_string($fixtureKind) && str_starts_with($fixtureKind, 'illustrative-')) {
+            continue;
+        }
+
         $requiredMarketplaceAssetPaths[] = $packageRelativePath;
     }
 

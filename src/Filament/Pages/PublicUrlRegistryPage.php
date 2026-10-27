@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Capell\SiteDiscovery\Filament\Pages;
 
 use BackedEnum;
+use Capell\Core\Models\Site;
 use Capell\DiscoveryFoundation\Enums\PublicUrlIndexability;
-use Capell\SiteDiscovery\Actions\BuildPublicUrlRepairQueueAction;
+use Capell\SiteDiscovery\Actions\BuildAuthorisedPublicUrlRepairQueueAction;
 use Capell\SiteDiscovery\Data\GeneratedOutputParityRowData;
 use Capell\SiteDiscovery\Data\PublicUrlRepairItemData;
 use Capell\SiteDiscovery\Data\PublicUrlRepairQueueData;
@@ -85,7 +86,7 @@ class PublicUrlRegistryPage extends Page
 
     public function queue(): PublicUrlRepairQueueData
     {
-        return $this->cachedQueue ??= BuildPublicUrlRepairQueueAction::run();
+        return $this->cachedQueue ??= BuildAuthorisedPublicUrlRepairQueueAction::run();
     }
 
     /**
@@ -170,16 +171,22 @@ class PublicUrlRegistryPage extends Page
     }
 
     /**
-     * @return array<string, string>
+     * @return array<int|string, string>
      */
     public function siteOptions(): array
     {
-        return $this->allRows()
-            ->mapWithKeys(fn (GeneratedOutputParityRowData $row): array => [
-                (string) $row->siteKey => (string) $row->siteKey,
-            ])
-            ->sortKeys()
-            ->all();
+        $keys = $this->allRows()->map(static fn (GeneratedOutputParityRowData $row): int|string => $row->siteKey)->unique()->values();
+        $sites = Site::query()->with('siteDomains')->whereKey($keys->all())->get()->keyBy('id');
+
+        return $keys->mapWithKeys(static function (int|string $key) use ($sites): array {
+            $site = $sites->get((string) $key);
+            $domains = $site?->siteDomains->pluck('domain')->unique()->sort()->implode(', ');
+            $label = $site instanceof Site
+                ? $site->name . ($domains !== '' ? ' (' . $domains . ')' : '')
+                : __('capell-site-discovery::generic.site_unavailable', ['key' => $key]);
+
+            return [(string) $key => $label];
+        })->sort()->all();
     }
 
     /**

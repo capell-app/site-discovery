@@ -62,3 +62,5 @@ For how to use Site Discovery, see the [admin guide](admin-guide.md).
 For developers: see the [README](../README.md).
 
 <!-- prettier-ignore-end -->
+
+The Public URL Registry's Site filter displays site names and domains while retaining the original stable site keys for filtering. Its repair rows, counts and labels are limited to sites available to the current actor. Global operators see an unavailable-site label for stale registry keys; restricted actors do not receive those rows. Clearing the filter returns to all permitted sites.

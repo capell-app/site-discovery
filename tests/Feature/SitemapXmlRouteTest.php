@@ -59,6 +59,32 @@ it('serves generated sitemap XML for path-prefixed site domains', function (): v
         ->assertSee('https://example.com/uk/about', escape: false);
 });
 
+it('serves the canonical domain sitemap on explicit ports without mixing publications', function (string $scheme, int $port, ?string $path): void {
+    $domain = SiteDomain::factory()->state([
+        'scheme' => $scheme,
+        'domain' => 'example.com',
+        'port' => $port,
+        'path' => $path,
+    ])->create();
+    $xml = '<?xml version="1.0" encoding="UTF-8"?><urlset><url><loc>' . $scheme . '://example.com:' . $port . $path . '/about</loc></url></urlset>';
+    Storage::disk('array')->put('sitemaps_route_test/' . $domain->getDomainKey() . '.xml', $xml);
+    if (! in_array($port, [80, 443], true)) {
+        Storage::disk('array')->put('sitemaps_route_test/' . $scheme . '-example-com.xml', '<urlset><url><loc>https://other-publication.test</loc></url></urlset>');
+    }
+
+    get($scheme . '://example.com:' . $port . $path . '/sitemap-xml')
+        ->assertOk()
+        ->assertHeader('Content-Type', 'application/xml; charset=utf-8')
+        ->assertHeader('Content-Disposition', 'attachment; filename="' . $domain->getDomainKey() . '.xml"')
+        ->assertContent($xml)
+        ->assertHeader('ETag', 'W/"' . hash('sha256', $xml) . '"');
+})->with([
+    'HTTP non-default port' => ['http', 8545, null],
+    'HTTPS non-default port and prefix' => ['https', 8443, '/uk'],
+    'HTTP explicit default port' => ['http', 80, null],
+    'HTTPS explicit default port' => ['https', 443, null],
+]);
+
 it('keeps prefixed sitemap routing constrained to one path segment', function (): void {
     $singleSegmentRoute = Route::getRoutes()->match(Request::create('/uk/sitemap-xml', 'GET'));
     $multiSegmentRoute = Route::getRoutes()->match(Request::create('/uk/public/sitemap-xml', 'GET'));

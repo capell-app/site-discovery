@@ -101,6 +101,7 @@ final class SiteDiscoveryHealthCheck implements ChecksExtensionHealth
             remediation: $isReady
                 ? null
                 : (string) __('capell-site-discovery::package.health.public_urls.remediation'),
+            id: 'legacy.site.discovery.public.url.contributors',
         );
     }
 
@@ -121,6 +122,7 @@ final class SiteDiscoveryHealthCheck implements ChecksExtensionHealth
             remediation: $isReady
                 ? null
                 : (string) __('capell-site-discovery::package.health.xml_sitemaps.remediation'),
+            id: 'legacy.site.discovery.xml.sitemap.output',
         );
     }
 
@@ -146,6 +148,7 @@ final class SiteDiscoveryHealthCheck implements ChecksExtensionHealth
             remediation: $isWorking
                 ? null
                 : (string) __('capell-site-discovery::package.health.incremental.remediation'),
+            id: 'legacy.site.discovery.incremental.sitemap.regeneration',
         );
     }
 
@@ -167,6 +170,7 @@ final class SiteDiscoveryHealthCheck implements ChecksExtensionHealth
             remediation: $isRegistered
                 ? null
                 : (string) __('capell-site-discovery::package.health.html_sitemap.remediation'),
+            id: 'legacy.site.discovery.html.sitemap.type',
         );
     }
 

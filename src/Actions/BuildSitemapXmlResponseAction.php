@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\SiteDiscovery\Actions;
 
+use Capell\Core\Models\SiteDomain;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPublicationStore;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -77,18 +78,12 @@ final class BuildSitemapXmlResponseAction
 
     private function domainKey(Request $request, ?string $sitemapPrefix): string
     {
-        $segments = [
-            $request->getScheme(),
-            str_replace('.', '-', $request->getHost()),
-        ];
-
-        $prefix = trim((string) $sitemapPrefix, '/');
-
-        if ($prefix !== '') {
-            $segments[] = str_replace('/', '.', $prefix);
-        }
-
-        return implode('-', $segments);
+        return new SiteDomain([
+            'scheme' => $request->getScheme(),
+            'domain' => $request->getHost(),
+            'port' => $request->getPort(),
+            'path' => $sitemapPrefix,
+        ])->getDomainKey();
     }
 
     private function requestMatchesEtag(Request $request, string $weakEtag, string $etagDigest): bool

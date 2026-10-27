@@ -6,7 +6,7 @@ This guide is for editors who manage how pages are found and owners deciding wha
 
 ### How to review discovery status
 
-1. Open **Monitoring > Public URL Registry**. It opens on **Needs attention**: the public URLs that are missing from an output they are eligible for.
+1. Open **Insights & health > Public URL Registry**. It opens on **Needs attention**: the public URLs that are missing from an output they are eligible for.
 2. Read each URL's issues. Every issue names the output, the reason in plain language, the area that owns that output, and the next step to take.
 3. Switch to **Cannot be checked** for URLs whose outputs have no installed package reporting coverage, or **All URLs** for the complete inventory.
 4. Narrow the queue with the **Output** and **Site** filters, or open **Advanced filters** for source package, language, indexability, and eligibility.
@@ -29,7 +29,7 @@ This guide is for editors who manage how pages are found and owners deciding wha
 
 ### How to review a URL missing generated output
 
-1. Open **Monitoring > Public URL Registry** and stay on the default **Needs attention** view.
+1. Open **Insights & health > Public URL Registry** and stay on the default **Needs attention** view.
 2. Filter by **Output** when you want to work through one output at a time, for example everything missing from the sitemap.
 3. Follow the **Next step** shown on the issue.
 4. Open **Full eligibility and output matrix** on the row when you need the complete picture: every output's status plus indexability, content type, and both eligibility flags.
@@ -53,13 +53,13 @@ This guide is for editors who manage how pages are found and owners deciding wha
 
 ### How to check what has been indexed
 
-1. In **Monitoring > Public URL Registry**, open **Advanced filters** and filter by indexability or sitemap eligibility.
+1. In **Insights & health > Public URL Registry**, open **Advanced filters** and filter by indexability or sitemap eligibility.
 2. Look for pages marked **Noindex**, or eligible pages sitting in the **Needs attention** queue, that you actually want found.
 3. Fix any that are set the wrong way.
 
 ### How to audit your public URLs across the site
 
-1. Go to **Monitoring > Public URL Registry**.
+1. Go to **Insights & health > Public URL Registry**.
 2. Switch to **All URLs** to see every public address, including the healthy ones.
 3. Use this when you want one place that shows the discovery status for every public address.
 
@@ -77,30 +77,32 @@ This guide is for editors who manage how pages are found and owners deciding wha
 
 ### Turn on first
 
-- **A complete, accurate sitemap.** Review important published URLs in **Public URL Registry** and correct any underlying robots metadata before anything else.
+- A complete, accurate sitemap. Review important published URLs in **Public URL Registry** and correct any underlying robots metadata before anything else.
 
 ### Add when needed
 
-| Need                             | Enable                                             |
-| -------------------------------- | -------------------------------------------------- |
-| Keep private pages out of search | **Noindex** in the underlying page or SEO controls |
-| Find missing generated outputs   | **Public URL Registry**, **Needs attention** view  |
+| Need                              | Enable                                             |
+| --------------------------------- | -------------------------------------------------- |
+| Keep public pages out of indexing | **Noindex** in the underlying page or SEO controls |
+| Find missing generated outputs    | **Public URL Registry**, **Needs attention** view  |
 
 ### Don't enable yet
 
-- Don't hide pages you actually want found. Only **Noindex** content that should stay private.
+- Use **Noindex** for public URLs that should not be indexed. An anonymous visitor can still open a public Noindex URL directly.
+- Protect private material with the host application's publishing and access controls before exposing it. Review page publication and enabled URL status with your developer; where Access Gate is installed, follow its [protected-area setup](../../access-gate/docs/admin-guide.md#how-to-set-up-a-protected-area) and attach the gate to the intended content. Verify an anonymous request is denied. Disabling a page URL removes that public route; restricted content needs the application's appropriate access policy as well. Site Discovery does not provide that policy.
+- Noindex requests exclusion by cooperating search engines. It does not guarantee immediate removal of an existing search result.
 
 ### Who does what
 
-| Role       | First useful screen                                         |
-| ---------- | ----------------------------------------------------------- |
-| Editor     | The underlying page/SEO controls: set robots metadata       |
-| Site owner | **Monitoring > Public URL Registry**: work the repair queue |
+| Role       | First useful screen                                                |
+| ---------- | ------------------------------------------------------------------ |
+| Editor     | The underlying page/SEO controls: set robots metadata              |
+| Site owner | **Insights & health > Public URL Registry**: work the repair queue |
 
 ## Troubleshooting for editors
 
-| What you see                         | What it means                                                                  | What to do                                                                                                       |
-| ------------------------------------ | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| A page isn't appearing in search     | It is set to **Noindex**, is not sitemap eligible, or output has not refreshed | Correct underlying robots metadata and review the sitemap workflow                                               |
-| A private page shows up in search    | It is **Indexable** when it shouldn't be                                       | Set it to **Noindex** in the underlying page/SEO controls                                                        |
-| "Missing from sitemap" on a key page | The current generated sitemap output does not include an eligible URL          | Follow the next step shown on the queue item, then run the sitemap workflow or ask a developer to regenerate XML |
+| What you see                                       | What it means                                                                  | What to do                                                                                                                                                                                                          |
+| -------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A page isn't appearing in search                   | It is set to **Noindex**, is not sitemap eligible, or output has not refreshed | Correct underlying robots metadata and review the sitemap workflow                                                                                                                                                  |
+| Private material is reachable or appears in search | Discovery settings do not restrict access                                      | First disable public publishing or apply the host access policy and verify anonymous access is denied. Then review robots metadata and the search engine's removal process; Noindex alone does not protect content. |
+| "Missing from sitemap" on a key page               | The current generated sitemap output does not include an eligible URL          | Follow the next step shown on the queue item, then run the sitemap workflow or ask a developer to regenerate XML                                                                                                    |

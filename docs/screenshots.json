@@ -4,6 +4,8 @@
     "generatedFor": "deployment-screenshot-runner",
     "requiresInstalledPackage": true,
     "outputDirectory": "packages/site-discovery/docs/screenshots",
+    "fixtureEntryIds": ["xml-sitemap-output"],
+    "fixtureCommands": [{ "command": "capell:xml-sitemap", "args": [] }],
     "entries": [
         {
             "id": "page-sitemap-action",
@@ -86,16 +88,17 @@
             "package": "site-discovery",
             "surface": "frontend",
             "targetType": "frontend-url",
-            "target": "/screenshot-fixtures/site-discovery/xml-sitemap-output",
-            "scenario": "frontend-page",
-            "url": "/screenshot-fixtures/site-discovery/xml-sitemap-output",
-            "waitFor": "[data-screenshot-xml-sitemap] pre:has-text(\"<urlset\")",
+            "target": "/sitemap-xml",
+            "scenario": "download-artifact",
+            "url": "/sitemap-xml",
+            "waitFor": "[data-download-artifact]:has-text(\"<urlset\")",
             "colorSchemes": ["light"],
             "required": true,
-            "notes": "Opt-in, read-only package screenshot fixture with a small deterministic set of discoverable URLs. The XML presentation renders the fixture sitemap as escaped text.",
+            "notes": "Run the maintained XML sitemap generator in the owned disposable runtime. Capture the real /sitemap-xml attachment through the shared runner download-artifact view, preserving exact generated UTF-8 bytes, HTTP200, attachment/XML headers and SHA256 proof. The viewport shows genuine downloaded text without reformatting or invented XML; no public viewer feature or illustrative fixture route.",
             "useCase": "A crawler or operator reviews generated XML sitemap output after running sitemap generation.",
             "screenshotPath": "packages/site-discovery/docs/screenshots/xml-sitemap-output.png",
-            "user": false
+            "user": false,
+            "fullPage": false
         },
         {
             "id": "public-url-registry-page",

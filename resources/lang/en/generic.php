@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    'site_unavailable' => 'Unavailable site (:key)',
     'advanced_filters' => 'Advanced filters',
     'ai_discovery_eligible' => 'AI discovery eligible',
     'all_ai_discovery_states' => 'All AI states',
