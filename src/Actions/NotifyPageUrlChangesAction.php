@@ -52,11 +52,9 @@ final class NotifyPageUrlChangesAction
             ->keyBy(fn (SiteDomain $siteDomain): int => (int) $siteDomain->language_id);
 
         $pageUrls->each(function (PageUrl $pageUrl) use ($domainsByLanguage): void {
+            // A language with no domain has no public address, so it is recorded as unrouted, not lazy loaded.
             $siteDomain = $domainsByLanguage->get((int) $pageUrl->language_id);
-
-            if ($siteDomain instanceof SiteDomain) {
-                $pageUrl->setRelation('siteDomain', $siteDomain);
-            }
+            $pageUrl->setRelation('siteDomain', $siteDomain instanceof SiteDomain ? $siteDomain : null);
         });
 
         return $pageUrls
@@ -84,6 +82,7 @@ final class NotifyPageUrlChangesAction
     private function isPublicPageUrl(PageUrl $pageUrl): bool
     {
         return $pageUrl->getAttribute('status') === true
-            && $pageUrl->getAttribute('type') === null;
+            && $pageUrl->getAttribute('type') === null
+            && $pageUrl->getRelation('siteDomain') instanceof SiteDomain;
     }
 }

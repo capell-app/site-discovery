@@ -87,6 +87,7 @@ Screenshot contract: `docs/screenshots.json`.
 
 ### Actions
 
+- `BuildAuthorisedPublicUrlRepairQueueAction`
 - `BuildGeneratedOutputParityReportAction`
 - `BuildPublicSitemapTreeAction`
 - `BuildPublicUrlRegistryAction`
