@@ -92,8 +92,8 @@
         "riskTier": "standard",
         "publicSurface": {
             "routeNames": [
-                "capell-frontend.sitemap-xml",
-                "capell-frontend.sitemap-xml.prefixed"
+                "GET /sitemap-xml (capell-frontend.sitemap-xml)",
+                "GET /{sitemapPrefix}/sitemap-xml (capell-frontend.sitemap-xml.prefixed)"
             ],
             "auth": "public",
             "csrfExemptRoutes": [],
@@ -189,6 +189,22 @@
     "marketplace": {
         "summary": "Make every published Capell page discoverable: automatic XML sitemaps with index sharding, an HTML sitemap, and the canonical public-URL registry that powers the whole Search & SEO bundle.",
         "description": "Site Discovery is the discovery backbone of Capell's Search & SEO bundle. It builds per-domain XML sitemaps (with `<sitemapindex>` sharding and incremental regeneration that skips unchanged pages), publishes a public HTML sitemap, and maintains the canonical Public URL Registry that records canonical state, robots directives, last-modified, and sitemap/AI-discovery eligibility for every public URL. Other packages (SEO Suite, Search, Blog and Events) plug in as URL contributors and read a single, consistent view of what your site intends to publish. Built-in quality gates and a generated-output parity report catch missing or stale URLs before search engines do, and optional IndexNow notifications submit changes the moment a page is saved.",
+        "problem": "Search engines may miss our published pages when our site has no maintained sitemap.",
+        "outcome": "Our site has XML and HTML sitemaps based on indexable public content.",
+        "faq": [
+            {
+                "question": "Which pages appear in sitemaps?",
+                "answer": "Sitemaps are built from published, indexable public content."
+            },
+            {
+                "question": "Can administrators check URL coverage?",
+                "answer": "Admins can inspect which public URLs are indexable and covered by generated outputs."
+            },
+            {
+                "question": "How does discovery handle large sitemaps?",
+                "answer": "XML sitemap output supports index sharding."
+            }
+        ],
         "screenshots": [
             {
                 "path": "docs/assets/marketplace/extension-card.jpg",

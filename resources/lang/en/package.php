@@ -5,12 +5,12 @@ declare(strict_types=1);
 return [
     'description' => 'Make every published Capell page discoverable with automatic XML sitemaps, an HTML sitemap, and the canonical public-URL registry.',
     'setup' => [
-        'completed' => 'Site Discovery ensured an HTML sitemap for :count site(s).',
+        'completed' => 'Site Discovery ensured an HTML sitemap. Sites: :count.',
     ],
     'health' => [
         'public_urls' => [
             'label' => 'Site Discovery: public URLs available',
-            'passed' => 'The CMS page contributor is registered and :count public URL contributor(s) implement the registry contract.',
+            'passed' => 'The CMS page contributor is registered and public URL contributors implement the registry contract. Contributors: :count.',
             'failed' => 'Public URL contributors are not ready. Valid contributors: :count. Invalid contributors: :invalid.',
             'remediation' => 'Ensure SiteDiscoveryServiceProvider tags CmsPagePublicUrlContributor with PublicUrlContributor::TAG and remove invalid public URL contributor tags.',
         ],

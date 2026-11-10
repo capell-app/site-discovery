@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Capell\SiteDiscovery\Support\Sitemap;
 
+use Capell\Core\Data\PublicRead\PublicPageReadCandidateData;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
+use Capell\Core\Support\PublicRead\PublicPageReadEligibilityRegistry;
 use Capell\SiteDiscovery\Contracts\Sitemapable;
 use Capell\SiteDiscovery\Data\SitemapPageData;
 use Carbon\CarbonImmutable;
@@ -58,7 +60,7 @@ class SitemapBuilder
             return;
         }
 
-        $results->each(function (SitemapPageData $item): void {
+        $this->publiclyReadable($results)->each(function (SitemapPageData $item): void {
             $this->upsertTopLevel($item);
         });
     }
@@ -71,6 +73,112 @@ class SitemapBuilder
         return $this->pages
             ->sortByDesc('priority')
             ->values();
+    }
+
+    /**
+     * The public sitemap lists only addresses an anonymous visitor may read.
+     * A restricted node is dropped and its readable descendants take its
+     * place, so a public page under a restricted parent stays listed, and each
+     * restricted alternate is dropped. Every address in the tree is checked in
+     * one batch. The editor sitemap (with edit links) keeps every page.
+     *
+     * @param  iterable<mixed>  $nodes
+     * @return Collection<int, SitemapPageData>
+     */
+    private function publiclyReadable(iterable $nodes): Collection
+    {
+        $nodes = $this->pageNodes($nodes);
+
+        if ($this->withEditUrl) {
+            return collect($nodes);
+        }
+
+        $candidates = [];
+        $this->collectCandidates($nodes, $candidates);
+        $decisions = resolve(PublicPageReadEligibilityRegistry::class)->allowsMany(array_values($candidates));
+        $byNode = array_combine(array_keys($candidates), $decisions);
+
+        return collect($this->filterReadable($nodes, $byNode));
+    }
+
+    /**
+     * @param  iterable<mixed>  $nodes
+     * @return list<SitemapPageData>
+     */
+    private function pageNodes(iterable $nodes): array
+    {
+        $pages = [];
+
+        foreach ($nodes as $node) {
+            if ($node instanceof SitemapPageData) {
+                $pages[] = $node;
+            }
+        }
+
+        return $pages;
+    }
+
+    /**
+     * @param  list<SitemapPageData>  $nodes
+     * @param  array<string, PublicPageReadCandidateData>  $candidates
+     */
+    private function collectCandidates(array $nodes, array &$candidates): void
+    {
+        $siteId = is_numeric($this->site->getKey()) ? (int) $this->site->getKey() : null;
+        $languageId = is_numeric($this->language->getKey()) ? (int) $this->language->getKey() : null;
+
+        foreach ($nodes as $node) {
+            $id = (string) spl_object_id($node);
+            $candidates['n' . $id] = new PublicPageReadCandidateData(
+                url: $node->url,
+                siteId: $siteId,
+                languageId: $languageId,
+                pageableType: $node->pageableType,
+                pageableId: $node->pageId,
+                publishedOn: $this->domain->full_url,
+            );
+
+            foreach ($node->alternates as $position => $alternate) {
+                $candidates['a' . $id . ':' . $position] = new PublicPageReadCandidateData(url: $alternate->href, siteId: $siteId, publishedOn: $this->domain->full_url);
+            }
+
+            if ($node->children instanceof Collection) {
+                $this->collectCandidates($this->pageNodes($node->children), $candidates);
+            }
+        }
+    }
+
+    /**
+     * @param  list<SitemapPageData>  $nodes
+     * @param  array<string, bool>  $decisions
+     * @return list<SitemapPageData>
+     */
+    private function filterReadable(array $nodes, array $decisions): array
+    {
+        $readable = [];
+
+        foreach ($nodes as $node) {
+            $id = (string) spl_object_id($node);
+            $children = $node->children instanceof Collection
+                ? $this->filterReadable($this->pageNodes($node->children), $decisions)
+                : null;
+
+            if (($decisions['n' . $id] ?? false) !== true) {
+                array_push($readable, ...($children ?? []));
+
+                continue;
+            }
+
+            $node->alternates = array_values(array_filter(
+                $node->alternates,
+                static fn (int $position): bool => ($decisions['a' . $id . ':' . $position] ?? false) === true,
+                ARRAY_FILTER_USE_KEY,
+            ));
+            $node->children = $children === null ? null : collect($children);
+            $readable[] = $node;
+        }
+
+        return $readable;
     }
 
     private function upsertTopLevel(SitemapPageData $item): void

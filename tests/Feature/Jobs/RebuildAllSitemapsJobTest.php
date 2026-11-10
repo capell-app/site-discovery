@@ -15,19 +15,23 @@ use Illuminate\Support\Facades\Queue;
 
 uses(SiteDiscoveryTestCase::class);
 
-it('fans enabled sites out into bounded durable rebuild jobs', function (): void {
+it('fans enabled sites with a domain out into bounded durable rebuild jobs', function (): void {
     app()->register(BusServiceProvider::class);
     Bus::fake();
 
     $firstSite = Site::factory()->default()->withTranslations()->create(['name' => 'Primary']);
     $secondSite = Site::factory()->withTranslations()->create(['name' => 'Secondary']);
     $disabledSite = Site::factory()->disabled()->withTranslations()->create(['name' => 'Disabled']);
+    $domainlessSite = Site::factory()->create(['name' => 'No domain yet']);
+    expect($domainlessSite->siteDomains()->exists())->toBeFalse();
     (new RebuildAllSitemapsJob)->handle();
 
     Bus::assertDispatched(RebuildSiteSitemapJob::class, 2);
     Bus::assertDispatched(RebuildSiteSitemapJob::class, fn (RebuildSiteSitemapJob $job): bool => $job->siteId === $firstSite->getKey());
     Bus::assertDispatched(RebuildSiteSitemapJob::class, fn (RebuildSiteSitemapJob $job): bool => $job->siteId === $secondSite->getKey());
     Bus::assertNotDispatched(RebuildSiteSitemapJob::class, fn (RebuildSiteSitemapJob $job): bool => $job->siteId === $disabledSite->getKey());
+    // A site without a domain has no sitemap to publish, so it is neither queued nor counted.
+    Bus::assertNotDispatched(RebuildSiteSitemapJob::class, fn (RebuildSiteSitemapJob $job): bool => $job->siteId === $domainlessSite->getKey());
 
     expect(Cache::get(SitemapCacheKey::Generating->value))->toBe(2);
 });

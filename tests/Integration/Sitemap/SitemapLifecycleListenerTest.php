@@ -21,6 +21,7 @@ use Illuminate\Bus\BusServiceProvider;
 use Illuminate\Events\CallQueuedListener;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 
@@ -252,4 +253,54 @@ it('coalesces sitemap regeneration when several domains are attached at once', f
     ]);
 
     Bus::assertDispatchedTimes(RegenerateSiteSitemapIncrementallyJob::class, 1);
+});
+
+it('requests no sitemap for a page change in a site that has no domain yet', function (string $listener): void {
+    app()->register(BusServiceProvider::class);
+    Bus::fake();
+
+    $site = Site::factory()->language(Language::factory()->create())->create();
+    $page = Page::factory()->site($site)->create();
+    expect($site->siteDomains()->exists())->toBeFalse();
+
+    $listener === RegenerateSitemapsOnPageSaved::class
+        ? (new RegenerateSitemapsOnPageSaved)->handle(new PageSaved($page, ['title' => 'Updated title']))
+        : (new RegenerateSitemapsOnPageDeleted)->handle(new PageDeleted($page, ['reason' => 'admin cleanup']));
+
+    Bus::assertNotDispatched(RegenerateSiteSitemapIncrementallyJob::class);
+
+    // No page change claimed the debounce, so the first domain still requests the sitemap.
+    SiteDomain::factory()->create(['site_id' => $site->id, 'language_id' => $site->language_id]);
+
+    Bus::assertDispatchedTimes(RegenerateSiteSitemapIncrementallyJob::class, 1);
+})->with([RegenerateSitemapsOnPageSaved::class, RegenerateSitemapsOnPageDeleted::class]);
+
+it('saves pages before the site domain exists without a failing sitemap job', function (): void {
+    Exceptions::fake();
+    $log = Log::spy();
+    $generator = seoSuiteLifecycleFakeXmlSitemapGenerator();
+    app()->instance(XmlSitemapGenerator::class, $generator);
+
+    // A site's pages can be saved before its domain is attached, as site creation does.
+    $site = Site::factory()->language(Language::factory()->create())->create();
+    $page = Page::factory()->site($site)->create();
+    PageSavedAction::run($page, ['title' => 'Updated title']);
+
+    Exceptions::assertNothingReported();
+    $log->shouldNotHaveReceived('error');
+    expect($generator->incrementalSiteIds)->toBe([]);
+
+    SiteDomain::factory()->create(['site_id' => $site->id, 'language_id' => $site->language_id]);
+
+    expect($generator->incrementalSiteIds)->toBe([$site->id]);
+});
+
+it('skips a queued regeneration when the site has no domain to publish', function (): void {
+    $generator = seoSuiteLifecycleFakeXmlSitemapGenerator();
+    app()->instance(XmlSitemapGenerator::class, $generator);
+    $site = Site::factory()->language(Language::factory()->create())->create();
+
+    (new RegenerateSiteSitemapIncrementallyJob($site->id))->handle();
+
+    expect($generator->incrementalSiteIds)->toBe([]);
 });

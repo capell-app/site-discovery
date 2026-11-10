@@ -35,7 +35,8 @@ final class RebuildAllSitemapsJob implements ShouldBeUnique, ShouldQueue
 
     public function handle(): void
     {
-        $siteQuery = Site::query()->enabled()->ordered();
+        // Only a site with a domain has a sitemap to publish; one without would fail its job.
+        $siteQuery = Site::query()->enabled()->whereHas('siteDomains')->ordered();
         $siteCount = $siteQuery->count();
 
         if ($siteCount === 0) {

@@ -34,7 +34,9 @@ final class RegenerateSiteSitemapIncrementallyJob implements ShouldBeUnique, Sho
     {
         $site = Site::query()->find($this->siteId);
 
-        if (! $site instanceof Site) {
+        // The site may have lost its last domain since the request: there is nothing to
+        // publish, and a new domain requests a fresh regeneration.
+        if (! $site instanceof Site || ! $site->siteDomains()->exists()) {
             return;
         }
 

@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Capell\SiteDiscovery\Support\Sitemap;
 
+use Capell\Core\Support\PublicRead\PublicPageReadEligibilityRegistry;
+use Capell\Core\Support\PublicRead\PublicReadEligibilityState;
 use Capell\SiteDiscovery\Data\StagedSitemapDomainData;
 use Capell\SiteDiscovery\Data\StagedSitemapSetData;
 use Capell\SiteDiscovery\Exceptions\SitemapGeneratorException;
+use Capell\SiteDiscovery\Exceptions\SitemapPublicReadRevisionChangedException;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -22,6 +25,13 @@ final class SitemapPublicationStore
     public function promote(StagedSitemapSetData $sitemapSet): void
     {
         Cache::lock($this->lockKey(), 60)->block(10, function () use ($sitemapSet): void {
+            // Publication fence: a set generated while eligibility changed may list pages that are now restricted.
+            throw_if(
+                $this->isStalePublicReadRevision($sitemapSet->publicReadRevision),
+                SitemapPublicReadRevisionChangedException::class,
+                'Public-read eligibility changed while the sitemap was being generated.',
+            );
+
             $manifest = $this->manifest();
             $sites = $this->sites($manifest);
             $currentSite = $sites[$sitemapSet->siteKey] ?? null;
@@ -41,6 +51,8 @@ final class SitemapPublicationStore
                 'generation_id' => $sitemapSet->generationId,
                 'rollback_generation_id' => $rollbackGenerationId,
                 'promoted_at' => now()->toAtomString(),
+                'public_read_revision' => $sitemapSet->publicReadRevision,
+                'public_read_valid_until' => $sitemapSet->publicReadValidUntil,
                 'domains' => collect($sitemapSet->domains)
                     ->mapWithKeys(fn (StagedSitemapDomainData $domain): array => [
                         $domain->domainKey => [
@@ -93,8 +105,35 @@ final class SitemapPublicationStore
         return $this->generationId($generationId);
     }
 
+    /**
+     * Whether the site's published set was generated under the current
+     * public-read eligibility rules. A stale set is withdrawn until replaced.
+     */
+    public function isPubliclyReadableGeneration(string $siteKey): bool
+    {
+        $site = $this->site($siteKey);
+
+        if ($site === null) {
+            return true;
+        }
+
+        $revision = $site['public_read_revision'] ?? null;
+        $validUntil = $site['public_read_valid_until'] ?? null;
+
+        return resolve(PublicReadEligibilityState::class)->isCurrent(
+            is_string($revision) ? $revision : null,
+            is_int($validUntil) ? $validUntil : null,
+        );
+    }
+
     public function resolveFilePath(string $domainKey, string $filename): ?string
     {
+        $siteKey = $this->siteKeyForDomain($domainKey);
+
+        if ($siteKey !== null && ! $this->isPubliclyReadableGeneration($siteKey)) {
+            return null;
+        }
+
         $domain = $this->domain($domainKey);
 
         if ($domain !== null) {
@@ -105,6 +144,11 @@ final class SitemapPublicationStore
                 return trim($directory, '/') . '/' . $filename;
             }
 
+            return null;
+        }
+
+        // A legacy file records no eligibility revision, so it is served only while no package restricts public reads.
+        if (resolve(PublicPageReadEligibilityRegistry::class)->hasContributors()) {
             return null;
         }
 
@@ -204,6 +248,17 @@ final class SitemapPublicationStore
         });
     }
 
+    public function siteKeyForDomain(string $domainKey): ?string
+    {
+        foreach ($this->sites($this->manifest()) as $siteKey => $site) {
+            if (is_array($site) && is_array($site['domains'] ?? null) && array_key_exists($domainKey, $site['domains'])) {
+                return (string) $siteKey;
+            }
+        }
+
+        return null;
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -272,6 +327,19 @@ final class SitemapPublicationStore
         $site = $this->sites($this->manifest())[$siteKey] ?? null;
 
         return is_array($site) ? $this->stringKeyedArray($site) : null;
+    }
+
+    private function isStalePublicReadRevision(?string $revision): bool
+    {
+        $state = resolve(PublicReadEligibilityState::class);
+
+        if (! $state->isRestricted()) {
+            return false;
+        }
+
+        $current = $state->freshStamp()?->revision;
+
+        return $current === null || $revision !== $current;
     }
 
     /**

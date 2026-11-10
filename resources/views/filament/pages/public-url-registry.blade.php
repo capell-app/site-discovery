@@ -15,7 +15,7 @@
             <div
                 class="text-danger-600 dark:text-danger-400 mt-1 text-2xl font-semibold"
             >
-                {{ number_format($queue->needsAttentionUrls) }}
+                {{ \Illuminate\Support\Number::format($queue->needsAttentionUrls, precision: 0, locale: app()->getLocale()) }}
             </div>
         </div>
         <div
@@ -27,7 +27,7 @@
             <div
                 class="mt-1 text-2xl font-semibold text-gray-950 dark:text-white"
             >
-                {{ number_format($queue->unavailableUrls) }}
+                {{ \Illuminate\Support\Number::format($queue->unavailableUrls, precision: 0, locale: app()->getLocale()) }}
             </div>
         </div>
         <div
@@ -39,7 +39,7 @@
             <div
                 class="mt-1 text-2xl font-semibold text-gray-950 dark:text-white"
             >
-                {{ number_format($queue->totalUrls) }}
+                {{ \Illuminate\Support\Number::format($queue->totalUrls, precision: 0, locale: app()->getLocale()) }}
             </div>
         </div>
     </div>
@@ -68,7 +68,7 @@
                         'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300' => $this->queueView !== $value,
                     ])
                 >
-                    {{ number_format($this->viewCount($value)) }}
+                    {{ \Illuminate\Support\Number::format($this->viewCount($value), precision: 0, locale: app()->getLocale()) }}
                 </span>
             </button>
         @endforeach

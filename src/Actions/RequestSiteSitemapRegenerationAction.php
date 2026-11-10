@@ -22,7 +22,10 @@ final class RequestSiteSitemapRegenerationAction
     {
         $siteId = $this->siteId($site);
 
-        if ($siteId <= 0) {
+        // A site without a domain has no sitemap to publish. Its first domain requests the
+        // regeneration (RegenerateSitemapsOnSiteDomainCreated); claiming the debounce here
+        // would only queue a job that fails and hold back that request.
+        if ($siteId <= 0 || ! $site->siteDomains()->exists()) {
             return false;
         }
 

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Capell\Core\Models\SiteDomain;
+use Capell\Core\Support\PublicRead\PublicReadProjectionHeaders;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -77,7 +78,8 @@ it('serves the canonical domain sitemap on explicit ports without mixing publica
         ->assertHeader('Content-Type', 'application/xml; charset=utf-8')
         ->assertHeader('Content-Disposition', 'attachment; filename="' . $domain->getDomainKey() . '.xml"')
         ->assertContent($xml)
-        ->assertHeader('ETag', 'W/"' . hash('sha256', $xml) . '"');
+        ->assertHeader('ETag', 'W/' . PublicReadProjectionHeaders::etag($xml))
+        ->assertHeader('Cache-Control', 'no-cache, public');
 })->with([
     'HTTP non-default port' => ['http', 8545, null],
     'HTTPS non-default port and prefix' => ['https', 8443, '/uk'],
@@ -127,7 +129,7 @@ it('returns not modified when the request ETag matches', function (): void {
         'path' => null,
     ])->create();
     $xml = '<?xml version="1.0" encoding="UTF-8"?><urlset></urlset>';
-    $etag = 'W/"' . hash('sha256', $xml) . '"';
+    $etag = 'W/' . PublicReadProjectionHeaders::etag($xml);
 
     Storage::disk('array')->put('sitemaps_route_test/' . $domain->getDomainKey() . '.xml', $xml);
 

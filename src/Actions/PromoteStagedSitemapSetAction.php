@@ -38,6 +38,8 @@ final class PromoteStagedSitemapSetAction
             generationId: $sitemapSet->generationId,
             directory: $publishedDirectory,
             domains: $sitemapSet->domains,
+            publicReadRevision: $sitemapSet->publicReadRevision,
+            publicReadValidUntil: $sitemapSet->publicReadValidUntil,
         );
         $promoted = false;
 

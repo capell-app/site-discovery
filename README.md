@@ -2,192 +2,55 @@
 
 <!-- prettier-ignore-start -->
 
-## What This Plugin Adds
-
-Site Discovery is an **Available**, **No schema impact** Capell package in the **Capell Search & SEO** product group. It ships as `capell-app/site-discovery` and extends these surfaces: admin, frontend, console.
+## What It Does
 
 Site Discovery builds a canonical public-URL registry plus XML and HTML sitemap output from published, indexable Capell content.
 
+- **Price and availability:** Check current availability and price on the [Capell Marketplace listing](https://capell.app/extensions/site-discovery).
+- **Licence:** Check the licence terms on the [Capell Marketplace listing](https://capell.app/extensions/site-discovery).
+- **Requires:** `PHP ^8.4`, `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.76`, `capell-app/discovery-foundation ^1.0`, `capell-app/frontend ^1.0`.
+- **Install:** `composer require capell-app/site-discovery`.
+
 Admins can inspect which public URLs are indexable and covered by generated outputs. Search engines and other crawlers receive current sitemap routes as content changes.
 
-Status details:
-
-- Status: Available
-- Tier: free
-- Bundle: search-seo
-- Composer package: `capell-app/site-discovery`
-- Namespace: `Capell\SiteDiscovery`
-- Theme key: not applicable
-
-## Why It Matters
+## Who It Is For
 
 **For developers:** URL and discovery-output contracts let packages contribute public records while shared Actions handle deduplication, indexability, sitemap quality, and change notifications.
 
 **For teams:** Teams can see whether published pages are being offered to crawlers and correct missing or hidden URLs before discovery suffers.
 
-## Screens And Workflow
+## Quick Start
 
-Screenshot contract: `docs/screenshots.json`.
+1. Install the package: `composer require capell-app/site-discovery`.
+2. Open the package admin surface at `/admin/pages` and confirm Site Discovery is available.
+
+## Configure
+
+- **Configuration files:** `config/capell-site-discovery.php`.
+- **Commands:** `php artisan capell:xml-sitemap`.
+
+## Limits And Pitfalls
+
+- Install the required Capell packages at the versions in `composer.json`: `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.76`, `capell-app/discovery-foundation ^1.0`, `capell-app/frontend ^1.0`.
+- Review middleware, throttling, signatures, and public-output safety in `routes/web.php` before exposing routes.
+- Keep the host Laravel scheduler running so package-registered schedules can execute: `capell:xml-sitemap --incremental (manifest declared)`.
+- Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
+- Custom write integrations must preserve invalidation for `site-discovery` cache tags.
+
+## Screens And Workflow
 
 ![Page resource sitemap action](docs/screenshots/page-sitemap-action.png)
 
 ![Site resource sitemap action](docs/screenshots/site-sitemap-action.png)
 
-- Page resource sitemap action (admin, required evidence).
-- Site resource sitemap action (admin, required evidence).
-- Sitemap generation tool (admin, required evidence).
-- Public HTML sitemap page (frontend, required evidence).
-- Generated XML sitemap output (frontend, required evidence).
-- Public URL Registry repair queue (admin, required evidence).
-- Public URL Registry row details (admin, required evidence).
-- Page resource sitemap action with admin sidebar menu open (admin, supplementary evidence).
-
-## Technical Shape
-
-### Service providers
-
-- `Capell\SiteDiscovery\Providers\SiteDiscoveryServiceProvider`
-
-### Config files
-
-- `packages/site-discovery/config/capell-site-discovery.php`
-
-### Filament classes
-
-- `SitemapResourceHeaderActionExtender`
-- `SitemapSiteHeaderActionExtender`
-- `SitemapSiteRecordActionExtender`
-- `PublicUrlRegistryPage`
-
-### Livewire components
-
-- `Sitemap`
-- `SitemapTool`
-
-### Route files
-
-- `packages/site-discovery/routes/web.php`
-
-### Extension contracts
-
-- `DiscoverableUrlSource`
-- `DiscoveryOutputSource`
-- `GeneratedOutputCoverageSource`
-- `PublicUrlContributor`
-- `Sitemapable`
-- `UrlChangeNotifier`
-
-### Listeners
-
-- `EnsureSitemapPagesAfterCapellInstalled`
-- `RegenerateSitemapsOnPageDeleted`
-- `RegenerateSitemapsOnPageSaved`
-- `RegenerateSitemapsOnSiteCreated`
-- `RegenerateSitemapsOnSiteDomainCreated`
-
-### Actions
-
-- `BuildAuthorisedPublicUrlRepairQueueAction`
-- `BuildGeneratedOutputParityReportAction`
-- `BuildPublicSitemapTreeAction`
-- `BuildPublicUrlRegistryAction`
-- `BuildPublicUrlRepairQueueAction`
-- `BuildSitemapXmlResponseAction`
-- `DiscoverPublicDiscoveryOutputsAction`
-- `DiscoverPublicPagesAction`
-- `DiscoverPublicUrlsAction`
-- `EnsureSitemapPagesAction`
-- `GenerateSitemapAction`
-- `GenerateSitemapIncrementallyAction`
-- `NotifyPageUrlChangesAction`
-- `NotifyPublicUrlChangesAction`
-- `PromoteStagedSitemapSetAction`
-- `RedactIndexNowNotificationErrorMessageAction`
-- `RequestSiteSitemapRegenerationAction`
-- `SetupSiteDiscoveryPackageAction`
-- `ValidateSitemapQualityAction`
-- `ValidateStagedSitemapSetAction`
-
-### Data objects
-
-- `DiscoverablePageData`
-- `DiscoverableUrlData`
-- `DiscoveryOutputData`
-- `GeneratedOutputParityReportData`
-- `GeneratedOutputParityRowData`
-- `PublicUrlData`
-- `PublicUrlOutputIssueData`
-- `PublicUrlRegistryEntryData`
-- `PublicUrlRepairItemData`
-- `PublicUrlRepairQueueData`
-- `SiteMapData`
-- `SitemapAlternateData`
-- `SitemapImageData`
-- `SitemapNewsData`
-- `SitemapPageData`
-- `SitemapQualityErrorData`
-- `SitemapQualityReportData`
-- `SitemapUrlItemData`
-- `SitemapVideoData`
-- `StagedSitemapDomainData`
-- `StagedSitemapSetData`
-- `UrlChangeNotificationResultData`
-
-### Jobs
-
-- `RebuildAllSitemapsJob`
-- `RebuildSiteSitemapJob`
-- `RegenerateSiteSitemapIncrementallyJob`
-
-### Command signatures
-
-- `capell:xml-sitemap`
-
-### Manifest action API
-
-- `buildGeneratedOutputParityReport: Capell\SiteDiscovery\Actions\BuildGeneratedOutputParityReportAction`
-- `buildPublicUrlRegistry: Capell\SiteDiscovery\Actions\BuildPublicUrlRegistryAction`
-- `buildPublicUrlRepairQueue: Capell\SiteDiscovery\Actions\BuildPublicUrlRepairQueueAction`
-- `generateSitemap: Capell\SiteDiscovery\Actions\GenerateSitemapAction`
-- `setup: Capell\SiteDiscovery\Actions\SetupSiteDiscoveryPackageAction`
-- `validateSitemapQuality: Capell\SiteDiscovery\Actions\ValidateSitemapQualityAction`
-
-### Scheduled commands
-
-- `capell:xml-sitemap --incremental (manifest declared)`
-
-### Console command classes
-
-- `XmlSitemapCommand`
-
-### Manifest contributions
-
-- `admin-page: Capell\SiteDiscovery\Manifest\PublicUrlRegistryPageContribution`
-- `route: Capell\SiteDiscovery\Manifest\SiteDiscoveryFrontendRoutesContribution`
-- `scheduled-job: Capell\SiteDiscovery\Manifest\SiteDiscoveryIncrementalSitemapScheduleContribution`
-
-### Health checks
-
-- `Capell\SiteDiscovery\Health\SiteDiscoveryHealthCheck`
-
-### Blade views
-
-- `packages/site-discovery/resources/views/components/pages/sitemap.blade.php`
-- `packages/site-discovery/resources/views/components/pages/sitemap/page.blade.php`
-- `packages/site-discovery/resources/views/filament/pages/public-url-registry.blade.php`
-- `packages/site-discovery/resources/views/livewire/page/sitemap.blade.php`
-- `packages/site-discovery/resources/views/livewire/tools/sitemap-tool.blade.php`
-- `packages/site-discovery/resources/views/screenshots/sitemap.blade.php`
-- `packages/site-discovery/resources/views/sitemap/sitemap-page.blade.php`
-
-### Cache tags
-
-- `site-discovery`
-
-
-## Data Model
-
-This package has no schema impact. It extends Capell through `admin-page` contributions, `route` contributions, and `scheduled-job` contributions instead of declaring package-owned tables.
+- Page resource sitemap action (admin).
+- Site resource sitemap action (admin).
+- Sitemap generation tool (admin).
+- Public HTML sitemap page (frontend).
+- Generated XML sitemap output (frontend).
+- Public URL Registry repair queue (admin).
+- Public URL Registry row details (admin).
+- Page resource sitemap action with admin sidebar menu open (admin).
 
 ## Install Impact
 
@@ -203,15 +66,6 @@ This package has no schema impact. It extends Capell through `admin-page` contri
 - Cache tags: `site-discovery`.
 - Commands: `capell:xml-sitemap`.
 
-## Common Pitfalls
-
-- Keep required Capell packages on compatible v4 releases: `capell-app/admin`, `capell-app/core`, `capell-app/discovery-foundation`, `capell-app/frontend`.
-- Review package configuration before production-like verification: `config/capell-site-discovery.php`.
-- Review middleware, throttling, signatures, and public-output safety in `routes/web.php` before exposing routes.
-- Keep the host Laravel scheduler running so package-registered schedules can execute: `capell:xml-sitemap --incremental (manifest declared)`.
-- Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
-- Custom write integrations must preserve invalidation for `site-discovery` cache tags.
-
 ## Troubleshooting
 
 | Symptom | Likely cause | Check | Fix |
@@ -220,11 +74,6 @@ This package has no schema impact. It extends Capell through `admin-page` contri
 | Route returns unexpected output | Route cache, middleware, or signed URL setup does not match the package route file | Check the route files listed in `Technical Shape` | Clear route cache and verify middleware before exposing public routes |
 | Background work does not run | Queue worker or declared schedule is not active | Check the jobs and scheduled commands listed in `Technical Shape` | Start the queue worker or host scheduler, then run the focused command or package test |
 | Public output leaks unexpected state | Render data, cache variation, or authoring boundary has regressed | Check public Blade, cache tags, and public-output safety tests | Move data loading out of Blade and rerun the package public-output tests |
-
-## Quick Start
-
-1. Install the package: `composer require capell-app/site-discovery`.
-2. Open the package admin surface at `/admin/pages` and confirm Site Discovery is available.
 
 ## Upgrading
 
@@ -240,11 +89,11 @@ Read [CHANGELOG.md](CHANGELOG.md) before upgrading.
 - [Admin guide](docs/admin-guide.md)
 - Configuration files: [`config/capell-site-discovery.php`](config/capell-site-discovery.php).
 - [Troubleshooting](#troubleshooting)
-- [Screenshot contract](docs/screenshots.json)
+- [Developer reference](docs/reference.md)
 - [Marketplace assets](docs/assets/marketplace/)
 - [Capell content language plan](../../docs/CONTENT_LANGUAGE_PLAN.md)
 - [Capell documentation design system](../../docs/DESIGN_SYSTEM.md)
 - [Capell and package ERD notes](../../docs/erd/capell-and-package-erds.md)
-- Related packages: [Discovery Foundation](../discovery-foundation/README.md), [Agent Delivery](../agent-delivery/README.md), [Search](../search/README.md), [Seo Suite](../seo-suite/README.md), [Url Manager](../url-manager/README.md).
+- Related packages: [Discovery Core](../discovery-foundation/README.md), [Agent Delivery](../agent-delivery/README.md), [Search](../search/README.md), [SEO Suite](../seo-suite/README.md), [URL Manager](../url-manager/README.md).
 
 <!-- prettier-ignore-end -->

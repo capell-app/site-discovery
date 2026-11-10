@@ -24,6 +24,7 @@ use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Packages\RouteGroupIsolation;
+use Capell\Core\Support\PublicRead\PublicReadWithdrawalSteps;
 use Capell\Core\Support\Renderables\RenderableRegistry;
 use Capell\SiteDiscovery\Console\Commands\XmlSitemapCommand;
 use Capell\SiteDiscovery\Contracts\DiscoveryOutputSource;
@@ -47,6 +48,7 @@ use Capell\SiteDiscovery\Support\Interceptors\SitemapPageTypeInterceptor;
 use Capell\SiteDiscovery\Support\Sitemap\Pages\PagesSitemap;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageRegistry;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageType;
+use Capell\SiteDiscovery\Support\Sitemap\SitemapPublicReadWithdrawalStep;
 use Illuminate\Console\Scheduling\Event as ScheduledEvent;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\View\Factory;
@@ -263,6 +265,9 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
         $events = $this->app->make(Dispatcher::class);
         $events->listen(PageSaved::class, RegenerateSitemapsOnPageSaved::class);
         $events->listen(PageDeleted::class, RegenerateSitemapsOnPageDeleted::class);
+        $this->callAfterResolving(PublicReadWithdrawalSteps::class, static function (PublicReadWithdrawalSteps $steps): void {
+            $steps->register(SitemapPublicReadWithdrawalStep::KEY, static fn (?int $siteId) => resolve(SitemapPublicReadWithdrawalStep::class)($siteId));
+        });
         $events->listen(SiteCreated::class, RegenerateSitemapsOnSiteCreated::class);
         $events->listen('eloquent.created: ' . SiteDomain::class, RegenerateSitemapsOnSiteDomainCreated::class);
 

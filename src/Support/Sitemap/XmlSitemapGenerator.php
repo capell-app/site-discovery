@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace Capell\SiteDiscovery\Support\Sitemap;
 
+use Capell\Core\Data\PublicRead\PublicPageReadCandidateData;
+use Capell\Core\Data\PublicRead\PublicReadStampData;
 use Capell\Core\Enums\CacheEnum;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
+use Capell\Core\Support\PublicRead\PublicPageReadEligibilityRegistry;
+use Capell\Core\Support\PublicRead\PublicReadEligibilityState;
 use Capell\DiscoveryFoundation\Actions\BuildPublicUrlRegistryAction;
 use Capell\DiscoveryFoundation\Data\PublicUrlRegistryEntryData;
 use Capell\SiteDiscovery\Actions\DiscoverPublicUrlsAction;
@@ -23,6 +27,7 @@ use Capell\SiteDiscovery\Data\SitemapVideoData;
 use Capell\SiteDiscovery\Data\StagedSitemapDomainData;
 use Capell\SiteDiscovery\Data\StagedSitemapSetData;
 use Capell\SiteDiscovery\Exceptions\SitemapGeneratorException;
+use Capell\SiteDiscovery\Exceptions\SitemapPublicReadRevisionChangedException;
 use Capell\SiteDiscovery\Support\Sitemap\Pages\PagesSitemap;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -37,6 +42,8 @@ use Throwable;
 
 class XmlSitemapGenerator
 {
+    private const int PUBLIC_READ_FENCE_ATTEMPTS = 3;
+
     /**
      * Optional factory for injecting a testable SitemapGenerator instance.
      */
@@ -107,13 +114,12 @@ class XmlSitemapGenerator
         ?Closure $checkpoint = null,
         ?Closure $end = null,
     ): void {
-        $stagedSet = $this->stage(
+        $publishedSet = $this->withinPublicReadFence(fn (): StagedSitemapSetData => PromoteStagedSitemapSetAction::run($this->stage(
             site: $site,
             start: $start,
             prepare: $prepare,
             checkpoint: $checkpoint,
-        );
-        $publishedSet = PromoteStagedSitemapSetAction::run($stagedSet);
+        )));
 
         $this->writeCompatibilityFiles($publishedSet);
         $this->signalCompletedDomains($publishedSet, $end);
@@ -132,42 +138,11 @@ class XmlSitemapGenerator
         ?Closure $checkpoint = null,
         ?Closure $end = null,
     ): void {
-        $site->load('siteDomains.language');
-        $contexts = $this->buildDomainContexts($site, $start, $prepare);
-        $state = new SitemapStateStore($this->disk(), $this->directory());
-        $publicationStore = resolve(SitemapPublicationStore::class);
-        $hasChanges = false;
+        $this->withinPublicReadFence(function () use ($site, $start, $prepare, $checkpoint, $end): null {
+            $this->processIncrementalOnce($site, $start, $prepare, $checkpoint, $end);
 
-        foreach ($contexts as $context) {
-            $domainKey = $context['domain']->getDomainKey();
-            $storedMap = $publicationStore->hasDomain($domainKey)
-                ? $publicationStore->urlState($domainKey)
-                : $state->load($domainKey);
-
-            if ($state->hasChanged($context['urlState'], $storedMap)) {
-                $hasChanges = true;
-            }
-        }
-
-        if (! $hasChanges) {
-            foreach ($contexts as $context) {
-                if ($end instanceof Closure) {
-                    $end(
-                        count($context['items']),
-                        $this->directory() . '/' . $context['domain']->getDomainKey() . '.xml',
-                        false,
-                    );
-                }
-            }
-
-            return;
-        }
-
-        $stagedSet = $this->stageContexts($site, $contexts, $checkpoint);
-        $publishedSet = PromoteStagedSitemapSetAction::run($stagedSet);
-
-        $this->writeCompatibilityFiles($publishedSet);
-        $this->signalCompletedDomains($publishedSet, $end, true);
+            return null;
+        });
     }
 
     public function stage(
@@ -177,11 +152,13 @@ class XmlSitemapGenerator
         ?Closure $checkpoint = null,
     ): StagedSitemapSetData {
         $site->load('siteDomains.language');
+        $publicReadStamp = $this->publicReadStamp();
 
         return $this->stageContexts(
             site: $site,
             contexts: $this->buildDomainContexts($site, $start, $prepare),
             checkpoint: $checkpoint,
+            publicReadStamp: $publicReadStamp,
         );
     }
 
@@ -254,6 +231,78 @@ class XmlSitemapGenerator
     }
 
     /**
+     * Generation restarts when eligibility changes while it runs, so a set
+     * that may list newly restricted pages is never published and the site is
+     * not left without a sitemap until the next change.
+     *
+     * @template TResult
+     *
+     * @param  Closure(): TResult  $generate
+     * @return TResult
+     */
+    private function withinPublicReadFence(Closure $generate): mixed
+    {
+        $attempts = 0;
+
+        while (true) {
+            try {
+                return $generate();
+            } catch (SitemapPublicReadRevisionChangedException $sitemapPublicReadRevisionChangedException) {
+                if (++$attempts >= self::PUBLIC_READ_FENCE_ATTEMPTS) {
+                    throw $sitemapPublicReadRevisionChangedException;
+                }
+            }
+        }
+    }
+
+    private function processIncrementalOnce(
+        Site $site,
+        ?Closure $start,
+        ?Closure $prepare,
+        ?Closure $checkpoint,
+        ?Closure $end,
+    ): void {
+        $site->load('siteDomains.language');
+        $publicReadStamp = $this->publicReadStamp();
+        $contexts = $this->buildDomainContexts($site, $start, $prepare);
+        $state = new SitemapStateStore($this->disk(), $this->directory());
+        $publicationStore = resolve(SitemapPublicationStore::class);
+        // A set published under older eligibility rules is withdrawn, so it is always replaced.
+        $hasChanges = ! $publicationStore->isPubliclyReadableGeneration($this->siteKey($site));
+
+        foreach ($contexts as $context) {
+            $domainKey = $context['domain']->getDomainKey();
+            $storedMap = $publicationStore->hasDomain($domainKey)
+                ? $publicationStore->urlState($domainKey)
+                : $state->load($domainKey);
+
+            if ($state->hasChanged($context['urlState'], $storedMap)) {
+                $hasChanges = true;
+            }
+        }
+
+        if (! $hasChanges) {
+            foreach ($contexts as $context) {
+                if ($end instanceof Closure) {
+                    $end(
+                        count($context['items']),
+                        $this->directory() . '/' . $context['domain']->getDomainKey() . '.xml',
+                        false,
+                    );
+                }
+            }
+
+            return;
+        }
+
+        $stagedSet = $this->stageContexts($site, $contexts, $checkpoint, $publicReadStamp);
+        $publishedSet = PromoteStagedSitemapSetAction::run($stagedSet);
+
+        $this->writeCompatibilityFiles($publishedSet);
+        $this->signalCompletedDomains($publishedSet, $end, true);
+    }
+
+    /**
      * @return list<array{domain: SiteDomain, items: array<int, SitemapUrlItemData>, urlState: array<string, string>}>
      */
     private function buildDomainContexts(
@@ -305,6 +354,7 @@ class XmlSitemapGenerator
         Site $site,
         array $contexts,
         ?Closure $checkpoint,
+        ?PublicReadStampData $publicReadStamp = null,
     ): StagedSitemapSetData {
         $storage = Storage::disk($this->disk());
         $siteKey = $this->siteKey($site);
@@ -360,6 +410,8 @@ class XmlSitemapGenerator
                 generationId: $generationId,
                 directory: $stagingDirectory,
                 domains: $domains,
+                publicReadRevision: $publicReadStamp?->revision,
+                publicReadValidUntil: $publicReadStamp?->validUntilTimestamp(),
             );
         } catch (Throwable $throwable) {
             $storage->deleteDirectory($stagingDirectory);
@@ -429,6 +481,17 @@ class XmlSitemapGenerator
                 ]);
             }
         }
+    }
+
+    /**
+     * Captured before any page is read, so a set built while eligibility
+     * changes carries the older revision and is never served, and a set is
+     * stale from the earliest scheduled transition known when it began. Null
+     * when the rules cannot be read: such a set is never served.
+     */
+    private function publicReadStamp(): ?PublicReadStampData
+    {
+        return resolve(PublicReadEligibilityState::class)->freshStamp();
     }
 
     private function disk(): string
@@ -591,13 +654,72 @@ class XmlSitemapGenerator
                 priority: $url->priority,
             ));
 
-        return collect($items)
+        $merged = array_values(collect($items)
             ->merge($legacyContributedItems)
             ->merge($registryItems)
             ->reject(fn (SitemapUrlItemData $item): bool => str_contains($item->loc, '*'))
+            ->all());
+
+        return collect($this->publiclyReadableItems($merged, $site, $language, $domain))
             ->unique(fn (SitemapUrlItemData $item): string => $item->loc)
             ->values()
             ->all();
+    }
+
+    /**
+     * Contributors publish their own URLs and alternates, so every address in
+     * the sitemap is checked in one batch: an item behind a restricted route is
+     * withheld, and each restricted alternate is dropped from a readable item.
+     *
+     * @param  list<SitemapUrlItemData>  $items
+     * @return list<SitemapUrlItemData>
+     */
+    private function publiclyReadableItems(array $items, Site $site, Language $language, SiteDomain $domain): array
+    {
+        $siteId = is_numeric($site->getKey()) ? (int) $site->getKey() : null;
+        $languageId = is_numeric($language->getKey()) ? (int) $language->getKey() : null;
+        $publishedOn = $domain->full_url;
+        $candidates = [];
+
+        foreach ($items as $item) {
+            $candidates[] = new PublicPageReadCandidateData(url: $item->loc, siteId: $siteId, languageId: $languageId, publishedOn: $publishedOn);
+
+            foreach ($item->alternates as $alternate) {
+                $candidates[] = new PublicPageReadCandidateData(url: $alternate->href, siteId: $siteId, publishedOn: $publishedOn);
+            }
+        }
+
+        $decisions = resolve(PublicPageReadEligibilityRegistry::class)->allowsMany($candidates);
+        $position = 0;
+        $readable = [];
+
+        foreach ($items as $item) {
+            $itemReadable = $decisions[$position++];
+            $alternates = [];
+
+            foreach ($item->alternates as $alternate) {
+                if ($decisions[$position++]) {
+                    $alternates[] = $alternate;
+                }
+            }
+
+            if (! $itemReadable) {
+                continue;
+            }
+
+            $readable[] = $alternates === $item->alternates ? $item : new SitemapUrlItemData(
+                loc: $item->loc,
+                lastmod: $item->lastmod,
+                changefreq: $item->changefreq,
+                priority: $item->priority,
+                alternates: $alternates,
+                images: $item->images,
+                videos: $item->videos,
+                news: $item->news,
+            );
+        }
+
+        return $readable;
     }
 
     /**

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Capell\SiteDiscovery\Actions;
 
+use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
+use Capell\Core\Support\PublicRead\PublicReadProjectionHeaders;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPublicationStore;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -26,8 +28,13 @@ final class BuildSitemapXmlResponseAction
         $disk = $this->configString('capell.sitemap.disk', 'local');
         $filename = $this->filename($request, $sitemapPrefix);
         $domainKey = $this->domainKey($request, $sitemapPrefix);
-        $filePath = resolve(SitemapPublicationStore::class)->resolveFilePath($domainKey, $filename);
+        $publicationStore = resolve(SitemapPublicationStore::class);
+        $filePath = $publicationStore->resolveFilePath($domainKey, $filename);
         $storage = Storage::disk($disk);
+
+        if (! is_string($filePath)) {
+            $this->regenerateWithdrawnSitemap($publicationStore, $domainKey);
+        }
 
         abort_unless(is_string($filePath) && $storage->exists($filePath), 404);
 
@@ -40,7 +47,8 @@ final class BuildSitemapXmlResponseAction
             'D, d M Y H:i:s \G\M\T',
             is_numeric($lastModifiedTimestamp) ? $lastModifiedTimestamp : now()->getTimestamp(),
         );
-        $etagDigest = hash('sha256', (string) $contents);
+        // The validator includes the public-read rules, so a copy cached under older rules is never reused.
+        $etagDigest = trim(PublicReadProjectionHeaders::etag((string) $contents), '"');
         $weakEtag = 'W/"' . $etagDigest . '"';
 
         if ($this->requestMatchesEtag($request, $weakEtag, $etagDigest)) {
@@ -60,6 +68,27 @@ final class BuildSitemapXmlResponseAction
         }
 
         return response($contents, 200, $headers);
+    }
+
+    /**
+     * A sitemap generated under older public-read rules is withdrawn rather
+     * than served. Regeneration is normally requested when the rules change;
+     * asking again here (deduplicated) restores a sitemap whose change
+     * notification was missed.
+     */
+    private function regenerateWithdrawnSitemap(SitemapPublicationStore $publicationStore, string $domainKey): void
+    {
+        $siteKey = $publicationStore->siteKeyForDomain($domainKey);
+
+        if ($siteKey === null || $publicationStore->isPubliclyReadableGeneration($siteKey)) {
+            return;
+        }
+
+        $site = Site::query()->find($siteKey);
+
+        if ($site instanceof Site) {
+            RequestSiteSitemapRegenerationAction::run($site);
+        }
     }
 
     private function filename(Request $request, ?string $sitemapPrefix): string
@@ -120,8 +149,7 @@ final class BuildSitemapXmlResponseAction
     private function cacheHeaders(string $etag, string $lastModified): array
     {
         return [
-            'Cache-Control' => 'public, max-age=86400',
-            'Expires' => now()->addDay()->toRfc7231String(),
+            'Cache-Control' => PublicReadProjectionHeaders::CACHE_CONTROL,
             'ETag' => $etag,
             'Last-Modified' => $lastModified,
         ];
