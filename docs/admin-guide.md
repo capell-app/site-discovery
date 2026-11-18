@@ -6,7 +6,7 @@ This guide is for editors who manage how pages are found and owners deciding wha
 
 ### How to review discovery status
 
-1. Open **Insights & health > Public URL Registry**. It opens on **Needs attention**: the public URLs that are missing from an output they are eligible for.
+1. Open **Reports > Public URL Registry**. It opens on **Needs attention**: the public URLs that are missing from an output they are eligible for.
 2. Read each URL's issues. Every issue names the output, the reason in plain language, the area that owns that output, and the next step to take.
 3. Switch to **Cannot be checked** for URLs whose outputs have no installed package reporting coverage, or **All URLs** for the complete inventory.
 4. Narrow the queue with the **Output** and **Site** filters, or open **Advanced filters** for source package, language, indexability, and eligibility.
@@ -29,7 +29,7 @@ This guide is for editors who manage how pages are found and owners deciding wha
 
 ### How to review a URL missing generated output
 
-1. Open **Insights & health > Public URL Registry** and stay on the default **Needs attention** view.
+1. Open **Reports > Public URL Registry** and stay on the default **Needs attention** view.
 2. Filter by **Output** when you want to work through one output at a time, for example everything missing from the sitemap.
 3. Follow the **Next step** shown on the issue.
 4. Open **Full eligibility and output matrix** on the row when you need the complete picture: every output's status plus indexability, content type, and both eligibility flags.
@@ -41,8 +41,8 @@ This guide is for editors who manage how pages are found and owners deciding wha
 
 1. Correct the queue, content, or sitemap storage failure before rebuilding.
 2. Ask a developer to run `capell:xml-sitemap --site=42` for the affected site. The existing complete set remains public until its replacement is fully generated and validated.
-3. Check the public headers with `curl -I https://example.com/sitemap-xml`. Expect `200` and a weak SHA-256 ETag such as `ETag: W/"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"`.
-4. Verify revalidation with `curl -I -H 'If-None-Match: W/"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"' https://example.com/sitemap-xml`. Expect `304` only when that exact set remains current.
+3. Check the public headers with `curl -I https://example.com/sitemap.xml`. Expect `200` and a weak SHA-256 ETag such as `ETag: W/"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"`.
+4. Verify revalidation with `curl -I -H 'If-None-Match: W/"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"' https://example.com/sitemap.xml`. Expect `304` only when that exact set remains current.
 5. If generation or validation fails, confirm the previous ETag and XML body are still served, correct the failure, and rerun the rebuild. Do not delete the sitemap directory or current-set manifest as a recovery step.
 
 ### How to correct a page's indexability
@@ -53,13 +53,13 @@ This guide is for editors who manage how pages are found and owners deciding wha
 
 ### How to check what has been indexed
 
-1. In **Insights & health > Public URL Registry**, open **Advanced filters** and filter by indexability or sitemap eligibility.
+1. In **Reports > Public URL Registry**, open **Advanced filters** and filter by indexability or sitemap eligibility.
 2. Look for pages marked **Noindex**, or eligible pages sitting in the **Needs attention** queue, that you actually want found.
 3. Fix any that are set the wrong way.
 
 ### How to audit your public URLs across the site
 
-1. Go to **Insights & health > Public URL Registry**.
+1. Go to **Reports > Public URL Registry**.
 2. Switch to **All URLs** to see every public address, including the healthy ones.
 3. Use this when you want one place that shows the discovery status for every public address.
 
@@ -94,10 +94,10 @@ This guide is for editors who manage how pages are found and owners deciding wha
 
 ### Who does what
 
-| Role       | First useful screen                                                |
-| ---------- | ------------------------------------------------------------------ |
-| Editor     | The underlying page/SEO controls: set robots metadata              |
-| Site owner | **Insights & health > Public URL Registry**: work the repair queue |
+| Role       | First useful screen                                      |
+| ---------- | -------------------------------------------------------- |
+| Editor     | The underlying page/SEO controls: set robots metadata    |
+| Site owner | **Reports > Public URL Registry**: work the repair queue |
 
 ## Troubleshooting for editors
 

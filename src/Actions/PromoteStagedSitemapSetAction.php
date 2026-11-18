@@ -45,6 +45,8 @@ final class PromoteStagedSitemapSetAction
 
         try {
             ValidateStagedSitemapSetAction::run($sitemapSet);
+            // Reserve before writing, so a concurrent promotion's prune never deletes this set mid-copy.
+            $this->publicationStore->reserveGeneration($sitemapSet->generationId);
             $this->copyCompleteSet($storage, $sitemapSet, $publishedSet);
             ValidateStagedSitemapSetAction::run($publishedSet);
             $this->publicationStore->promote($publishedSet);
@@ -55,7 +57,7 @@ final class PromoteStagedSitemapSetAction
             $storage->deleteDirectory($sitemapSet->directory);
 
             if (! $promoted) {
-                $storage->deleteDirectory($publishedDirectory);
+                $this->publicationStore->abandonGeneration($sitemapSet->generationId);
             }
         }
     }

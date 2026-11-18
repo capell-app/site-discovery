@@ -141,10 +141,10 @@ test('sitemap xml page', function (): void {
         ...$pages->pluck('pageUrl.full_url')->toArray(),
     ];
 
-    get(siteDiscoveryPageUrl($sitemapPage) . '-xml')
+    get(siteDiscoveryPageUrl($sitemapPage) . '.xml')
         ->assertOk()
         ->assertHeader('Content-Type', 'application/xml; charset=utf-8')
-        ->assertHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')
+        ->assertHeader('Content-Disposition', 'inline; filename="' . $filename . '"')
         ->assertElementExists(
             'urlset',
             fn (AssertElement $elm): BaseAssert => $elm->contains('url', 7)
@@ -169,11 +169,23 @@ test('sitemap xml page returns 404 if file missing', function (): void {
     $pageCreator = resolve(SitemapPageCreator::class);
     $sitemapPage = $pageCreator->createSitemapPage($site, collect([$languages]));
 
-    get(siteDiscoveryPageUrl($sitemapPage) . '-xml')
+    get(siteDiscoveryPageUrl($sitemapPage) . '.xml')
         ->assertStatus(404);
 });
 
 test('sitemap setup rejects an unrelated page using the reserved XML path', function (): void {
+    $language = Language::factory()->create();
+    $site = Site::factory()->withTranslations(collect([$language]))->create();
+    $page = Page::factory()->site($site)->withTranslations(collect([$language]))->create();
+    PageUrl::factory()->site($site)->language($language)->page($page)->create([
+        'url' => '/sitemap.xml',
+    ]);
+
+    expect(fn (): Page => resolve(SitemapPageCreator::class)->createSitemapPage($site, collect([$language])))
+        ->toThrow(RuntimeException::class, 'reserved sitemap XML path');
+});
+
+test('sitemap setup rejects an unrelated page using the legacy sitemap path', function (): void {
     $language = Language::factory()->create();
     $site = Site::factory()->withTranslations(collect([$language]))->create();
     $page = Page::factory()->site($site)->withTranslations(collect([$language]))->create();
@@ -183,6 +195,62 @@ test('sitemap setup rejects an unrelated page using the reserved XML path', func
 
     expect(fn (): Page => resolve(SitemapPageCreator::class)->createSitemapPage($site, collect([$language])))
         ->toThrow(RuntimeException::class, 'reserved sitemap XML path');
+});
+
+test('sitemap setup moves an existing legacy sitemap-xml alias to the configured path', function (): void {
+    config(['capell.sitemap.xml_path' => '/sitemap-xml']);
+
+    $language = Language::factory()->create();
+    $site = Site::factory()->withTranslations(collect([$language]))->create();
+    $page = resolve(SitemapPageCreator::class)->createSitemapPage($site, collect([$language]));
+    $page->pageUrls()->where('type', 'alias')->update(['url' => '/sitemap-xml']);
+
+    resolve(SitemapPageCreator::class)->createSitemapPage($site, collect([$language]));
+
+    expect($page->pageUrls()->where('type', 'alias')->pluck('url')->all())->toBe(['/sitemap.xml']);
+});
+
+test('sitemap setup ignores unrelated pages sharing the configured filename', function (): void {
+    config(['capell.sitemap.xml_path' => '/maps/index.xml']);
+
+    $language = Language::factory()->create();
+    $site = Site::factory()->withTranslations(collect([$language]))->create();
+    $page = Page::factory()->site($site)->withTranslations(collect([$language]))->create();
+    PageUrl::factory()->site($site)->language($language)->page($page)->create(['url' => '/docs/index.xml']);
+
+    $sitemapPage = resolve(SitemapPageCreator::class)->createSitemapPage($site, collect([$language]));
+
+    expect($sitemapPage->is($page))->toBeFalse();
+});
+
+test('sitemap setup derives the alias from a custom configured path', function (): void {
+    config(['capell.sitemap.xml_path' => '/maps/index.xml']);
+
+    $language = Language::factory()->create();
+    $site = Site::factory()->withTranslations(collect([$language]))->create();
+    $page = resolve(SitemapPageCreator::class)->createSitemapPage($site, collect([$language]));
+
+    expect($page->pageUrls()->where('type', 'alias')->pluck('url')->all())->toBe(['/maps/index.xml']);
+});
+
+test('sitemap loader reports the configured path', function (): void {
+    config(['capell.sitemap.disk' => 'array', 'capell.sitemap.directory' => 'sitemaps', 'capell.sitemap.xml_path' => '/maps/index.xml']);
+    Storage::fake('array');
+    Cache::flush();
+
+    $language = Language::factory()->create();
+    $site = Site::factory()
+        ->recycle($language)
+        ->hasSiteDomain(['domain' => 'custom-path.test', 'scheme' => 'https', 'path' => null])
+        ->withTranslations(collect([$language]))
+        ->create();
+
+    resolve(SitemapPageCreator::class)->createSitemapPage($site, collect([$language]));
+    Page::factory()->site($site)->withTranslations(collect([$language]))->create();
+    resolve(XmlSitemapGenerator::class)->generate($site);
+    Cache::flush();
+
+    expect(resolve(SitemapLoader::class)->all()[0]->url)->toBe('https://custom-path.test/maps/index.xml');
 });
 
 test('sitemap xml page returns 304 with ETag', function (): void {
@@ -205,14 +273,14 @@ test('sitemap xml page returns 304 with ETag', function (): void {
         Storage::disk('array')->put($filePath, '<?xml version="1.0" encoding="UTF-8"?><urlset></urlset>');
     }
 
-    $initialResponse = $this->get(siteDiscoveryPageUrl($sitemapPage) . '-xml');
+    $initialResponse = $this->get(siteDiscoveryPageUrl($sitemapPage) . '.xml');
     $etag = $initialResponse->baseResponse->headers->get('ETag');
 
     expect($etag)->toBeString()->not->toBe('');
     throw_unless(is_string($etag), RuntimeException::class, 'Expected sitemap ETag header.');
 
     $this->withHeader('If-None-Match', $etag)
-        ->get(siteDiscoveryPageUrl($sitemapPage) . '-xml')
+        ->get(siteDiscoveryPageUrl($sitemapPage) . '.xml')
         ->assertHeader('ETag', $etag)
         ->assertStatus(304);
 });
@@ -245,7 +313,7 @@ test('sitemap loader reports generated xml files for sites with sitemap pages', 
 
     expect($sitemaps)->toHaveCount(1)
         ->and($sitemaps[0]->name)->toBe('with-sitemap.test/')
-        ->and($sitemaps[0]->url)->toBe('https://with-sitemap.test/sitemap-xml')
+        ->and($sitemaps[0]->url)->toBe('https://with-sitemap.test/sitemap.xml')
         ->and($sitemaps[0]->total)->toBeGreaterThanOrEqual(2);
 });
 
@@ -276,7 +344,7 @@ test('sitemap loader hydrates cached scalar payloads when cache object unseriali
 
     expect($sitemaps)->toHaveCount(1)
         ->and($sitemaps[0]->name)->toBe('with-sitemap.test/')
-        ->and($sitemaps[0]->url)->toBe('https://with-sitemap.test/sitemap-xml');
+        ->and($sitemaps[0]->url)->toBe('https://with-sitemap.test/sitemap.xml');
 });
 
 // ---------------------------------------------------------------------------
@@ -288,7 +356,7 @@ test('sitemap xml page serves a chunk file when ?p=N is provided', function (): 
         'capell.sitemap.disk' => 'array',
         'capell.sitemap.directory' => 'sitemaps',
         'capell.sitemap.max_urls_per_file' => 2,
-        'capell.sitemap.xml_path' => '/sitemap-xml',
+        'capell.sitemap.xml_path' => '/sitemap.xml',
     ]);
     Storage::fake('array');
     Cache::driver('array');
@@ -304,7 +372,7 @@ test('sitemap xml page serves a chunk file when ?p=N is provided', function (): 
     resolve(XmlSitemapGenerator::class)->generate($site);
 
     // Chunk 1 must be a urlset with 2 <url> entries
-    get(siteDiscoveryPageUrl($sitemapPage) . '-xml?p=1')
+    get(siteDiscoveryPageUrl($sitemapPage) . '.xml?p=1')
         ->assertOk()
         ->assertHeader('Content-Type', 'application/xml; charset=utf-8')
         ->assertElementExists(
@@ -313,7 +381,7 @@ test('sitemap xml page serves a chunk file when ?p=N is provided', function (): 
         );
 
     // Chunk 2 must be a urlset with 2 <url> entries
-    get(siteDiscoveryPageUrl($sitemapPage) . '-xml?p=2')
+    get(siteDiscoveryPageUrl($sitemapPage) . '.xml?p=2')
         ->assertOk()
         ->assertElementExists(
             'urlset',
@@ -340,7 +408,7 @@ test('sitemap xml page serves a sitemapindex as the main file when chunks exist'
     resolve(XmlSitemapGenerator::class)->generate($site);
 
     // Main URL (no ?p) returns the sitemapindex
-    get(siteDiscoveryPageUrl($sitemapPage) . '-xml')
+    get(siteDiscoveryPageUrl($sitemapPage) . '.xml')
         ->assertOk()
         ->assertHeader('Content-Type', 'application/xml; charset=utf-8')
         ->assertElementExists('sitemapindex');
@@ -360,7 +428,7 @@ test('sitemap xml page returns 404 for a chunk page that does not exist', functi
     Page::factory()->site($site)->withTranslations(collect([$languages]))->create();
     resolve(XmlSitemapGenerator::class)->generate($site);
 
-    get(siteDiscoveryPageUrl($sitemapPage) . '-xml?p=99')
+    get(siteDiscoveryPageUrl($sitemapPage) . '.xml?p=99')
         ->assertStatus(404);
 });
 

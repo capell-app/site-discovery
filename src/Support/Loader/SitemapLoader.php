@@ -10,6 +10,7 @@ use Capell\SiteDiscovery\Data\SiteMapData;
 use Capell\SiteDiscovery\Enums\SitemapCacheKey;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPublicationStore;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapStateStore;
+use Capell\SiteDiscovery\Support\Sitemap\SitemapXmlPath;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
@@ -56,7 +57,7 @@ class SitemapLoader
 
                         $sitemaps[] = [
                             'name' => $domain->name,
-                            'url' => $domain->full_url . '/sitemap-xml',
+                            'url' => $domain->full_url . SitemapXmlPath::canonical(),
                             'total' => $publicationStore->urlCount($domain->getDomainKey())
                                 ?? $state->urlCount($domain->getDomainKey())
                                 ?? 0,

@@ -2,11 +2,15 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Contracts\PublicRead\EvaluatesPublicPageReadCandidatesIndividually;
+use Capell\Core\Contracts\PublicRead\PublicPageReadEligibility;
+use Capell\Core\Data\PublicRead\PublicPageReadCandidateData;
 use Capell\Core\Enums\UrlTypeEnum;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\PageUrl;
 use Capell\Core\Models\Site;
+use Capell\Core\Support\PublicRead\PublicPageReadEligibilityRegistry;
 use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Illuminate\Support\Facades\Storage;
@@ -206,4 +210,45 @@ it('matches the head alternate cluster contract for the same page', function ():
     foreach ($page->pageUrls as $url) {
         expect(sitemapAlternates($xmls[$url->siteDomain->getDomainKey()], $url->full_url))->toBe($expected);
     }
+});
+
+it('omits an alternate whose own address an anonymous visitor may not read and keeps the others', function (): void {
+    $languages = Language::factory()->count(3)->create();
+    $site = Site::factory()
+        ->language($languages[0])
+        ->withTranslations($languages)
+        ->create();
+    $page = Page::factory()->site($site)->withTranslations($languages)->create();
+    $page->load('pageUrls.siteDomain');
+    $canonical = $page->pageUrls->firstWhere('language_id', $languages[0]->getKey());
+    $restricted = $page->pageUrls->firstWhere('language_id', $languages[1]->getKey());
+    $kept = $page->pageUrls->firstWhere('language_id', $languages[2]->getKey());
+    $restrictedUrl = $restricted->full_url;
+
+    resolve(PublicPageReadEligibilityRegistry::class)->register(new class($restrictedUrl) implements PublicPageReadEligibility
+    {
+        use EvaluatesPublicPageReadCandidatesIndividually;
+
+        public function __construct(private readonly string $restrictedUrl) {}
+
+        public function key(): string
+        {
+            return 'test-restricted-language';
+        }
+
+        public function isPubliclyReadable(PublicPageReadCandidateData $candidate): bool
+        {
+            return $candidate->url !== $this->restrictedUrl;
+        }
+    });
+
+    (new XmlSitemapGenerator)->generate($site);
+
+    $alternates = sitemapAlternates(sitemapXmlByDomainKey()[$canonical->siteDomain->getDomainKey()], $canonical->full_url);
+
+    expect(collect($alternates)->pluck('href'))
+        ->not->toContain($restrictedUrl)
+        ->toContain($canonical->full_url)
+        ->toContain($kept->full_url)
+        ->toHaveCount(3);
 });

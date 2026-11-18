@@ -25,7 +25,7 @@ beforeEach(function (): void {
         'capell.sitemap.disk' => 'local',
         'capell.sitemap.directory' => 'sitemaps_test_inc',
         'capell.sitemap.max_urls_per_file' => 50000,
-        'capell.sitemap.xml_path' => '/sitemap-xml',
+        'capell.sitemap.xml_path' => '/sitemap.xml',
     ]);
     $storage = Storage::disk('local');
     $storage->deleteDirectory('sitemaps_test_inc');
@@ -281,7 +281,7 @@ it('writes chunk files and a sitemapindex when URLs exceed max_urls_per_file', f
 it('sitemapindex <loc> entries use the configured xml_path and ?p=N query parameter', function (): void {
     config([
         'capell.sitemap.max_urls_per_file' => 2,
-        'capell.sitemap.xml_path' => '/sitemap-xml',
+        'capell.sitemap.xml_path' => '/sitemap.xml',
     ]);
 
     $language = Language::factory()->create();
@@ -300,8 +300,8 @@ it('sitemapindex <loc> entries use the configured xml_path and ?p=N query parame
     $mainXml = Storage::disk('local')->get('sitemaps_test_inc/' . $siteDomain->getDomainKey() . '.xml');
 
     expect($mainXml)
-        ->toContain('https://example.com/sitemap-xml?p=1')
-        ->toContain('https://example.com/sitemap-xml?p=2');
+        ->toContain('https://example.com/sitemap.xml?p=1')
+        ->toContain('https://example.com/sitemap.xml?p=2');
 });
 
 // ---------------------------------------------------------------------------

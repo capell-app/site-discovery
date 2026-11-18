@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
+use Capell\Admin\Enums\NavigationGroupEnum;
 use Capell\Admin\Support\Extensions\ExtensionPageRegistry;
 use Capell\Core\Contracts\Extensions\ExtensionContribution;
 use Capell\Core\Contracts\Extensions\RegistersExtensionRoute;
@@ -21,12 +23,14 @@ use Capell\SiteDiscovery\Contracts\GeneratedOutputCoverageSource;
 use Capell\SiteDiscovery\Enums\GeneratedOutputParityStatus;
 use Capell\SiteDiscovery\Enums\PublicUrlOutput;
 use Capell\SiteDiscovery\Filament\Pages\PublicUrlRegistryPage;
+use Capell\SiteDiscovery\Jobs\RegenerateSiteSitemapIncrementallyJob;
 use Capell\SiteDiscovery\Manifest\PublicUrlRegistryPageContribution;
 use Capell\SiteDiscovery\Manifest\SiteDiscoveryFrontendRoutesContribution;
 use Capell\SiteDiscovery\Manifest\SiteDiscoveryIncrementalSitemapScheduleContribution;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Capell\Tests\Support\Concerns\CreatesAdminUser;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
@@ -167,7 +171,7 @@ it('registers the public url registry as a site discovery extension page', funct
 
     expect($extensionPages)->toContain(PublicUrlRegistryPage::class)
         ->and(PublicUrlRegistryPage::getNavigationLabel())->toBe(__('capell-site-discovery::generic.public_url_registry'))
-        ->and(PublicUrlRegistryPage::getNavigationGroup())->toBe(__('capell-admin::navigation.group_monitoring'));
+        ->and(PublicUrlRegistryPage::getNavigationGroup())->toBe(NavigationGroupEnum::Reports);
 });
 
 it('declares the public url registry page in the package manifest', function (): void {
@@ -284,6 +288,8 @@ it('defaults to the repair queue and keeps the full matrix under row details', f
 
 it('filters the repair queue by output and by advanced filters', function (): void {
     test()->actingAsAdmin();
+    // Both URLs must stay missing from the sitemap, so the regeneration the new domain requests never runs.
+    Bus::fake([RegenerateSiteSitemapIncrementallyJob::class]);
 
     $language = Language::factory()->create(['code' => 'en']);
     $siteDomain = SiteDomain::factory()->state([
@@ -347,4 +353,9 @@ it('explains an empty repair queue instead of showing a filter message', functio
     Livewire::test(PublicUrlRegistryPage::class)
         ->assertSuccessful()
         ->assertSee(__('capell-site-discovery::generic.no_urls_need_attention'));
+});
+
+it('guards the registry page with the Shield page permission', function (): void {
+    expect(class_uses_recursive(PublicUrlRegistryPage::class))
+        ->toContain(HasPageShield::class);
 });

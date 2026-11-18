@@ -1,0 +1,78 @@
+[
+    {
+        "claim": "Keeps the sitemap current whenever editors save or delete pages",
+        "evidence": [
+            "src/Providers/SiteDiscoveryServiceProvider.php",
+            "src/Listeners/Sitemap/RegenerateSitemapsOnPageSaved.php",
+            "src/Listeners/Sitemap/RegenerateSitemapsOnPageDeleted.php",
+            "src/Jobs/RegenerateSiteSitemapIncrementallyJob.php"
+        ]
+    },
+    {
+        "claim": "Each site also gets a Sitemap page that visitors can read",
+        "evidence": [
+            "src/Providers/SiteDiscoveryServiceProvider.php",
+            "src/Support/Creator/SitemapPageCreator.php",
+            "src/Actions/EnsureSitemapPagesAction.php",
+            "src/Livewire/Page/Sitemap.php",
+            "resources/views/livewire/page/sitemap.blade.php"
+        ]
+    },
+    {
+        "claim": "A change reaches the sitemap about a minute after it is saved, once background jobs have handled it",
+        "evidence": [
+            "src/Actions/RequestSiteSitemapRegenerationAction.php",
+            "config/capell-site-discovery.php",
+            "src/Listeners/Sitemap/RegenerateSitemapsOnPageSaved.php"
+        ]
+    },
+    {
+        "claim": "A new site gets its first sitemap automatically once it has a domain, and a site without a domain is skipped",
+        "evidence": [
+            "src/Listeners/Sitemap/RegenerateSitemapsOnSiteCreated.php",
+            "src/Listeners/Sitemap/RegenerateSitemapsOnSiteDomainCreated.php",
+            "src/Actions/RequestSiteSitemapRegenerationAction.php",
+            "src/Providers/SiteDiscoveryServiceProvider.php"
+        ]
+    },
+    {
+        "claim": "Hidden pages and pages marked noindex are left out",
+        "evidence": ["src/Actions/DiscoverPublicPagesAction.php"]
+    },
+    {
+        "claim": "Repeated addresses are dropped",
+        "evidence": [
+            "src/Support/Sitemap/XmlSitemapGenerator.php",
+            "src/Actions/ValidateSitemapQualityAction.php"
+        ]
+    },
+    {
+        "claim": "A new set of sitemap files goes live only after it is checked for damaged or missing files",
+        "evidence": [
+            "src/Actions/PromoteStagedSitemapSetAction.php",
+            "src/Actions/ValidateStagedSitemapSetAction.php"
+        ]
+    },
+    {
+        "claim": "This builds on Discovery Foundation, which comes with it",
+        "evidence": ["composer.json", "capell.json"]
+    },
+    {
+        "claim": "Under the Insights & health menu, a report lists published pages missing from the sitemap or, when a search package is installed, from your site search",
+        "evidence": [
+            "src/Filament/Pages/PublicUrlRegistryPage.php",
+            "src/Actions/BuildPublicUrlRepairQueueAction.php",
+            "src/Actions/BuildGeneratedOutputParityReportAction.php",
+            "src/Enums/PublicUrlOutput.php",
+            "resources/lang/en/generic.php"
+        ]
+    },
+    {
+        "claim": "Filters narrow it by site or language, and each row gives the reason a page is missing and the next step",
+        "evidence": [
+            "src/Filament/Pages/PublicUrlRegistryPage.php",
+            "resources/views/filament/pages/public-url-registry.blade.php",
+            "resources/lang/en/generic.php"
+        ]
+    }
+]

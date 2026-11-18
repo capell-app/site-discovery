@@ -49,6 +49,7 @@ use Capell\SiteDiscovery\Support\Sitemap\Pages\PagesSitemap;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageRegistry;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageType;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPublicReadWithdrawalStep;
+use Capell\SiteDiscovery\Support\Sitemap\SitemapThrottle;
 use Illuminate\Console\Scheduling\Event as ScheduledEvent;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\View\Factory;
@@ -127,6 +128,8 @@ final class SiteDiscoveryServiceProvider extends AbstractPackageServiceProvider
 
     private function registerRoutes(): self
     {
+        SitemapThrottle::register();
+
         RouteGroupIsolation::run($this->app->make(Router::class), function (): void {
             $this->loadRoutesFrom(__DIR__ . '/../../routes/web.php');
         });

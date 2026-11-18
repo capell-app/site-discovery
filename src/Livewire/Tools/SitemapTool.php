@@ -35,7 +35,7 @@ class SitemapTool extends Component
 
     public function render(): View
     {
-        return view('capell-site-discovery::livewire.tools.sitemap-tool');
+        return view('capell-site-discovery::livewire.filament.tools.sitemap-tool');
     }
 
     private function assertGlobalAdmin(): void

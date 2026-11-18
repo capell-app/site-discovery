@@ -15,6 +15,7 @@ use Capell\SiteDiscovery\Support\Sitemap\Pages\PagesSitemap;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageRegistry;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageType;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapStateStore;
+use Capell\SiteDiscovery\Support\Sitemap\SitemapXmlPath;
 use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Scheduling\Event as ScheduledEvent;
@@ -263,7 +264,13 @@ final class SiteDiscoveryHealthCheck implements ChecksExtensionHealth
         $route = Route::getRoutes()->getByName('capell-frontend.sitemap-xml');
         $prefixedRoute = Route::getRoutes()->getByName('capell-frontend.sitemap-xml.prefixed');
 
-        return $route instanceof RouterRoute
+        $legacyRoutesRegistered = ! SitemapXmlPath::hasLegacyAlias() || (
+            Route::getRoutes()->getByName('capell-frontend.sitemap-xml.legacy') instanceof RouterRoute
+            && Route::getRoutes()->getByName('capell-frontend.sitemap-xml.legacy.prefixed') instanceof RouterRoute
+        );
+
+        return $legacyRoutesRegistered
+            && $route instanceof RouterRoute
             && $prefixedRoute instanceof RouterRoute
             && trim($route->uri(), '/') === $this->xmlSitemapPath()
             && str_starts_with($route->getActionName(), SitemapXmlController::class)
@@ -436,9 +443,6 @@ final class SiteDiscoveryHealthCheck implements ChecksExtensionHealth
 
     private function xmlSitemapPath(): string
     {
-        $configuredXmlPath = config('capell.sitemap.xml_path', '/sitemap-xml');
-        $xmlPath = trim(is_string($configuredXmlPath) || is_numeric($configuredXmlPath) ? (string) $configuredXmlPath : '/sitemap-xml', '/');
-
-        return $xmlPath !== '' ? $xmlPath : 'sitemap-xml';
+        return SitemapXmlPath::routeUri();
     }
 }

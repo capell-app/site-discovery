@@ -5,9 +5,9 @@
         "default": {
             "source": {
                 "ref": "HEAD",
-                "commit": "adac26b4ce1e9e1de545f68a1ff272ff73111696",
+                "commit": "48739ba5261655050ad9d07fa6aafe58c7991bdb",
                 "providers": {
-                    "Providers/SiteDiscoveryServiceProvider.php": "1ec252c46202fccd28c2c8d810e6f3816b6ff7b64afc312293d9209fd4f28a9d"
+                    "Providers/SiteDiscoveryServiceProvider.php": "e6c30371c2bfab3d0481132cb1728182095a42a0984e0f9f98b58edaa26a0d0a"
                 },
                 "configure": null
             },
@@ -71,7 +71,8 @@
                         "indexnow.retry_after_max_ms": 60000,
                         "indexnow.retry_delay_ms": 500,
                         "indexnow.retry_times": 3,
-                        "indexnow.timeout": 10
+                        "indexnow.timeout": 10,
+                        "sitemap_rate_limit.per_minute": 60
                     }
                 },
                 "config-keys": [
@@ -94,7 +95,9 @@
                     "capell-site-discovery.indexnow.retry_after_max_ms",
                     "capell-site-discovery.indexnow.retry_delay_ms",
                     "capell-site-discovery.indexnow.retry_times",
-                    "capell-site-discovery.indexnow.timeout"
+                    "capell-site-discovery.indexnow.timeout",
+                    "capell-site-discovery.sitemap_rate_limit",
+                    "capell-site-discovery.sitemap_rate_limit.per_minute"
                 ],
                 "config-values": {
                     "app.providers": [
@@ -307,9 +310,9 @@
                 "routes": [
                     [
                         "capell-frontend.sitemap-xml",
-                        "sitemap-xml",
+                        "sitemap.xml",
                         ["GET", "HEAD"],
-                        ["web"],
+                        ["web", "throttle:capell-site-discovery-sitemap"],
                         "Capell\\SiteDiscovery\\Http\\Controllers\\SitemapXmlController",
                         {
                             "as": "capell-frontend.sitemap-xml",
@@ -320,12 +323,40 @@
                     ],
                     [
                         "capell-frontend.sitemap-xml.prefixed",
-                        "{sitemapPrefix}/sitemap-xml",
+                        "{sitemapPrefix}/sitemap.xml",
                         ["GET", "HEAD"],
-                        ["web"],
+                        ["web", "throttle:capell-site-discovery-sitemap"],
                         "Capell\\SiteDiscovery\\Http\\Controllers\\SitemapXmlController",
                         {
                             "as": "capell-frontend.sitemap-xml.prefixed",
+                            "domain": null,
+                            "prefix": "",
+                            "where": {
+                                "sitemapPrefix": "[^/]+"
+                            }
+                        }
+                    ],
+                    [
+                        "capell-frontend.sitemap-xml.legacy",
+                        "sitemap-xml",
+                        ["GET", "HEAD"],
+                        ["web", "throttle:capell-site-discovery-sitemap"],
+                        "Capell\\SiteDiscovery\\Http\\Controllers\\LegacySitemapXmlRedirectController",
+                        {
+                            "as": "capell-frontend.sitemap-xml.legacy",
+                            "domain": null,
+                            "prefix": "",
+                            "where": []
+                        }
+                    ],
+                    [
+                        "capell-frontend.sitemap-xml.legacy.prefixed",
+                        "{sitemapPrefix}/sitemap-xml",
+                        ["GET", "HEAD"],
+                        ["web", "throttle:capell-site-discovery-sitemap"],
+                        "Capell\\SiteDiscovery\\Http\\Controllers\\LegacySitemapXmlRedirectController",
+                        {
+                            "as": "capell-frontend.sitemap-xml.legacy.prefixed",
                             "domain": null,
                             "prefix": "",
                             "where": {
@@ -363,10 +394,10 @@
                     ]
                 },
                 "views": {
-                    "capell": ["<package>/src/Providers/../../resources/views"],
+                    "capell": ["<package>/resources/views"],
                     "capell-site-discovery": [
                         "<package>/resources/views",
-                        "<package>/src/Providers/../../resources/views"
+                        "<package>/resources/views"
                     ]
                 }
             },
@@ -391,7 +422,8 @@
                         "indexnow.retry_after_max_ms": 60000,
                         "indexnow.retry_delay_ms": 500,
                         "indexnow.retry_times": 3,
-                        "indexnow.timeout": 10
+                        "indexnow.timeout": 10,
+                        "sitemap_rate_limit.per_minute": 60
                     }
                 },
                 "config-keys": [
@@ -414,7 +446,9 @@
                     "capell-site-discovery.indexnow.retry_after_max_ms",
                     "capell-site-discovery.indexnow.retry_delay_ms",
                     "capell-site-discovery.indexnow.retry_times",
-                    "capell-site-discovery.indexnow.timeout"
+                    "capell-site-discovery.indexnow.timeout",
+                    "capell-site-discovery.sitemap_rate_limit",
+                    "capell-site-discovery.sitemap_rate_limit.per_minute"
                 ],
                 "config-values": {
                     "app.providers": [
@@ -430,7 +464,33 @@
                     "capell-site-discovery": ["<package>/resources/views"]
                 }
             },
-            "removableUninstalledSurfaces": []
+            "removableUninstalledSurfaces": [],
+            "installationReceiptEmissions": [
+                [
+                    "admin-page",
+                    "extension-page:capell-app/site-discovery:Capell\\SiteDiscovery\\Filament\\Pages\\PublicUrlRegistryPage",
+                    "Capell\\SiteDiscovery\\Filament\\Pages\\PublicUrlRegistryPage",
+                    "Capell\\Admin\\Support\\CapellAdminManager",
+                    "admin",
+                    "context"
+                ],
+                [
+                    "content-widget",
+                    "renderable:page:site.sitemap",
+                    "Capell\\Core\\Data\\RenderableDefinitionData",
+                    "Capell\\Core\\Support\\Renderables\\RenderableRegistry",
+                    "runtime",
+                    "context"
+                ],
+                [
+                    "model",
+                    "model-interceptor:Capell\\Core\\Models\\Blueprint:Capell\\SiteDiscovery\\Support\\Interceptors\\SitemapPageTypeInterceptor:970ccb6fbdcc2e21892660a968898504",
+                    "Capell\\SiteDiscovery\\Support\\Interceptors\\SitemapPageTypeInterceptor",
+                    "Capell\\Core\\Support\\CapellCoreManager",
+                    "runtime",
+                    "context"
+                ]
+            ]
         }
     }
 }

@@ -16,6 +16,7 @@ use Capell\Core\Models\Site;
 use Capell\Core\Support\Creator\LayoutCreator;
 use Capell\Frontend\Enums\RenderingStrategyEnum;
 use Capell\SiteDiscovery\Support\Sitemap\SitemapPageType;
+use Capell\SiteDiscovery\Support\Sitemap\SitemapXmlPath;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use RuntimeException;
@@ -56,7 +57,11 @@ class SitemapPageCreator
                 ->where('site_id', $site->id)
                 ->whereHas(
                     'pageUrls',
-                    static fn (Builder $query): Builder => $query->where('url', 'like', '%/sitemap-xml'),
+                    static fn (Builder $query): Builder => $query->where(
+                        static fn (Builder $urls): Builder => $urls
+                            ->where('url', 'like', '%' . SitemapXmlPath::canonical())
+                            ->orWhere('url', 'like', '%' . SitemapXmlPath::LEGACY),
+                    ),
                 )
                 ->orderBy('id')
                 ->first();
@@ -121,7 +126,7 @@ class SitemapPageCreator
                 'site_id' => $page->site_id,
                 'type' => 'alias',
             ];
-            $url = $page->getParentUrl(language: $language) . $translation->slug . '-xml';
+            $url = $page->getParentUrl(language: $language) . ltrim(SitemapXmlPath::canonical(), '/');
 
             if ($page->pageUrls()->where($urlAttributes)->where('url', $url)->exists()) {
                 return;

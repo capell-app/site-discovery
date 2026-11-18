@@ -2,6 +2,12 @@
 
 <!-- prettier-ignore-start -->
 
+Search engines find your published pages through a sitemap, a file that lists their web addresses, and this keeps that file current whenever editors save or delete pages. Each site also gets a Sitemap page that visitors can read.
+
+A change reaches the sitemap about a minute after it is saved, once background jobs, which your developer or host keeps running, have handled it. A new site gets its first sitemap automatically once it has a domain, and a site without a domain is skipped. Hidden pages and pages marked noindex, a setting that asks search engines to skip a page, are left out. Repeated addresses are dropped, and a new set of sitemap files goes live only after it is checked for damaged or missing files.
+
+This builds on Discovery Foundation, which comes with it. Under the Insights & health menu in the admin, a report lists published pages that are missing from the sitemap or, when a search package is installed, from your site search. Filters narrow it by site or language, and each row gives the reason a page is missing and the next step.
+
 ## What it does for you
 
 Site Discovery builds the public HTML and XML sitemap outputs for enabled Capell sites and turns the canonical public-URL inventory into a repair queue: the URLs that are missing from an output they are eligible for, each with a reason, the area that owns that output, and a next step. It reads indexability and robots decisions from the underlying content and SEO providers; it does not provide its own editor for those values.
@@ -11,7 +17,7 @@ Site Discovery builds the public HTML and XML sitemap outputs for enabled Capell
 - Open **Monitoring > Public URL Registry**. It opens on **Needs attention** and lists only URLs missing from an eligible output. **Cannot be checked** lists URLs whose outputs have no coverage provider, and **All URLs** shows the complete inventory.
 - Filter the queue by **Output** and **Site**, or open **Advanced filters** for source package, language, indexability, sitemap eligibility, and AI-discovery eligibility. Each row keeps the complete eligibility and five-output matrix under **Full eligibility and output matrix**.
 - Use **Sitemap** from the existing **Pages** or **Sites** screens to open Capell's shared sitemap workflow. These actions are links to that workflow, not direct regeneration buttons for the current record.
-- The package also contributes the global sitemap generation tool and the public HTML sitemap page type. The XML route uses the configured `capell.sitemap.xml_path`, which defaults to `/sitemap-xml` and also supports a site path prefix.
+- The package also contributes the global sitemap generation tool and the public HTML sitemap page type. The XML route uses the configured `capell.sitemap.xml_path`, which defaults to `/sitemap.xml` and also supports a site path prefix. The previous `/sitemap-xml` path permanently redirects (301) to the configured path, keeping any path prefix and `?p=N` chunk, so existing links and crawlers keep working.
 
 ## Set up discovery safely
 
@@ -31,7 +37,7 @@ Site Discovery builds the public HTML and XML sitemap outputs for enabled Capell
 
 Generated XML is split into a sitemap index and chunk files when a domain exceeds the configured maximum URLs per file (50,000 by default). Public XML responses are cached for one day and support ETag revalidation, so allow for downstream cache age after rebuilding.
 
-For operational recovery, correct the generation or storage failure, run `capell:xml-sitemap --site=42`, then inspect the public response with `curl -I https://example.com/sitemap-xml`. A healthy response is `200` and includes an ETag in the required weak SHA-256 form, for example `ETag: W/"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"`. Repeating the header request with `curl -I -H 'If-None-Match: W/"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"' https://example.com/sitemap-xml` returns `304` when that exact set is still current. A failed rebuild must leave the previous body and ETag available; rerun the rebuild rather than deleting sitemap files or the current-set manifest.
+For operational recovery, correct the generation or storage failure, run `capell:xml-sitemap --site=42`, then inspect the public response with `curl -I https://example.com/sitemap.xml`. A healthy response is `200` and includes an ETag in the required weak SHA-256 form, for example `ETag: W/"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"`. Repeating the header request with `curl -I -H 'If-None-Match: W/"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"' https://example.com/sitemap.xml` returns `304` when that exact set is still current. A failed rebuild must leave the previous body and ETag available; rerun the rebuild rather than deleting sitemap files or the current-set manifest.
 
 ## Read the Public URL Registry
 

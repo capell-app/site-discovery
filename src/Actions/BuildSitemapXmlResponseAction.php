@@ -58,7 +58,7 @@ final class BuildSitemapXmlResponseAction
         $headers = [
             ...$this->cacheHeaders($weakEtag, $lastModified),
             'Content-Type' => 'application/xml; charset=utf-8',
-            'Content-Disposition' => 'attachment; filename="' . $this->downloadFilename($request, $sitemapPrefix) . '"',
+            'Content-Disposition' => 'inline; filename="' . $this->downloadFilename($request, $sitemapPrefix) . '"',
         ];
 
         if (strlen((string) $contents) > 1024 * 1024) {

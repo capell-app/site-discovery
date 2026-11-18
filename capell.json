@@ -6,7 +6,7 @@
     "kind": "package",
     "capellApiVersion": "^1.0",
     "version": "1.0.0",
-    "description": "Make every published Capell page discoverable with automatic XML sitemaps, an HTML sitemap, and the canonical public-URL registry that powers the Search & SEO bundle.",
+    "description": "Keeps each site's sitemap current as pages change, adds a visitor Sitemap page and flags published pages missing from search outputs.",
     "product": {
         "group": "Capell Search & SEO",
         "tier": "free",
@@ -92,15 +92,37 @@
         "riskTier": "standard",
         "publicSurface": {
             "routeNames": [
-                "GET /sitemap-xml (capell-frontend.sitemap-xml)",
-                "GET /{sitemapPrefix}/sitemap-xml (capell-frontend.sitemap-xml.prefixed)"
+                "GET /sitemap-xml (capell-frontend.sitemap-xml.legacy)",
+                "GET /sitemap.xml (capell-frontend.sitemap-xml)",
+                "GET /{config:capell-site-discovery.indexnow.key}.txt (capell-frontend.indexnow-key)",
+                "GET /{sitemapPrefix}/sitemap-xml (capell-frontend.sitemap-xml.legacy.prefixed)",
+                "GET /{sitemapPrefix}/sitemap.xml (capell-frontend.sitemap-xml.prefixed)"
             ],
             "auth": "public",
             "csrfExemptRoutes": [],
             "signedRoutes": [],
             "tokenizedRoutes": [],
             "webhookRoutes": [],
-            "throttledRoutes": []
+            "throttledRoutes": [
+                "GET /sitemap-xml (capell-frontend.sitemap-xml.legacy)",
+                "GET /sitemap.xml (capell-frontend.sitemap-xml)",
+                "GET /{config:capell-site-discovery.indexnow.key}.txt (capell-frontend.indexnow-key)",
+                "GET /{sitemapPrefix}/sitemap-xml (capell-frontend.sitemap-xml.legacy.prefixed)",
+                "GET /{sitemapPrefix}/sitemap.xml (capell-frontend.sitemap-xml.prefixed)"
+            ]
+        },
+        "throttles": {
+            "capell-site-discovery-sitemap": {
+                "maxAttempts": 60,
+                "decaySeconds": 60,
+                "routes": [
+                    "GET /sitemap-xml (capell-frontend.sitemap-xml.legacy)",
+                    "GET /sitemap.xml (capell-frontend.sitemap-xml)",
+                    "GET /{config:capell-site-discovery.indexnow.key}.txt (capell-frontend.indexnow-key)",
+                    "GET /{sitemapPrefix}/sitemap-xml (capell-frontend.sitemap-xml.legacy.prefixed)",
+                    "GET /{sitemapPrefix}/sitemap.xml (capell-frontend.sitemap-xml.prefixed)"
+                ]
+            }
         },
         "sensitiveData": {
             "encryptedFields": [],
@@ -187,64 +209,80 @@
         "privateDocsRequested": true
     },
     "marketplace": {
-        "summary": "Make every published Capell page discoverable: automatic XML sitemaps with index sharding, an HTML sitemap, and the canonical public-URL registry that powers the whole Search & SEO bundle.",
-        "description": "Site Discovery is the discovery backbone of Capell's Search & SEO bundle. It builds per-domain XML sitemaps (with `<sitemapindex>` sharding and incremental regeneration that skips unchanged pages), publishes a public HTML sitemap, and maintains the canonical Public URL Registry that records canonical state, robots directives, last-modified, and sitemap/AI-discovery eligibility for every public URL. Other packages (SEO Suite, Search, Blog and Events) plug in as URL contributors and read a single, consistent view of what your site intends to publish. Built-in quality gates and a generated-output parity report catch missing or stale URLs before search engines do, and optional IndexNow notifications submit changes the moment a page is saved.",
-        "problem": "Search engines may miss our published pages when our site has no maintained sitemap.",
-        "outcome": "Our site has XML and HTML sitemaps based on indexable public content.",
+        "summary": "Sitemaps that update as pages are saved, a Sitemap page for visitors and an admin list of published pages missing from the sitemap or site search.",
+        "description": "Publish a sitemap for each site and have it rebuilt after pages are saved or deleted. Set pages aside with the hidden or noindex settings, give visitors a Sitemap page, and review published pages that are missing from other generated outputs, with filters for site and language.",
+        "problem": "Search engines may miss published pages when the sitemap is out of date.",
+        "outcome": "Every visible page is listed in a checked sitemap that updates on save.",
         "faq": [
             {
-                "question": "Which pages appear in sitemaps?",
-                "answer": "Sitemaps are built from published, indexable public content."
+                "question": "Which pages are left out of the sitemap?",
+                "answer": "Hidden pages and pages marked noindex, a setting that asks search engines to skip a page, are left out. Repeated addresses are dropped too."
             },
             {
-                "question": "Can administrators check URL coverage?",
-                "answer": "Admins can inspect which public URLs are indexable and covered by generated outputs."
+                "question": "How soon does a saved change reach the sitemap?",
+                "answer": "About a minute after you save, once background jobs have handled it. Your developer or host has to keep those jobs running."
             },
             {
-                "question": "How does discovery handle large sitemaps?",
-                "answer": "XML sitemap output supports index sharding."
+                "question": "Does a new site get a sitemap automatically?",
+                "answer": "Yes, once it has a domain. A site without a domain is skipped."
+            },
+            {
+                "question": "Can I see which published pages are missing from the sitemap?",
+                "answer": "Yes. A report under Insights & health lists published pages that are missing from the sitemap or, when a search package is installed, from your site search. Each row gives the reason and the next step."
             }
         ],
         "screenshots": [
             {
                 "path": "docs/assets/marketplace/extension-card.jpg",
-                "alt": "Site Discovery extension preview image",
-                "caption": "Site Discovery extension preview"
+                "alt": "Site Discovery listing card with two admin windows showing Pages and Sites lists with Generate sitemap buttons",
+                "caption": "Listing artwork for the package, not a view of the working admin."
             },
             {
                 "path": "docs/screenshots/page-sitemap-action.png",
-                "alt": "Page resource sitemap action in the Capell admin",
-                "caption": "Page-level sitemap action for regenerating discovery output."
+                "alt": "Pages list in the admin with an SEO overview of page counts and a Sitemap button above the table of pages",
+                "caption": "Reach the sitemap from the Pages screen."
             },
             {
                 "path": "docs/screenshots/site-sitemap-action.png",
-                "alt": "Site resource sitemap action in the Capell admin",
-                "caption": "Site-level sitemap action for refreshing public discovery output."
+                "alt": "Sites list with a row menu open showing Edit theme, Edit blueprint, Replicate, Delete and Sitemap",
+                "caption": "Each site has its own Sitemap option in its row menu."
             },
             {
                 "path": "docs/screenshots/sitemap-generation-tool.png",
-                "alt": "Sitemap generation tool showing generated sitemap status",
-                "caption": "Admin sitemap generation tool with domain output status."
+                "alt": "Sitemap page in the admin with site and language pickers above a tree of page titles that each link out",
+                "caption": "Review a site's sitemap before publishing or when an address seems to be missing."
             },
             {
                 "path": "docs/screenshots/html-sitemap-page.png",
-                "alt": "Public HTML sitemap page with discoverable page links",
-                "caption": "Visitor-safe HTML sitemap showing discoverable public pages."
+                "alt": "Public Sitemap page listing the site's pages as a column of links beside a Latest Articles panel",
+                "caption": "Visitors can read the same list of pages on a Sitemap page."
             },
             {
                 "path": "docs/screenshots/public-url-registry-page.png",
-                "alt": "Public URL Registry admin page with generated output parity rows",
-                "caption": "Public URL Registry parity page for sitemap and downstream output coverage."
+                "alt": "Public URL page with attention counts and entries marked Missing for the sitemap, AI discovery and HTML cache",
+                "caption": "See which public addresses are missing from an output and what to do next."
             },
             {
                 "path": "docs/screenshots/public-url-quality-report.png",
-                "alt": "Public URL Registry quality report with missing output warnings",
-                "caption": "Quality report highlighting missing generated outputs and sitemap issues."
+                "alt": "Quality report scrolled down, with blog addresses marked Missing and a table showing which outputs include each one",
+                "caption": "Each row gives the reason an address is missing and the next step."
             }
         ],
         "categories": ["admin", "console", "frontend", "search-seo"]
     },
     "contributionTraceability": {
-        "deferredContributions": []
+        "deferredContributions": [],
+        "contributions": [
+            {
+                "type": "content-widget",
+                "key": "renderable:page:site.sitemap",
+                "providerBucket": "runtime"
+            },
+            {
+                "type": "model",
+                "key": "model-interceptor:Capell\\Core\\Models\\Blueprint:Capell\\SiteDiscovery\\Support\\Interceptors\\SitemapPageTypeInterceptor:970ccb6fbdcc2e21892660a968898504",
+                "providerBucket": "runtime"
+            }
+        ]
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\SiteDiscovery\Actions;
 
+use Capell\Core\Actions\PublicRead\PageUrlsArePubliclyReadableAction;
 use Capell\Core\Contracts\Pageable;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\PageUrl;
@@ -57,10 +58,16 @@ final class NotifyPageUrlChangesAction
             $pageUrl->setRelation('siteDomain', $siteDomain instanceof SiteDomain ? $siteDomain : null);
         });
 
+        $pageKey = $page->getKey();
+
+        if (! is_int($pageKey)) {
+            return collect();
+        }
+
         return $pageUrls
-            ->filter(fn (PageUrl $pageUrl): bool => $this->isPublicPageUrl($pageUrl))
+            ->filter(fn (PageUrl $pageUrl): bool => $this->isRoutablePageUrl($pageUrl))
             ->groupBy(fn (PageUrl $pageUrl): int => (int) $pageUrl->language_id)
-            ->flatMap(function (Collection $languageUrls) use ($site): Collection {
+            ->flatMap(function (Collection $languageUrls) use ($site, $pageKey): Collection {
                 $firstUrl = $languageUrls->first();
 
                 if (! $firstUrl instanceof PageUrl || ! $firstUrl->language instanceof Language) {
@@ -69,17 +76,29 @@ final class NotifyPageUrlChangesAction
 
                 $domain = $firstUrl->siteDomain instanceof SiteDomain ? $firstUrl->siteDomain : null;
 
-                return NotifyPublicUrlChangesAction::run(
-                    $site,
-                    $firstUrl->language,
-                    $languageUrls->map(fn (PageUrl $pageUrl): string => $pageUrl->full_url)->values(),
-                    $domain,
-                );
+                // A page discovery would not publish (draft, scheduled, expired, hidden, noindex or behind a
+                // restricted route) is never announced to search engines, whatever its stored addresses say.
+                if (DiscoverPublicPagesAction::run($site, $firstUrl->language, $domain, [$pageKey])->isEmpty()) {
+                    return collect();
+                }
+
+                $readable = PageUrlsArePubliclyReadableAction::run($languageUrls->values()->all());
+                $publicUrls = $languageUrls
+                    ->values()
+                    ->filter(static fn (PageUrl $pageUrl, int $position): bool => $readable[$position] === true)
+                    ->map(static fn (PageUrl $pageUrl): string => $pageUrl->full_url)
+                    ->values();
+
+                if ($publicUrls->isEmpty()) {
+                    return collect();
+                }
+
+                return NotifyPublicUrlChangesAction::run($site, $firstUrl->language, $publicUrls, $domain);
             })
             ->values();
     }
 
-    private function isPublicPageUrl(PageUrl $pageUrl): bool
+    private function isRoutablePageUrl(PageUrl $pageUrl): bool
     {
         return $pageUrl->getAttribute('status') === true
             && $pageUrl->getAttribute('type') === null

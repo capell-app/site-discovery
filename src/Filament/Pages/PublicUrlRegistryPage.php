@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Capell\SiteDiscovery\Filament\Pages;
 
 use BackedEnum;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
+use Capell\Admin\Enums\NavigationGroupEnum;
 use Capell\Core\Models\Site;
 use Capell\DiscoveryFoundation\Enums\PublicUrlIndexability;
 use Capell\SiteDiscovery\Actions\BuildAuthorisedPublicUrlRepairQueueAction;
@@ -21,6 +23,8 @@ use Override;
 
 class PublicUrlRegistryPage extends Page
 {
+    use HasPageShield;
+
     public const string VIEW_NEEDS_ATTENTION = 'needs_attention';
 
     public const string VIEW_UNAVAILABLE = 'unavailable';
@@ -67,9 +71,9 @@ class PublicUrlRegistryPage extends Page
     }
 
     #[Override]
-    public static function getNavigationGroup(): string
+    public static function getNavigationGroup(): NavigationGroupEnum
     {
-        return (string) __('capell-admin::navigation.group_monitoring');
+        return NavigationGroupEnum::Reports;
     }
 
     #[Override]

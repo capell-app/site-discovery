@@ -117,7 +117,7 @@ class Sitemap extends AbstractPage
             'Cache-Control' => PublicReadProjectionHeaders::CACHE_CONTROL,
             'Last-Modified' => $lastModified,
             'ETag' => $etag,
-            'Content-Disposition' => 'attachment; filename="' . $downloadFilename . '"',
+            'Content-Disposition' => 'inline; filename="' . $downloadFilename . '"',
         ];
 
         // Use streamed response for large files (>1MB)

@@ -11,6 +11,7 @@ use Capell\Core\Models\Language;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
+use Capell\SiteDiscovery\Actions\RequestSiteSitemapRegenerationAction;
 use Capell\SiteDiscovery\Jobs\RegenerateSiteSitemapIncrementallyJob;
 use Capell\SiteDiscovery\Listeners\Sitemap\RegenerateSitemapsOnPageDeleted;
 use Capell\SiteDiscovery\Listeners\Sitemap\RegenerateSitemapsOnPageSaved;
@@ -291,8 +292,48 @@ it('saves pages before the site domain exists without a failing sitemap job', fu
     expect($generator->incrementalSiteIds)->toBe([]);
 
     SiteDomain::factory()->create(['site_id' => $site->id, 'language_id' => $site->language_id]);
+    app()->terminate();
 
     expect($generator->incrementalSiteIds)->toBe([$site->id]);
+});
+
+it('regenerates a site sitemap once for a burst of page saves on an inline queue', function (): void {
+    config()->set('queue.default', 'sync');
+    $generator = seoSuiteLifecycleFakeXmlSitemapGenerator();
+    app()->instance(XmlSitemapGenerator::class, $generator);
+    $site = Site::factory()->language(Language::factory()->create())->create();
+    SiteDomain::factory()->create(['site_id' => $site->id, 'language_id' => $site->language_id]);
+
+    foreach (Page::factory()->site($site)->count(5)->create() as $page) {
+        PageSavedAction::run($page, ['title' => 'Updated title']);
+    }
+
+    expect($generator->incrementalSiteIds)->toBe([]);
+
+    app()->terminate();
+
+    expect($generator->incrementalSiteIds)->toBe([$site->id]);
+});
+
+it('keeps the delayed, debounced dispatch for a burst of requests on an asynchronous queue', function (): void {
+    // A faked queue holds jobs for later, as an asynchronous connection does, instead of running them inline.
+    Queue::fake();
+    Bus::fake([RegenerateSiteSitemapIncrementallyJob::class]);
+    $site = Site::factory()->language(Language::factory()->create())->create();
+    SiteDomain::factory()->create(['site_id' => $site->id, 'language_id' => $site->language_id]);
+
+    foreach (range(1, 5) as $ignored) {
+        RequestSiteSitemapRegenerationAction::run($site);
+    }
+
+    app()->terminate();
+
+    Bus::assertDispatchedTimes(RegenerateSiteSitemapIncrementallyJob::class, 1);
+    Bus::assertDispatched(
+        RegenerateSiteSitemapIncrementallyJob::class,
+        static fn (RegenerateSiteSitemapIncrementallyJob $job): bool => $job->siteId === $site->id && $job->delay !== null,
+    );
+    Bus::assertNotDispatchedAfterResponse(RegenerateSiteSitemapIncrementallyJob::class);
 });
 
 it('skips a queued regeneration when the site has no domain to publish', function (): void {

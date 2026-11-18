@@ -207,6 +207,42 @@ it('merges interleaved site promotions without losing either current set', funct
     expect($storage->exists($secondPublishedPath))->toBeTrue();
 });
 
+it('never prunes a generation that another promotion of the same site is still writing', function (): void {
+    $storage = Storage::fake('local');
+    $language = Language::factory()->create();
+    $siteDomain = SiteDomain::factory()->state([
+        'domain' => 'overlap.example.test',
+        'language_id' => $language->getKey(),
+        'scheme' => 'https',
+        'path' => null,
+    ])->create();
+    $site = $siteDomain->site;
+    $filename = $siteDomain->getDomainKey() . '.xml';
+    Page::factory()->site($site)->withTranslations(collect([$language]))->create();
+
+    $generator = resolve(XmlSitemapGenerator::class);
+    $publicationStore = resolve(SitemapPublicationStore::class);
+    $slowerSet = $generator->stage($site);
+    Page::factory()->site($site)->withTranslations(collect([$language]))->create();
+    Cache::flush();
+    $fasterSet = $generator->stage($site);
+
+    // The slower promotion has reserved its generation and written part of its set when the faster one promotes.
+    $publicationStore->reserveGeneration($slowerSet->generationId);
+    $slowerDirectory = 'sitemaps/.sets/' . $slowerSet->generationId;
+    $storage->put($slowerDirectory . '/' . $filename, (string) $storage->get(trim($slowerSet->directory, '/') . '/' . $filename));
+
+    $fasterPublished = PromoteStagedSitemapSetAction::run($fasterSet);
+
+    expect($storage->exists($slowerDirectory . '/' . $filename))->toBeTrue();
+
+    $slowerPublished = PromoteStagedSitemapSetAction::run($slowerSet);
+
+    expect($publicationStore->currentGenerationId((string) $site->getKey()))->toBe($slowerPublished->generationId)
+        ->and($publicationStore->rollbackGenerationId((string) $site->getKey()))->toBe($fasterPublished->generationId)
+        ->and($publicationStore->resolveFilePath($siteDomain->getDomainKey(), $filename))->toBe($slowerDirectory . '/' . $filename);
+});
+
 it('keeps the published ETag recoverable after a failed replacement and refreshes it after success', function (): void {
     $storage = Storage::fake('local');
     $language = Language::factory()->create();
@@ -221,7 +257,7 @@ it('keeps the published ETag recoverable after a failed replacement and refreshe
     Page::factory()->site($site)->withTranslations(collect([$language]))->create();
     GenerateSitemapAction::run($site);
 
-    $request = Request::create('https://etag.example.test/sitemap-xml', 'GET');
+    $request = Request::create('https://etag.example.test/sitemap.xml', 'GET');
     $oldResponse = BuildSitemapXmlResponseAction::run($request);
     $oldEtag = $oldResponse->headers->get('ETag');
 
@@ -250,7 +286,7 @@ it('keeps the published ETag recoverable after a failed replacement and refreshe
 
     expect($newEtag)->not->toBe($oldEtag);
 
-    $conditionalRequest = Request::create('https://etag.example.test/sitemap-xml', 'GET');
+    $conditionalRequest = Request::create('https://etag.example.test/sitemap.xml', 'GET');
     $conditionalRequest->headers->set('If-None-Match', $newEtag);
 
     expect(BuildSitemapXmlResponseAction::run($conditionalRequest)->getStatusCode())->toBe(304);

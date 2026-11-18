@@ -2,27 +2,25 @@
 
 <!-- prettier-ignore-start -->
 
-## What It Does
+Search engines find your published pages through a sitemap, a file that lists their web addresses, and this keeps that file current whenever editors save or delete pages. Each site also gets a Sitemap page that visitors can read.
 
-Site Discovery builds a canonical public-URL registry plus XML and HTML sitemap output from published, indexable Capell content.
+A change reaches the sitemap about a minute after it is saved, once background jobs, which your developer or host keeps running, have handled it. A new site gets its first sitemap automatically once it has a domain, and a site without a domain is skipped. Hidden pages and pages marked noindex, a setting that asks search engines to skip a page, are left out. Repeated addresses are dropped, and a new set of sitemap files goes live only after it is checked for damaged or missing files.
+
+This builds on Discovery Foundation, which comes with it. Under the Insights & health menu in the admin, a report lists published pages that are missing from the sitemap or, when a search package is installed, from your site search. Filters narrow it by site or language, and each row gives the reason a page is missing and the next step.
 
 - **Price and availability:** Check current availability and price on the [Capell Marketplace listing](https://capell.app/extensions/site-discovery).
 - **Licence:** Check the licence terms on the [Capell Marketplace listing](https://capell.app/extensions/site-discovery).
 - **Requires:** `PHP ^8.4`, `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.76`, `capell-app/discovery-foundation ^1.0`, `capell-app/frontend ^1.0`.
 - **Install:** `composer require capell-app/site-discovery`.
 
-Admins can inspect which public URLs are indexable and covered by generated outputs. Search engines and other crawlers receive current sitemap routes as content changes.
-
-## Who It Is For
-
-**For developers:** URL and discovery-output contracts let packages contribute public records while shared Actions handle deduplication, indexability, sitemap quality, and change notifications.
-
-**For teams:** Teams can see whether published pages are being offered to crawlers and correct missing or hidden URLs before discovery suffers.
-
 ## Quick Start
 
 1. Install the package: `composer require capell-app/site-discovery`.
 2. Open the package admin surface at `/admin/pages` and confirm Site Discovery is available.
+
+## For Developers
+
+URL and discovery-output contracts let packages contribute public records while shared Actions handle deduplication, indexability, sitemap quality, and change notifications.
 
 ## Configure
 
@@ -57,7 +55,7 @@ Admins can inspect which public URLs are indexable and covered by generated outp
 - Required packages: `capell-app/admin`, `capell-app/core`, `capell-app/discovery-foundation`, `capell-app/frontend`.
 - Admin navigation: declares `admin-page: PublicUrlRegistryPageContribution`; each Filament page or resource controls its own navigation visibility.
 - Admin/editor extensions: none declared.
-- Permissions: `View:PublicUrlRegistryPage`.
+- Permissions: `View:PublicUrlRegistryPage`; Shield-generated page permissions for `Capell\SiteDiscovery\Filament\Pages\PublicUrlRegistryPage` (names and grants depend on host Shield configuration).
 - Public routes: loads `routes/web.php`; registers `SiteDiscoveryFrontendRoutesContribution`.
 - Database changes: no package migrations declared.
 - Config: `config/capell-site-discovery.php`.
@@ -94,6 +92,6 @@ Read [CHANGELOG.md](CHANGELOG.md) before upgrading.
 - [Capell content language plan](../../docs/CONTENT_LANGUAGE_PLAN.md)
 - [Capell documentation design system](../../docs/DESIGN_SYSTEM.md)
 - [Capell and package ERD notes](../../docs/erd/capell-and-package-erds.md)
-- Related packages: [Discovery Core](../discovery-foundation/README.md), [Agent Delivery](../agent-delivery/README.md), [Search](../search/README.md), [SEO Suite](../seo-suite/README.md), [URL Manager](../url-manager/README.md).
+- Related packages: [Discovery Foundation](../discovery-foundation/README.md), [Agent Delivery](../agent-delivery/README.md), [Search](../search/README.md), [SEO Checks](../seo-suite/README.md), [Redirects](../url-manager/README.md).
 
 <!-- prettier-ignore-end -->

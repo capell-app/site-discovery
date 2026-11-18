@@ -6,14 +6,16 @@ namespace Capell\SiteDiscovery\Jobs;
 
 use Capell\Core\Models\Site;
 use Capell\SiteDiscovery\Actions\GenerateSitemapIncrementallyAction;
+use Capell\SiteDiscovery\Actions\RequestSiteSitemapRegenerationAction;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
 
-final class RegenerateSiteSitemapIncrementallyJob implements ShouldBeUnique, ShouldQueue
+final class RegenerateSiteSitemapIncrementallyJob implements ShouldBeUniqueUntilProcessing, ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
@@ -32,6 +34,10 @@ final class RegenerateSiteSitemapIncrementallyJob implements ShouldBeUnique, Sho
 
     public function handle(): void
     {
+        // The debounce claim ends as the run starts: a page saved while it runs, or in the grace window after
+        // it, must queue another run rather than be swallowed by a claim that has already done its job.
+        Cache::forget(RequestSiteSitemapRegenerationAction::pendingKey($this->siteId));
+
         $site = Site::query()->find($this->siteId);
 
         // The site may have lost its last domain since the request: there is nothing to

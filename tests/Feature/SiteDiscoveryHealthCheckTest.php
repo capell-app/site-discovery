@@ -86,7 +86,7 @@ it('confirms the XML sitemap route can serve generated XML output', function ():
     config([
         'capell.sitemap.disk' => 'local',
         'capell.sitemap.directory' => 'sitemaps_health_check',
-        'capell.sitemap.xml_path' => '/sitemap-xml',
+        'capell.sitemap.xml_path' => '/sitemap.xml',
     ]);
 
     $check = new SiteDiscoveryHealthCheck;

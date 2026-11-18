@@ -43,7 +43,7 @@ it('directly validates complete XML and required publication metadata', function
                 urlCount: 1,
                 urlState: ['https://example.test/about' => '2026-07-30T10:00:00+00:00'],
                 etag: hash('sha256', $xml),
-                publicChunkBaseUrl: 'https://example.test/sitemap-xml',
+                publicChunkBaseUrl: 'https://example.test/sitemap.xml',
             ),
         ],
     );
@@ -58,7 +58,7 @@ it('rejects a sitemap index without required last-modified metadata', function (
     $chunkFilename = $domainKey . '-p1.xml';
     $indexXml = '<?xml version="1.0" encoding="UTF-8"?>'
         . '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-        . '<sitemap><loc>https://example.test/sitemap-xml?p=1</loc></sitemap>'
+        . '<sitemap><loc>https://example.test/sitemap.xml?p=1</loc></sitemap>'
         . '</sitemapindex>';
     $chunkXml = '<?xml version="1.0" encoding="UTF-8"?>'
         . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
@@ -81,7 +81,7 @@ it('rejects a sitemap index without required last-modified metadata', function (
                 urlCount: 1,
                 urlState: ['https://example.test/about' => ''],
                 etag: hash('sha256', $indexXml),
-                publicChunkBaseUrl: 'https://example.test/sitemap-xml',
+                publicChunkBaseUrl: 'https://example.test/sitemap.xml',
             ),
         ],
     );
@@ -100,7 +100,7 @@ it('rejects a matching chunk page on the wrong public host and path', function (
     $indexXml = '<?xml version="1.0" encoding="UTF-8"?>'
         . '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
         . '<sitemap><loc>https://wrong.example/unrelated?p=1</loc><lastmod>' . $lastModified . '</lastmod></sitemap>'
-        . '<sitemap><loc>https://example.test/sitemap-xml?p=2</loc><lastmod>' . $lastModified . '</lastmod></sitemap>'
+        . '<sitemap><loc>https://example.test/sitemap.xml?p=2</loc><lastmod>' . $lastModified . '</lastmod></sitemap>'
         . '</sitemapindex>';
     $firstChunkXml = '<?xml version="1.0" encoding="UTF-8"?>'
         . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
@@ -131,7 +131,7 @@ it('rejects a matching chunk page on the wrong public host and path', function (
                     'https://example.test/contact' => '',
                 ],
                 etag: hash('sha256', $indexXml),
-                publicChunkBaseUrl: 'https://example.test/sitemap-xml',
+                publicChunkBaseUrl: 'https://example.test/sitemap.xml',
             ),
         ],
     );

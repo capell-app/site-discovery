@@ -536,12 +536,7 @@ class XmlSitemapGenerator
 
     private function publicChunkBaseUrl(SiteDomain $domain): string
     {
-        $configuredPath = config('capell.sitemap.xml_path', '/sitemap-xml');
-        $xmlPath = is_string($configuredPath) && $configuredPath !== ''
-            ? '/' . trim($configuredPath, '/')
-            : '/sitemap-xml';
-
-        return rtrim($domain->full_url, '/') . rtrim($xmlPath, '/');
+        return rtrim($domain->full_url, '/') . SitemapXmlPath::canonical();
     }
 
     /**

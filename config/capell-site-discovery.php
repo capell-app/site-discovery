@@ -17,8 +17,12 @@ return [
         'unique_for_seconds' => (int) env('CAPELL_SITE_DISCOVERY_EVENT_SITEMAP_UNIQUE_FOR_SECONDS', 900),
     ],
 
+    'sitemap_rate_limit' => [
+        'per_minute' => (int) env('CAPELL_SITE_DISCOVERY_SITEMAP_RATE_LIMIT_PER_MINUTE', 60),
+    ],
+
     'indexnow' => [
-        'enabled' => false,
+        'enabled' => (bool) env('CAPELL_SITE_DISCOVERY_INDEXNOW_ENABLED', false),
         'endpoint' => env('CAPELL_SITE_DISCOVERY_INDEXNOW_ENDPOINT', 'https://api.indexnow.org/indexnow'),
         'key' => env('CAPELL_SITE_DISCOVERY_INDEXNOW_KEY'),
         'key_location' => env('CAPELL_SITE_DISCOVERY_INDEXNOW_KEY_LOCATION'),

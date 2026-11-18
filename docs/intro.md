@@ -1,0 +1,5 @@
+Search engines find your published pages through a sitemap, a file that lists their web addresses, and this keeps that file current whenever editors save or delete pages. Each site also gets a Sitemap page that visitors can read.
+
+A change reaches the sitemap about a minute after it is saved, once background jobs, which your developer or host keeps running, have handled it. A new site gets its first sitemap automatically once it has a domain, and a site without a domain is skipped. Hidden pages and pages marked noindex, a setting that asks search engines to skip a page, are left out. Repeated addresses are dropped, and a new set of sitemap files goes live only after it is checked for damaged or missing files.
+
+This builds on Discovery Foundation, which comes with it. Under the Insights & health menu in the admin, a report lists published pages that are missing from the sitemap or, when a search package is installed, from your site search. Filters narrow it by site or language, and each row gives the reason a page is missing and the next step.

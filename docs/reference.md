@@ -6,7 +6,7 @@ Developer reference for `capell-app/site-discovery`. Start with the [README](../
 
 ## Package Details
 
-Site Discovery is an **Available**, **No schema impact** Capell package in the **Capell Search & SEO** product group. It ships as `capell-app/site-discovery` and extends these surfaces: admin, frontend, console.
+Site Discovery is an **Available** Capell package in the **Capell Search & SEO** product group. It ships as `capell-app/site-discovery` and extends these surfaces: admin, frontend, console.
 
 - Status: Available
 - Tier: free
@@ -148,8 +148,8 @@ Site Discovery is an **Available**, **No schema impact** Capell package in the *
 - `packages/site-discovery/resources/views/components/pages/sitemap.blade.php`
 - `packages/site-discovery/resources/views/components/pages/sitemap/page.blade.php`
 - `packages/site-discovery/resources/views/filament/pages/public-url-registry.blade.php`
+- `packages/site-discovery/resources/views/livewire/filament/tools/sitemap-tool.blade.php`
 - `packages/site-discovery/resources/views/livewire/page/sitemap.blade.php`
-- `packages/site-discovery/resources/views/livewire/tools/sitemap-tool.blade.php`
 - `packages/site-discovery/resources/views/screenshots/sitemap.blade.php`
 - `packages/site-discovery/resources/views/sitemap/sitemap-page.blade.php`
 

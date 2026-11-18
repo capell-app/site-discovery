@@ -4,6 +4,7 @@ All notable changes to `capell-app/site-discovery` will be documented in this fi
 
 ## Unreleased
 
+- Serve the XML sitemap at the standard `/sitemap.xml` by default, read every sitemap path from `capell.sitemap.xml_path` (page alias, sitemap index chunks, loader, health check), and permanently redirect the previous `/sitemap-xml` path, including path-prefixed and `?p=N` chunk requests, so existing installs keep working. Re-running sitemap page setup moves a stored `sitemap-xml` page alias to the configured path.
 - Added typed sitemap extension payloads for hreflang alternates, image, video, and news metadata.
 - Changed chunked XML sitemap writing to avoid duplicating the full URL list with `array_chunk`.
 - Retired the obsolete unauthenticated Google/Bing sitemap ping roadmap item in favour of the supported IndexNow notifier path.

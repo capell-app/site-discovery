@@ -8,6 +8,7 @@ use Capell\Core\Models\Language;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
 use Capell\Core\Support\Http\OutboundHttpRetry;
+use Capell\Core\Support\Http\PublicAddressPolicy;
 use Capell\SiteDiscovery\Actions\RedactIndexNowNotificationErrorMessageAction;
 use Capell\SiteDiscovery\Contracts\UrlChangeNotifier;
 use Capell\SiteDiscovery\Data\UrlChangeNotificationResultData;
@@ -191,7 +192,7 @@ final class IndexNowUrlChangeNotifier implements UrlChangeNotifier
             $records,
         ))));
 
-        throw_if($addresses === [] || collect($addresses)->contains(fn (string $address): bool => filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false), InvalidArgumentException::class, 'IndexNow endpoint is not allowed.');
+        throw_if(! resolve(PublicAddressPolicy::class)->allPublic($addresses), InvalidArgumentException::class, 'IndexNow endpoint is not allowed.');
 
         return [
             'url' => $endpoint,

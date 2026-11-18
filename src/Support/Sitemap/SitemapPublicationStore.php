@@ -22,6 +22,41 @@ final class SitemapPublicationStore
 {
     private const int MANIFEST_VERSION = 1;
 
+    /**
+     * Hang ceiling only: a promotion still copying or validating its set after this long has
+     * died, and pruning may then reclaim its directory.
+     */
+    private const int RESERVATION_ABANDONED_AFTER_SECONDS = 3600;
+
+    /**
+     * Claim a generation's set directory before it is written. Pruning by another
+     * site promotion spares every reserved generation until it is promoted or abandoned.
+     */
+    public function reserveGeneration(string $generationId): void
+    {
+        Cache::lock($this->lockKey(), 60)->block(10, function () use ($generationId): void {
+            throw_unless(
+                $this->storage()->put($this->reservationPath($generationId), (string) now()->getTimestamp()),
+                SitemapGeneratorException::class,
+                'Unable to reserve the sitemap generation for promotion.',
+            );
+        });
+    }
+
+    /**
+     * Remove a generation that was never promoted, and its reservation.
+     */
+    public function abandonGeneration(string $generationId): void
+    {
+        Cache::lock($this->lockKey(), 60)->block(10, function () use ($generationId): void {
+            if (! $this->isCurrentOrRollbackGeneration($generationId)) {
+                $this->storage()->deleteDirectory($this->setsDirectory() . '/' . $generationId);
+            }
+
+            $this->storage()->delete($this->reservationPath($generationId));
+        });
+    }
+
     public function promote(StagedSitemapSetData $sitemapSet): void
     {
         Cache::lock($this->lockKey(), 60)->block(10, function () use ($sitemapSet): void {
@@ -73,6 +108,7 @@ final class SitemapPublicationStore
                 'version' => self::MANIFEST_VERSION,
                 'sites' => $sites,
             ]);
+            $this->storage()->delete($this->reservationPath($sitemapSet->generationId));
 
             $this->pruneSiteGenerationDirectories(
                 $sitemapSet->siteKey,
@@ -421,7 +457,8 @@ final class SitemapPublicationStore
             $generationId = basename($generationDirectory);
 
             if (! $this->belongsToSite($generationId, $siteKey)
-                || in_array($generationId, $protectedGenerationIds, true)) {
+                || in_array($generationId, $protectedGenerationIds, true)
+                || $this->isReservedForPromotion($generationId)) {
                 continue;
             }
 
@@ -440,6 +477,47 @@ final class SitemapPublicationStore
                 ]);
             }
         }
+    }
+
+    /**
+     * Whether another process is still writing or validating this generation's set.
+     * An expired reservation is removed so its directory is pruned with the others.
+     */
+    private function isReservedForPromotion(string $generationId): bool
+    {
+        $storage = $this->storage();
+        $path = $this->reservationPath($generationId);
+
+        if (! $storage->exists($path)) {
+            return false;
+        }
+
+        $reservedAt = $storage->get($path);
+
+        if (is_string($reservedAt) && ctype_digit(trim($reservedAt))
+            && now()->getTimestamp() - (int) trim($reservedAt) < self::RESERVATION_ABANDONED_AFTER_SECONDS) {
+            return true;
+        }
+
+        $storage->delete($path);
+
+        return false;
+    }
+
+    private function isCurrentOrRollbackGeneration(string $generationId): bool
+    {
+        foreach ($this->sites($this->manifest()) as $site) {
+            if (is_array($site) && in_array($generationId, [$site['generation_id'] ?? null, $site['rollback_generation_id'] ?? null], true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function reservationPath(string $generationId): string
+    {
+        return $this->directory() . '/.reservations/' . $generationId;
     }
 
     private function belongsToSite(string $generationId, string $siteKey): bool
