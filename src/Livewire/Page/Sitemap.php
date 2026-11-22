@@ -80,7 +80,7 @@ class Sitemap extends AbstractPage
 
         $size = $storage->size($filePath);
         $lastModifiedTs = $storage->lastModified($filePath);
-        $lastModified = gmdate('D, d M Y H:i:s \G\M\T', is_numeric($lastModifiedTs) ? $lastModifiedTs : Date::now()->getTimestamp());
+        $lastModified = gmdate('D, d M Y H:i:s \G\M\T', is_numeric($lastModifiedTs) ? $lastModifiedTs : Date::now()->getTimestamp()); // locale-gate: machine-format
 
         // Use SHA-256 for ETag digest (stronger than sha1)
         $fileContents = $storage->get($filePath);

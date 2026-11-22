@@ -10,6 +10,9 @@ use Illuminate\Contracts\Queue\Factory as QueueFactory;
 use Illuminate\Queue\BackgroundQueue;
 use Illuminate\Queue\DeferredQueue;
 use Illuminate\Queue\SyncQueue;
+
+use function Illuminate\Support\defer;
+
 use Illuminate\Support\Facades\Cache;
 use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
@@ -48,18 +51,21 @@ final class RequestSiteSitemapRegenerationAction
             return false;
         }
 
-        $pending = dispatch(new RegenerateSiteSitemapIncrementallyJob($siteId));
-
         // An inline queue ignores the delay and runs the job at once, and the job releases the claim
         // as it starts, so every save in a burst would regenerate the whole sitemap. Running it as the
-        // request or command ends keeps the claim for the whole burst, which is the debounce's promise.
+        // request, command or queued job ends keeps the claim for the whole burst, which is the
+        // debounce's promise. A deferred callback runs once and is then forgotten; an after-response
+        // dispatch stays registered on the application and runs again whenever it terminates.
         if ($this->queueRunsJobsInline()) {
-            $pending->afterResponse();
+            defer(static function () use ($siteId): void {
+                dispatch_sync(new RegenerateSiteSitemapIncrementallyJob($siteId));
+            })->always();
 
             return true;
         }
 
-        $pending->delay(now()->addSeconds($delaySeconds));
+        dispatch(new RegenerateSiteSitemapIncrementallyJob($siteId))
+            ->delay(now()->addSeconds($delaySeconds));
 
         return true;
     }

@@ -20,6 +20,9 @@ use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
 use Capell\SiteDiscovery\Tests\SiteDiscoveryTestCase;
 use Illuminate\Bus\BusServiceProvider;
 use Illuminate\Events\CallQueuedListener;
+
+use function Illuminate\Support\defer;
+
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Exceptions;
@@ -139,6 +142,7 @@ it('queues owning site sitemap regeneration from the page saved listener', funct
 
     (new RegenerateSitemapsOnPageSaved)->handle(new PageSaved($page, ['title' => 'Updated title']));
 
+    defer()->invoke();
     Bus::assertDispatched(
         RegenerateSiteSitemapIncrementallyJob::class,
         static fn (RegenerateSiteSitemapIncrementallyJob $job): bool => $job->siteId === $site->id,
@@ -169,6 +173,7 @@ it('queues owning site sitemap regeneration from the page deleted listener', fun
 
     (new RegenerateSitemapsOnPageDeleted)->handle(new PageDeleted($page, ['reason' => 'admin cleanup']));
 
+    defer()->invoke();
     Bus::assertDispatched(
         RegenerateSiteSitemapIncrementallyJob::class,
         static fn (RegenerateSiteSitemapIncrementallyJob $job): bool => $job->siteId === $site->id,
@@ -234,6 +239,7 @@ it('queues sitemap regeneration when a domain is attached to a site', function (
         'language_id' => $language->id,
     ]);
 
+    defer()->invoke();
     Bus::assertDispatched(
         RegenerateSiteSitemapIncrementallyJob::class,
         static fn (RegenerateSiteSitemapIncrementallyJob $job): bool => $job->siteId === $site->id,
@@ -253,6 +259,7 @@ it('coalesces sitemap regeneration when several domains are attached at once', f
         'language_id' => $language->id,
     ]);
 
+    defer()->invoke();
     Bus::assertDispatchedTimes(RegenerateSiteSitemapIncrementallyJob::class, 1);
 });
 
@@ -268,11 +275,13 @@ it('requests no sitemap for a page change in a site that has no domain yet', fun
         ? (new RegenerateSitemapsOnPageSaved)->handle(new PageSaved($page, ['title' => 'Updated title']))
         : (new RegenerateSitemapsOnPageDeleted)->handle(new PageDeleted($page, ['reason' => 'admin cleanup']));
 
+    defer()->invoke();
     Bus::assertNotDispatched(RegenerateSiteSitemapIncrementallyJob::class);
 
     // No page change claimed the debounce, so the first domain still requests the sitemap.
     SiteDomain::factory()->create(['site_id' => $site->id, 'language_id' => $site->language_id]);
 
+    defer()->invoke();
     Bus::assertDispatchedTimes(RegenerateSiteSitemapIncrementallyJob::class, 1);
 })->with([RegenerateSitemapsOnPageSaved::class, RegenerateSitemapsOnPageDeleted::class]);
 
@@ -292,7 +301,7 @@ it('saves pages before the site domain exists without a failing sitemap job', fu
     expect($generator->incrementalSiteIds)->toBe([]);
 
     SiteDomain::factory()->create(['site_id' => $site->id, 'language_id' => $site->language_id]);
-    app()->terminate();
+    defer()->invoke();
 
     expect($generator->incrementalSiteIds)->toBe([$site->id]);
 });
@@ -310,6 +319,22 @@ it('regenerates a site sitemap once for a burst of page saves on an inline queue
 
     expect($generator->incrementalSiteIds)->toBe([]);
 
+    defer()->invoke();
+
+    expect($generator->incrementalSiteIds)->toBe([$site->id]);
+});
+
+it('regenerates an inline queued sitemap once, not again each time the application terminates', function (): void {
+    config()->set('queue.default', 'sync');
+    $generator = seoSuiteLifecycleFakeXmlSitemapGenerator();
+    app()->instance(XmlSitemapGenerator::class, $generator);
+    $site = Site::factory()->language(Language::factory()->create())->create();
+    SiteDomain::factory()->create(['site_id' => $site->id, 'language_id' => $site->language_id]);
+    PageSavedAction::run(Page::factory()->site($site)->create(), ['title' => 'Updated title']);
+
+    // The save's request ends, then two later requests end in the same application.
+    defer()->invoke();
+    app()->terminate();
     app()->terminate();
 
     expect($generator->incrementalSiteIds)->toBe([$site->id]);

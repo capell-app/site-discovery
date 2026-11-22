@@ -4,6 +4,7 @@ All notable changes to `capell-app/site-discovery` will be documented in this fi
 
 ## Unreleased
 
+- On an inline queue the debounced sitemap regeneration now runs once as the request, command or job ends. It used an after-response dispatch, which stayed registered on the application and ran again whenever the application terminated.
 - Serve the XML sitemap at the standard `/sitemap.xml` by default, read every sitemap path from `capell.sitemap.xml_path` (page alias, sitemap index chunks, loader, health check), and permanently redirect the previous `/sitemap-xml` path, including path-prefixed and `?p=N` chunk requests, so existing installs keep working. Re-running sitemap page setup moves a stored `sitemap-xml` page alias to the configured path.
 - Added typed sitemap extension payloads for hreflang alternates, image, video, and news metadata.
 - Changed chunked XML sitemap writing to avoid duplicating the full URL list with `array_chunk`.

@@ -8,9 +8,9 @@ A change reaches the sitemap about a minute after it is saved, once background j
 
 This builds on Discovery Foundation, which comes with it. Under the Insights & health menu in the admin, a report lists published pages that are missing from the sitemap or, when a search package is installed, from your site search. Filters narrow it by site or language, and each row gives the reason a page is missing and the next step.
 
-- **Price and availability:** Check current availability and price on the [Capell Marketplace listing](https://capell.app/extensions/site-discovery).
-- **Licence:** Check the licence terms on the [Capell Marketplace listing](https://capell.app/extensions/site-discovery).
-- **Requires:** `PHP ^8.4`, `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.76`, `capell-app/discovery-foundation ^1.0`, `capell-app/frontend ^1.0`.
+- **Price and availability:** Check current availability and price on the [Capell Marketplace listing](https://capell.app/marketplace/extensions/site-discovery).
+- **Licence:** Check the licence terms on the [Capell Marketplace listing](https://capell.app/marketplace/extensions/site-discovery).
+- **Requires:** `PHP ^8.4`, `capell-app/admin ^1.0.78`, `capell-app/core ^1.0.79`, `capell-app/discovery-foundation ^1.0`, `capell-app/frontend ^1.0.79`.
 - **Install:** `composer require capell-app/site-discovery`.
 
 ## Quick Start
@@ -29,7 +29,7 @@ URL and discovery-output contracts let packages contribute public records while 
 
 ## Limits And Pitfalls
 
-- Install the required Capell packages at the versions in `composer.json`: `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.76`, `capell-app/discovery-foundation ^1.0`, `capell-app/frontend ^1.0`.
+- Install the required Capell packages at the versions in `composer.json`: `capell-app/admin ^1.0.78`, `capell-app/core ^1.0.79`, `capell-app/discovery-foundation ^1.0`, `capell-app/frontend ^1.0.79`.
 - Review middleware, throttling, signatures, and public-output safety in `routes/web.php` before exposing routes.
 - Keep the host Laravel scheduler running so package-registered schedules can execute: `capell:xml-sitemap --incremental (manifest declared)`.
 - Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.

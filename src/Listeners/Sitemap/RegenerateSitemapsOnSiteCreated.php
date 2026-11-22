@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Capell\SiteDiscovery\Listeners\Sitemap;
 
+use Capell\Core\Actions\Extensions\RunUnderPackageAdmissionAction;
 use Capell\Core\Events\SiteCreated;
+use Capell\Core\Facades\CapellCore;
+use Capell\SiteDiscovery\Providers\SiteDiscoveryServiceProvider;
 use Capell\SiteDiscovery\Support\Sitemap\XmlSitemapGenerator;
 use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
@@ -20,15 +23,22 @@ class RegenerateSitemapsOnSiteCreated implements ShouldQueueAfterCommit
 
     public function __construct(private readonly XmlSitemapGenerator $generator) {}
 
+    public function shouldQueue(SiteCreated $event): bool
+    {
+        return CapellCore::isPackageEnabled(SiteDiscoveryServiceProvider::$packageName);
+    }
+
     public function handle(SiteCreated $event): void
     {
-        // A site can be created before any domain is attached. There is nothing to
-        // publish yet, and the first page save regenerates once a domain exists.
-        if (! $event->site->siteDomains()->exists()) {
-            return;
-        }
+        RunUnderPackageAdmissionAction::run(SiteDiscoveryServiceProvider::$packageName, function () use ($event): void {
+            // A site can be created before any domain is attached. There is nothing to
+            // publish yet, and the first page save regenerates once a domain exists.
+            if (! $event->site->siteDomains()->exists()) {
+                return;
+            }
 
-        $this->generator->processIncremental($event->site);
+            $this->generator->processIncremental($event->site);
+        });
     }
 
     /**

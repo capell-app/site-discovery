@@ -1,7 +1,8 @@
 {
     "package": "site-discovery",
     "composerName": "capell-app/site-discovery",
-    "generatedFor": "deployment-screenshot-runner",
+    "generatedFor": "shared-capell-screenshot-runner",
+    "provenancePolicy": "runner-only-v1",
     "requiresInstalledPackage": true,
     "outputDirectory": "packages/site-discovery/docs/screenshots",
     "fixtureEntryIds": ["xml-sitemap-output"],

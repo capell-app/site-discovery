@@ -6,7 +6,7 @@
     "kind": "package",
     "capellApiVersion": "^1.0",
     "version": "1.0.0",
-    "description": "Keeps each site's sitemap current as pages change, adds a visitor Sitemap page and flags published pages missing from search outputs.",
+    "description": "Keeps each site's sitemap current, adds a visitor Sitemap page and flags pages missing from the sitemap or, with Search installed, site search.",
     "product": {
         "group": "Capell Search & SEO",
         "tier": "free",
@@ -209,8 +209,8 @@
         "privateDocsRequested": true
     },
     "marketplace": {
-        "summary": "Sitemaps that update as pages are saved, a Sitemap page for visitors and an admin list of published pages missing from the sitemap or site search.",
-        "description": "Publish a sitemap for each site and have it rebuilt after pages are saved or deleted. Set pages aside with the hidden or noindex settings, give visitors a Sitemap page, and review published pages that are missing from other generated outputs, with filters for site and language.",
+        "summary": "Sitemaps that update as pages are saved, a visitor Sitemap page and a report of pages missing from the sitemap or optional site search.",
+        "description": "Publish a sitemap for each site and have it rebuilt after pages are saved or deleted. Set pages aside with the hidden or noindex settings, give visitors a Sitemap page, and review published pages missing from the sitemap or, when Search is installed, your site search. Filters narrow the list by site or language.",
         "problem": "Search engines may miss published pages when the sitemap is out of date.",
         "outcome": "Every visible page is listed in a checked sitemap that updates on save.",
         "faq": [

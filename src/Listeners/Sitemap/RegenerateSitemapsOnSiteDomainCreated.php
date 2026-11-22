@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Capell\SiteDiscovery\Listeners\Sitemap;
 
+use Capell\Core\Actions\Extensions\RunUnderPackageAdmissionAction;
 use Capell\Core\Models\SiteDomain;
 use Capell\SiteDiscovery\Actions\RequestSiteSitemapRegenerationAction;
+use Capell\SiteDiscovery\Providers\SiteDiscoveryServiceProvider;
 
 /**
  * A site created before any domain exists has no sitemap to publish, so its
@@ -16,12 +18,14 @@ class RegenerateSitemapsOnSiteDomainCreated
 {
     public function handle(SiteDomain $siteDomain): void
     {
-        $site = $siteDomain->site;
+        RunUnderPackageAdmissionAction::run(SiteDiscoveryServiceProvider::$packageName, function () use ($siteDomain): void {
+            $site = $siteDomain->site;
 
-        if ($site === null) {
-            return;
-        }
+            if ($site === null) {
+                return;
+            }
 
-        RequestSiteSitemapRegenerationAction::run($site);
+            RequestSiteSitemapRegenerationAction::run($site);
+        });
     }
 }

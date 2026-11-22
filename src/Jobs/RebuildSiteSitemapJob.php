@@ -66,7 +66,8 @@ final class RebuildSiteSitemapJob implements ShouldBeUnique, ShouldQueue
     private function decrementProgress(): void
     {
         $cachedRemaining = Cache::get(SitemapCacheKey::Generating->value, 0);
-        $remaining = (is_int($cachedRemaining) ? $cachedRemaining : 0) - 1;
+        // The Redis store returns a stored number as a numeric string.
+        $remaining = (is_numeric($cachedRemaining) ? (int) $cachedRemaining : 0) - 1;
 
         if ($remaining <= 0) {
             Cache::forget(SitemapCacheKey::Generating->value);

@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Capell\SiteDiscovery\Listeners\Sitemap;
 
+use Capell\Core\Actions\Extensions\RunUnderPackageAdmissionAction;
 use Capell\Core\Events\PageSaved;
+use Capell\Core\Facades\CapellCore;
 use Capell\SiteDiscovery\Actions\NotifyPageUrlChangesAction;
 use Capell\SiteDiscovery\Actions\RequestSiteSitemapRegenerationAction;
+use Capell\SiteDiscovery\Providers\SiteDiscoveryServiceProvider;
 use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Support\Facades\Log;
@@ -19,16 +22,23 @@ class RegenerateSitemapsOnPageSaved implements ShouldQueueAfterCommit
     /** @var list<int> */
     public array $backoff = [10, 60];
 
+    public function shouldQueue(PageSaved $event): bool
+    {
+        return CapellCore::isPackageEnabled(SiteDiscoveryServiceProvider::$packageName);
+    }
+
     public function handle(PageSaved $event): void
     {
-        $site = $event->page->site;
+        RunUnderPackageAdmissionAction::run(SiteDiscoveryServiceProvider::$packageName, function () use ($event): void {
+            $site = $event->page->site;
 
-        if ($site === null) {
-            return;
-        }
+            if ($site === null) {
+                return;
+            }
 
-        RequestSiteSitemapRegenerationAction::run($site);
-        NotifyPageUrlChangesAction::run($event->page);
+            RequestSiteSitemapRegenerationAction::run($site);
+            NotifyPageUrlChangesAction::run($event->page);
+        });
     }
 
     /**
