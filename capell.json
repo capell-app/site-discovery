@@ -6,6 +6,7 @@
     "kind": "package",
     "capellApiVersion": "^1.0",
     "version": "1.0.0",
+    "launchStatus": "shipped",
     "description": "Keeps each site's sitemap current, adds a visitor Sitemap page and flags pages missing from the sitemap or, with Search installed, site search.",
     "product": {
         "group": "Capell Search & SEO",
